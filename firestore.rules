@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ReportBD uses a secure backend API with MongoDB for primary data storage.
+    // Client-side Firestore is locked down by default to prevent unauthorized access or data exposure.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
