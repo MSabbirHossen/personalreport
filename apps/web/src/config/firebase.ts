@@ -33,12 +33,16 @@ if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'AIzaSy...') {
   }
 }
 
+export const isFirebaseConfigured = Boolean(auth);
+
 export {
   app,
   auth,
   googleProvider,
+  firebaseConfig,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
 };
+
