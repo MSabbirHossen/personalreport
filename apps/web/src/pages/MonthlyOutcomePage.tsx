@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { DEFAULT_METRIC_GROUPS } from '@reportbd/shared';
+import { DEFAULT_METRIC_GROUPS, MetricGroup, MetricDefinition } from '@reportbd/shared';
 import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import {
@@ -93,7 +93,7 @@ export const MonthlyOutcomePage: React.FC = () => {
     window.print();
   };
 
-  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g) => g.metrics);
+  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g: MetricGroup) => g.metrics);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto print-container">
@@ -178,7 +178,7 @@ export const MonthlyOutcomePage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {DEFAULT_METRIC_GROUPS.map((group) => (
+              {DEFAULT_METRIC_GROUPS.map((group: MetricGroup) => (
                 <React.Fragment key={group.id}>
                   {/* Group heading row */}
                   <tr className="bg-slate-50/50 dark:bg-slate-800/40">
@@ -187,7 +187,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                     </td>
                   </tr>
 
-                  {group.metrics.map((metric) => {
+                  {group.metrics.map((metric: MetricDefinition) => {
                     const targetVal = targets[metric.id];
                     const actualVal = derivedValues[metric.id];
 

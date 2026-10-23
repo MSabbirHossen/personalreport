@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { DEFAULT_METRIC_GROUPS, MetricDefinition } from '@reportbd/shared';
+import { DEFAULT_METRIC_GROUPS, MetricDefinition, MetricGroup } from '@reportbd/shared';
 import { api } from '../services/api.js';
 import {
   Save,
@@ -115,7 +115,7 @@ export const DailyReportPage: React.FC = () => {
     }
   };
 
-  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g) => g.metrics);
+  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g: MetricGroup) => g.metrics);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -220,7 +220,7 @@ export const DailyReportPage: React.FC = () => {
       {viewMode === 'single' ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {DEFAULT_METRIC_GROUPS.map((group) => (
+            {DEFAULT_METRIC_GROUPS.map((group: MetricGroup) => (
               <div
                 key={group.id}
                 className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
@@ -235,7 +235,7 @@ export const DailyReportPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-3.5">
-                  {group.metrics.map((metric) => {
+                  {group.metrics.map((metric: MetricDefinition) => {
                     const value = currentDayValues[metric.id];
 
                     if (metric.type === 'boolean') {
@@ -339,7 +339,7 @@ export const DailyReportPage: React.FC = () => {
                   <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[100px]">
                     তারিখ
                   </th>
-                  {allMetrics.map((m) => (
+                  {allMetrics.map((m: MetricDefinition) => (
                     <th
                       key={m.id}
                       className="p-2.5 font-semibold min-w-[110px] text-center border-r border-slate-200/60 dark:border-slate-700/60"
@@ -372,7 +372,7 @@ export const DailyReportPage: React.FC = () => {
                       <td className="p-3 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200">
                         {dayNum} তারিখ
                       </td>
-                      {allMetrics.map((m) => {
+                      {allMetrics.map((m: MetricDefinition) => {
                         const val = dayData[m.id];
                         return (
                           <td

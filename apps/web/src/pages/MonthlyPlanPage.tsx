@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { DEFAULT_METRIC_GROUPS } from '@reportbd/shared';
+import { DEFAULT_METRIC_GROUPS, MetricGroup, MetricDefinition } from '@reportbd/shared';
 import { api } from '../services/api.js';
 import {
   Target,
@@ -150,7 +150,7 @@ export const MonthlyPlanPage: React.FC = () => {
 
       {/* Target Setting Form Groups */}
       <div className="space-y-6">
-        {DEFAULT_METRIC_GROUPS.map((group) => (
+        {DEFAULT_METRIC_GROUPS.map((group: MetricGroup) => (
           <div
             key={group.id}
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4"
@@ -166,8 +166,8 @@ export const MonthlyPlanPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {group.metrics
-                .filter((m) => m.type !== 'boolean') // Only countable/duration metrics have monthly targets
-                .map((metric) => (
+                .filter((m: MetricDefinition) => m.type !== 'boolean') // Only countable/duration metrics have monthly targets
+                .map((metric: MetricDefinition) => (
                   <div key={metric.id} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <label className="font-medium text-slate-700 dark:text-slate-300 truncate">
