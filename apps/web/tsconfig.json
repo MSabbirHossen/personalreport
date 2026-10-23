@@ -11,7 +11,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "paths": {
+      "@reportbd/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../../packages/shared/src"]
 }
