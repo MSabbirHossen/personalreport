@@ -55,6 +55,12 @@ export async function initializeDatabase() {
     console.log('📌 Creating advice indexes...');
     await db.collection('advice').createIndex({ orgId: 1, studentId: 1, createdAt: -1 });
 
+    // 8. Invitations indexes
+    console.log('📌 Creating invitations indexes...');
+    await db.collection('invitations').createIndex({ token: 1 }, { unique: true });
+    await db.collection('invitations').createIndex({ orgId: 1, email: 1, status: 1 });
+    await db.collection('invitations').createIndex({ expiresAt: 1 });
+
     // 8. Template versions indexes & seed default template
     console.log('📌 Setting up default template...');
     await db.collection('templateVersions').createIndex(

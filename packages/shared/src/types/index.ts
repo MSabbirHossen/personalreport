@@ -181,6 +181,23 @@ export interface AuditEvent {
   timestamp: string;
 }
 
+export interface Invitation {
+  id: string;
+  orgId: string;
+  email: string;
+  role: SystemRole;
+  branchId?: string;
+  membershipLevelId?: string;
+  token: string;
+  status: 'pending' | 'accepted' | 'expired' | 'revoked';
+  createdBy: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  acceptedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UserAuthContext {
   userId: string;
   firebaseUid: string;
