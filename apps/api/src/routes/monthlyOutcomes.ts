@@ -35,7 +35,7 @@ monthlyOutcomesRouter.get('/:month', async (req: AuthenticatedRequest, res: Resp
     const dailyDocs = await db
       .collection('dailyReports')
       .find({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
         dateKey: { $regex: regex },
       })
@@ -53,14 +53,14 @@ monthlyOutcomesRouter.get('/:month', async (req: AuthenticatedRequest, res: Resp
 
     // 3. Fetch Monthly Plan for comparison
     const plan = await db.collection('monthlyPlans').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
     });
 
     // 4. Fetch Monthly Outcome record (manual values, reflections, status)
     const outcome = await db.collection('monthlyOutcomes').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
     });
@@ -93,7 +93,7 @@ monthlyOutcomesRouter.put('/:month', async (req: AuthenticatedRequest, res: Resp
     const now = new Date().toISOString();
 
     const existing = await db.collection('monthlyOutcomes').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
     });
@@ -101,7 +101,7 @@ monthlyOutcomesRouter.put('/:month', async (req: AuthenticatedRequest, res: Resp
     const nextRevision = existing ? (existing.revision || 1) + 1 : 1;
 
     const outcomeDoc = {
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
       manualValues: body.manualValues,
@@ -112,7 +112,7 @@ monthlyOutcomesRouter.put('/:month', async (req: AuthenticatedRequest, res: Resp
     };
 
     await db.collection('monthlyOutcomes').updateOne(
-      { orgId: user.orgId, studentId: user.userId, monthKey: month },
+      { orgId: user.orgId!, studentId: user.userId, monthKey: month },
       {
         $set: outcomeDoc,
         $setOnInsert: { createdAt: now },
@@ -139,7 +139,7 @@ monthlyOutcomesRouter.post('/:month/submit', async (req: AuthenticatedRequest, r
     const dailyDocs = await db
       .collection('dailyReports')
       .find({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
         dateKey: { $regex: regex },
       })
@@ -162,7 +162,7 @@ monthlyOutcomesRouter.post('/:month/submit', async (req: AuthenticatedRequest, r
     };
 
     await db.collection('monthlyOutcomes').updateOne(
-      { orgId: user.orgId, studentId: user.userId, monthKey: month },
+      { orgId: user.orgId!, studentId: user.userId, monthKey: month },
       {
         $set: {
           derivedValues,

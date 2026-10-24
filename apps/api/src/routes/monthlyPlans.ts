@@ -18,7 +18,7 @@ monthlyPlansRouter.get('/:month', async (req: AuthenticatedRequest, res: Respons
     const db = await getDb();
 
     const plan = await db.collection('monthlyPlans').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
     });
@@ -58,7 +58,7 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
     const now = new Date().toISOString();
 
     const existing = await db.collection('monthlyPlans').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
     });
@@ -66,7 +66,7 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
     const nextRevision = existing ? (existing.revision || 1) + 1 : 1;
 
     const planDoc = {
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       monthKey: month,
       targets: body.targets,
@@ -77,7 +77,7 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
     };
 
     await db.collection('monthlyPlans').updateOne(
-      { orgId: user.orgId, studentId: user.userId, monthKey: month },
+      { orgId: user.orgId!, studentId: user.userId, monthKey: month },
       {
         $set: planDoc,
         $setOnInsert: { createdAt: now },
@@ -100,7 +100,7 @@ monthlyPlansRouter.post('/:month/share', async (req: AuthenticatedRequest, res: 
     const now = new Date().toISOString();
 
     const result = await db.collection('monthlyPlans').updateOne(
-      { orgId: user.orgId, studentId: user.userId, monthKey: month },
+      { orgId: user.orgId!, studentId: user.userId, monthKey: month },
       {
         $set: {
           status: 'shared',

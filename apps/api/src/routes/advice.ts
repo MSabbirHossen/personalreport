@@ -14,7 +14,7 @@ adviceRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
     const adviceList = await db
       .collection('advice')
       .find({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
       })
       .sort({ createdAt: -1 })
@@ -48,7 +48,7 @@ adviceRouter.post('/:id/acknowledge', async (req: AuthenticatedRequest, res: Res
     const now = new Date().toISOString();
 
     const result = await db.collection('advice').updateOne(
-      { _id: new ObjectId(id), studentId: user.userId, orgId: user.orgId },
+      { _id: new ObjectId(id), studentId: user.userId, orgId: user.orgId! },
       {
         $set: {
           isAcknowledged: true,

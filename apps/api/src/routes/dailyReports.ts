@@ -22,7 +22,7 @@ dailyReportsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => 
     const reports = await db
       .collection('dailyReports')
       .find({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
         dateKey: { $regex: regex },
       })
@@ -60,7 +60,7 @@ dailyReportsRouter.get('/:date', async (req: AuthenticatedRequest, res: Response
     const db = await getDb();
 
     const report = await db.collection('dailyReports').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       dateKey: date,
     });
@@ -98,7 +98,7 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
     const now = new Date().toISOString();
 
     const existing = await db.collection('dailyReports').findOne({
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       dateKey: date,
     });
@@ -118,7 +118,7 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
     }
 
     const reportDoc = {
-      orgId: user.orgId,
+      orgId: user.orgId!,
       studentId: user.userId,
       dateKey: date,
       templateVersionId: body.templateVersionId || 'default_v1',
@@ -130,7 +130,7 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
     };
 
     await db.collection('dailyReports').updateOne(
-      { orgId: user.orgId, studentId: user.userId, dateKey: date },
+      { orgId: user.orgId!, studentId: user.userId, dateKey: date },
       {
         $set: reportDoc,
         $setOnInsert: { createdAt: now },
@@ -141,7 +141,7 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
     // Save revision audit log if it's a correction
     if (isCorrection) {
       await db.collection('dailyReportRevisions').insertOne({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
         dateKey: date,
         revision: nextRevision,
@@ -172,7 +172,7 @@ dailyReportsRouter.get('/:date/revisions', async (req: AuthenticatedRequest, res
     const revisions = await db
       .collection('dailyReportRevisions')
       .find({
-        orgId: user.orgId,
+        orgId: user.orgId!,
         studentId: user.userId,
         dateKey: date,
       })
