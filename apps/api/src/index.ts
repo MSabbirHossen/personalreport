@@ -12,6 +12,7 @@ async function startServer() {
     app.listen(config.port, () => {
       console.log(`🚀 ReportBD API server running on http://localhost:${config.port}`);
       console.log(`📡 Health endpoint: http://localhost:${config.port}/health`);
+      console.log(`📡 Readiness endpoint: http://localhost:${config.port}/health/ready`);
     });
   } catch (error) {
     console.error('Fatal error starting server:', error);
