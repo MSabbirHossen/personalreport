@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "npx concurrently -k -n shared,web,api -c blue,cyan,green \"npm run dev -w packages/shared\" \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev -w apps/web",
     "dev:api": "npm run dev -w apps/api",
     "build": "npm run build --workspaces --if-present",
@@ -16,6 +16,7 @@
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
   }
 }
