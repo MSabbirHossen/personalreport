@@ -25,7 +25,14 @@ supervisorRouter.get('/students', async (req: AuthenticatedRequest, res: Respons
       })
       .toArray();
 
-    const studentIds = assignments.map((a) => new ObjectId(a.studentId));
+    const studentIds = assignments.map((a) => {
+      try {
+        return new ObjectId(a.studentId);
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
     const students = await db
       .collection('users')
       .find({ _id: { $in: studentIds } })
@@ -54,10 +61,47 @@ supervisorRouter.post('/reviews/:outcomeId', async (req: AuthenticatedRequest, r
     const db = await getDb();
     const now = new Date().toISOString();
 
+    let objectId: ObjectId;
+    try {
+      objectId = new ObjectId(outcomeId);
+    } catch {
+      res.status(400).json({ code: 'INVALID_ID', message: 'Malformed outcome identifier.' });
+      return;
+    }
+
+    // 1. Fetch outcome to verify tenant and target student
+    const outcome = await db.collection('monthlyOutcomes').findOne({
+      _id: objectId,
+      orgId: user.orgId,
+    });
+
+    if (!outcome) {
+      res.status(404).json({ code: 'NOT_FOUND', message: 'Monthly outcome not found' });
+      return;
+    }
+
+    // 2. Verify assignment: Supervisors may only review currently assigned students
+    if (!user.roles.includes('org_admin') && !user.roles.includes('platform_admin')) {
+      const assignment = await db.collection('supervisorAssignments').findOne({
+        orgId: user.orgId,
+        supervisorId: user.userId,
+        studentId: outcome.studentId,
+        status: 'active',
+      });
+
+      if (!assignment) {
+        res.status(403).json({
+          code: 'FORBIDDEN',
+          message: 'You are not assigned to review this student.',
+        });
+        return;
+      }
+    }
+
     const newStatus = body.action === 'acknowledge' ? 'acknowledged' : 'returned';
 
-    const result = await db.collection('monthlyOutcomes').updateOne(
-      { _id: new ObjectId(outcomeId), orgId: user.orgId },
+    await db.collection('monthlyOutcomes').updateOne(
+      { _id: objectId, orgId: user.orgId },
       {
         $set: {
           status: newStatus,
@@ -69,29 +113,21 @@ supervisorRouter.post('/reviews/:outcomeId', async (req: AuthenticatedRequest, r
       }
     );
 
-    if (result.matchedCount === 0) {
-      res.status(404).json({ code: 'NOT_FOUND', message: 'Monthly outcome not found' });
-      return;
-    }
-
     // If feedback provided, automatically add to advice
     if (body.feedback) {
-      const outcome = await db.collection('monthlyOutcomes').findOne({ _id: new ObjectId(outcomeId) });
-      if (outcome) {
-        await db.collection('advice').insertOne({
-          orgId: user.orgId,
-          studentId: outcome.studentId,
-          authorId: user.userId,
-          authorName: user.name,
-          authorRole: 'Supervisor',
-          targetType: 'outcome',
-          targetId: outcomeId,
-          monthKey: outcome.monthKey,
-          body: body.feedback,
-          isAcknowledged: false,
-          createdAt: now,
-        });
-      }
+      await db.collection('advice').insertOne({
+        orgId: user.orgId,
+        studentId: outcome.studentId,
+        authorId: user.userId,
+        authorName: user.name,
+        authorRole: user.roles.includes('org_admin') ? 'Admin' : 'Supervisor',
+        targetType: 'outcome',
+        targetId: outcomeId,
+        monthKey: outcome.monthKey,
+        body: body.feedback,
+        isAcknowledged: false,
+        createdAt: now,
+      });
     }
 
     res.json({ success: true, message: `Report marked as ${newStatus}` });
@@ -109,16 +145,18 @@ supervisorRouter.post('/advice', async (req: AuthenticatedRequest, res: Response
     const now = new Date().toISOString();
 
     // Verify supervisor is assigned to this student
-    const assignment = await db.collection('supervisorAssignments').findOne({
-      orgId: user.orgId,
-      supervisorId: user.userId,
-      studentId: body.studentId,
-      status: 'active',
-    });
+    if (!user.roles.includes('org_admin') && !user.roles.includes('platform_admin')) {
+      const assignment = await db.collection('supervisorAssignments').findOne({
+        orgId: user.orgId,
+        supervisorId: user.userId,
+        studentId: body.studentId,
+        status: 'active',
+      });
 
-    if (!assignment && !user.roles.includes('org_admin')) {
-      res.status(403).json({ code: 'FORBIDDEN', message: 'You are not assigned to this student.' });
-      return;
+      if (!assignment) {
+        res.status(403).json({ code: 'FORBIDDEN', message: 'You are not assigned to this student.' });
+        return;
+      }
     }
 
     const adviceDoc = {
