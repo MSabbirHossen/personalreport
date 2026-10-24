@@ -21,6 +21,14 @@ export function errorHandler(
     return;
   }
 
+  if (err.message?.includes('not permitted by CORS policy')) {
+    res.status(403).json({
+      code: 'CORS_FORBIDDEN',
+      message: 'Origin not permitted by CORS policy.',
+    });
+    return;
+  }
+
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     code: err.code || 'INTERNAL_SERVER_ERROR',
