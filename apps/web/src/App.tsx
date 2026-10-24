@@ -9,6 +9,7 @@ import { MonthlyOutcomePage } from './pages/MonthlyOutcomePage.js';
 import { AdvicePage } from './pages/AdvicePage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { InvitePage } from './pages/InvitePage.js';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -34,6 +35,7 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/invite/:token" element={<InvitePage />} />
 
           {/* Protected App Routes */}
           <Route
