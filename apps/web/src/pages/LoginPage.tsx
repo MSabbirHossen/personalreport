@@ -164,16 +164,18 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          <div className="relative flex items-center justify-center border-t border-slate-100 dark:border-slate-800 pt-4">
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full py-2.5 px-4 rounded-xl border border-brand-200 dark:border-brand-900/60 bg-brand-50/60 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold hover:bg-brand-100/70 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              <span>ডেমো অ্যাকাউন্ট দিয়ে দ্রুত প্রবেশ করুন</span>
-            </button>
-          </div>
+          {import.meta.env.DEV && (
+            <div className="relative flex items-center justify-center border-t border-slate-100 dark:border-slate-800 pt-4">
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full py-2.5 px-4 rounded-xl border border-brand-200 dark:border-brand-900/60 bg-brand-50/60 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold hover:bg-brand-100/70 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>ডেমো অ্যাকাউন্ট দিয়ে দ্রুত প্রবেশ করুন (Development Only)</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Footer info */}

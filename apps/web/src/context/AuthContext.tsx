@@ -53,14 +53,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         api.getMe()
           .then((res) => setUser(res.user))
           .catch(() => {
-            // Dev demo fallback
-            setUser({
-              id: 'mock_user_123',
-              name: 'মো. সাব্বির হোসেন',
-              email: 'sabbir@reportbd.org',
-              roles: ['student'],
-              orgId: 'org_default',
-            });
+            if (import.meta.env.DEV) {
+              setUser({
+                id: 'mock_user_123',
+                name: 'মো. সাব্বির হোসেন',
+                email: 'sabbir@reportbd.org',
+                roles: ['student'],
+                orgId: 'org_default',
+              });
+            } else {
+              setUser(null);
+            }
           })
           .finally(() => setLoading(false));
       } else {
@@ -81,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         const localToken = localStorage.getItem('auth_token');
-        if (localToken === 'mock-token') {
+        if (import.meta.env.DEV && localToken === 'mock-token') {
           // Keep demo login if in demo mode
           try {
             const res = await api.getMe();
@@ -114,6 +117,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginDemo = async () => {
+    if (!import.meta.env.DEV) {
+      console.warn('Demo login is strictly disabled in production.');
+      return;
+    }
     localStorage.setItem('auth_token', 'mock-token');
     try {
       const res = await api.getMe();

@@ -4,10 +4,12 @@ export async function fetchWithAuth<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('auth_token') || 'mock-token';
+  const token = localStorage.getItem('auth_token');
 
   const headers = new Headers(options.headers || {});
-  headers.set('Authorization', `Bearer ${token}`);
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
   if (!headers.has('Content-Type') && options.body && typeof options.body === 'string') {
     headers.set('Content-Type', 'application/json');
   }
@@ -81,5 +83,25 @@ export const api = {
   acknowledgeAdvice: (id: string) =>
     fetchWithAuth<{ success: boolean; message: string }>(`/advice/${id}/acknowledge`, {
       method: 'POST',
+    }),
+
+  // Memberships & Invitations
+  getMemberships: () => fetchWithAuth<{ memberships: any[] }>('/me/memberships'),
+  getInvitation: (token: string) =>
+    fetchWithAuth<{ valid: boolean; invitation: any; organization: any }>(`/invitations/${token}`),
+  acceptInvitation: (token: string) =>
+    fetchWithAuth<{ success: boolean; message: string; membership: any }>(`/invitations/${token}/accept`, {
+      method: 'POST',
+    }),
+  getOrganizationInvitations: () =>
+    fetchWithAuth<{ invitations: any[] }>('/organization/invitations'),
+  createInvitation: (payload: any) =>
+    fetchWithAuth<{ success: boolean; invitation: any }>('/organization/invitations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  revokeInvitation: (id: string) =>
+    fetchWithAuth<{ success: boolean; message: string }>(`/organization/invitations/${id}`, {
+      method: 'DELETE',
     }),
 };
