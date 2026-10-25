@@ -15,6 +15,7 @@ import { templatesRouter } from './routes/templates.js';
 import { supervisorRouter } from './routes/supervisor.js';
 import { organizationRouter } from './routes/organization.js';
 import { invitationsRouter } from './routes/invitations.js';
+import { notificationsRouter } from './routes/notifications.js';
 
 export const app = express();
 
@@ -107,6 +108,7 @@ v1.use('/monthly-outcomes', requireAuth, requireActiveMembership, monthlyOutcome
 v1.use('/advice', requireAuth, requireActiveMembership, adviceRouter);
 v1.use('/supervisor', requireAuth, requireActiveMembership, supervisorRouter);
 v1.use('/organization', requireAuth, requireActiveMembership, organizationRouter);
+v1.use('/notifications', requireAuth, requireActiveMembership, notificationsRouter);
 
 app.use('/api/v1', v1);
 
