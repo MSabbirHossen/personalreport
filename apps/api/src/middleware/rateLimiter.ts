@@ -16,14 +16,24 @@ export interface RateLimiterOptions {
 // In-memory bucket store
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
-// Periodic cleanup of expired rate limit keys every 5 minutes
-const cleanupInterval = setInterval(() => {
-  const now = Date.now();
+export function getRateLimitStoreSize(): number {
+  return rateLimitStore.size;
+}
+
+export function cleanupExpiredRateLimits(currentTime: number = Date.now()): number {
+  let cleaned = 0;
   for (const [key, record] of rateLimitStore.entries()) {
-    if (record.resetTime <= now) {
+    if (record.resetTime <= currentTime) {
       rateLimitStore.delete(key);
+      cleaned += 1;
     }
   }
+  return cleaned;
+}
+
+// Periodic cleanup of expired rate limit keys every 5 minutes
+const cleanupInterval = setInterval(() => {
+  cleanupExpiredRateLimits();
 }, 5 * 60 * 1000);
 
 // Prevent cleanup interval from holding Node process open on exit
