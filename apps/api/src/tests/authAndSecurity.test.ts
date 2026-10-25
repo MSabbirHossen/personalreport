@@ -114,10 +114,13 @@ describe('Authentication, Authorization & Security Quality Gates', () => {
   let mockDb: MockDb;
 
   before(async () => {
-    // Start Express on an ephemeral random OS port
-    server = app.listen(0);
-    const address = server.address() as any;
-    baseUrl = `http://127.0.0.1:${address.port}`;
+    await new Promise<void>((resolve) => {
+      server = app.listen(0, '127.0.0.1', () => {
+        const address = server.address() as any;
+        baseUrl = `http://127.0.0.1:${address.port}`;
+        resolve();
+      });
+    });
   });
 
   after(async () => {
