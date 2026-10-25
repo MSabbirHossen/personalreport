@@ -172,3 +172,31 @@
 - **Remediation Status:** **Resolved**.
 - **Fix Details:** Upgraded the index definition in `initDb.ts` from `{ sparse: true }` to `{ unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }`. MongoDB now only enforces uniqueness when `idempotencyKey` is an actual string, allowing multiple standard notifications per recipient while strictly deduplicating idempotent operations.
 - **Verification Evidence:** Verified against a live MongoDB engine in `apps/api/src/tests/realMongoIntegration.test.ts`.
+
+---
+
+### 16. Unbounded API Consumption & Abuse Vectors on Sensitive Endpoints
+- **Severity:** High / Availability & Anti-Abuse
+- **Location:** `apps/api/src/middleware/rateLimiter.ts`, `apps/api/src/routes/`
+- **Vulnerability:** Endpoints responsible for invite acceptance, organization invitation dispatch, supervisor outcome reviews, and administrative audit queries lacked request-rate limiting. An attacker could brute-force invitation tokens, spam email invitations, trigger Denial-of-Service via unbounded audit scans, or flood review submissions.
+- **Impact:** Service degradation, invitation brute-forcing, resource exhaustion, and spam abuse.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:**
+  1. Implemented a zero-dependency in-memory sliding-window rate limiter with automated memory cleanup.
+  2. Configured strict tiering: `authRateLimiter` (15 req/15min on token acceptance), `inviteRateLimiter` (30 req/15min on invitation creation), `sensitiveOpsLimiter` (60 req/min on review submission and audit log queries), and `generalApiLimiter` (300 req/min on `/api/v1`).
+  3. When limit is exceeded, responds with HTTP 429 `TOO_MANY_REQUESTS` and RFC-compliant `Retry-After` header.
+  4. Supports `trust proxy` configuration via `config.trustProxy` to avoid spoofed client IP headers when behind a trusted reverse proxy.
+- **Verification Evidence:** `Sec-5: Sliding window rate limiter enforces request limits and returns 429` in `apps/api/src/tests/securityHardening.test.ts`.
+
+---
+
+### 17. Shallow Audit Metadata Sanitization & Unobserved Audit Logging Failures
+- **Severity:** Medium / Audit Reliability & Compliance
+- **Location:** `apps/api/src/services/audit.ts`
+- **Vulnerability:** Metadata sanitization was previously shallow (only iterating top-level object keys). Sensitive credentials or private tokens nested within inner objects or arrays would not be detected and could be written to the database. Additionally, database write errors during audit logging were caught and logged to console, but gave operators no programmatic visibility into failure rates or operational degradation.
+- **Impact:** Potential leakage of deeply nested credentials; silent degradation of security audit logging without alerting.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:**
+  1. Enhanced `sanitizeMetadata` to recursively sanitize nested objects and arrays up to depth 6, truncating strings > 256 characters and replacing sensitive keys with `"[REDACTED]"`.
+  2. Implemented operational metrics tracking (`getAuditMetrics()`) with `totalLogged`, `totalFailures`, `lastFailureAt`, and `lastFailureReason` for operational monitoring and health alerting.
+- **Verification Evidence:** `Sec-1`, `Sec-2`, `Sec-3`, and `Sec-4` in `apps/api/src/tests/securityHardening.test.ts`.
