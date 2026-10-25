@@ -8,7 +8,17 @@ apps/*/dist
 packages/*/dist
 .env
 .env.*
+**/.env
+**/.env.*
 !.env.example
+!apps/*/.env.example
+!packages/*/.env.example
+*firebase-service-account*.json
+**/*firebase-service-account*.json
+*.pem
+**/*.pem
+*.key
+**/*.key
 *.log
 *.webp
 .vscode

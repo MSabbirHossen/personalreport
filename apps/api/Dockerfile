@@ -36,13 +36,17 @@ RUN apk add --no-cache curl
 # Run as non-root user for security hardening
 USER node
 
-# Copy production artifacts and pruned node_modules
-COPY --chown=node:node package.json ./
-COPY --chown=node:node packages/shared/package.json ./packages/shared/
-COPY --chown=node:node packages/shared/dist ./packages/shared/dist
-COPY --chown=node:node apps/api/package.json ./apps/api/
-COPY --chown=node:node apps/api/dist ./apps/api/dist
-COPY --chown=node:node node_modules ./node_modules
+# Copy production artifacts and pruned node_modules from builder stage
+COPY --from=builder --chown=node:node /app/package.json ./
+COPY --from=builder --chown=node:node /app/packages/shared/package.json ./packages/shared/
+COPY --from=builder --chown=node:node /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=node:node /app/apps/api/package.json ./apps/api/
+COPY --from=builder --chown=node:node /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=node:node /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+
+# Ensure shared package resolves dependencies from workspace node_modules
+RUN ln -s /app/apps/api/node_modules /app/packages/shared/node_modules
 
 EXPOSE 4000
 
