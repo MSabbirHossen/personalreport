@@ -3,20 +3,46 @@ import assert from 'node:assert/strict';
 import { MongoClient, Db, ObjectId } from 'mongodb';
 import { logAuditEvent } from '../services/audit.js';
 
+// Strict allowlist of approved test database names: prevents accidental target of dev or prod DBs
+const ALLOWED_TEST_DB_NAMES = new Set([
+  'reportbd_test',
+  'reportbd_test_ci',
+  'reportbd_test_phase5',
+  'reportbd_test_phase6',
+  'reportbd_test_phase7',
+  'reportbd_test_phase8',
+  'reportbd_integration_test',
+]);
+
+function extractDatabaseName(uri: string, fallback: string): string {
+  try {
+    const url = new URL(uri.replace(/^mongodb(\+srv)?:\/\//, 'http://'));
+    const pathname = url.pathname.replace(/^\//, '').split('?')[0];
+    return pathname || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 describe('Real MongoDB Integration Verification (Stage 3)', () => {
   const mongoUri =
     process.env.TEST_MONGODB_URI ||
-    'mongodb://127.0.0.1:27017/reportbd_test_phase7?directConnection=true';
-  const testDbName = 'reportbd_test_phase7';
+    'mongodb://127.0.0.1:27017/reportbd_test_phase8?directConnection=true';
+  const testDbName = process.env.TEST_DB_NAME || extractDatabaseName(mongoUri, 'reportbd_test_phase8');
   let client: MongoClient;
   let db: Db;
   let isMongoAvailable = false;
 
+  const shouldFailIfUnavailable =
+    process.env.CI === 'true' || process.env.FAIL_ON_UNAVAILABLE_MONGO === 'true';
+
   before(async () => {
     try {
-      // Safety guard: Never drop a non-test database
-      if (!testDbName.toLowerCase().includes('test')) {
-        throw new Error(`Refusing to drop non-test database: ${testDbName}`);
+      // Safety guard: Strict allowlist check to protect production and development databases
+      if (!ALLOWED_TEST_DB_NAMES.has(testDbName)) {
+        throw new Error(
+          `Refusing to drop or operate on unapproved database: "${testDbName}". Only explicit test databases (${Array.from(ALLOWED_TEST_DB_NAMES).join(', ')}) are permitted.`
+        );
       }
 
       client = new MongoClient(mongoUri, {
@@ -28,27 +54,36 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
       db = client.db(testDbName);
       await db.command({ ping: 1 });
       isMongoAvailable = true;
+
+      // Verify connected database name strictly matches allowlist before destructive drop
+      if (!ALLOWED_TEST_DB_NAMES.has(db.databaseName)) {
+        throw new Error(`Connected database "${db.databaseName}" does not match test allowlist.`);
+      }
       // Clean slate for testing
       await db.dropDatabase();
     } catch (err: any) {
       console.warn('⚠️ Real MongoDB not accessible on', mongoUri, err.message);
       isMongoAvailable = false;
+      if (shouldFailIfUnavailable) {
+        throw new Error(
+          `CRITICAL: Real MongoDB instance required but failed to connect or initialize: ${err.message}`
+        );
+      }
     }
   });
 
   after(async () => {
     if (client && isMongoAvailable) {
       try {
-        await db.dropDatabase();
+        if (ALLOWED_TEST_DB_NAMES.has(db?.databaseName)) {
+          await db.dropDatabase();
+        }
       } catch {
         // Ignored
       }
       await client.close();
     }
   });
-
-  const shouldFailIfUnavailable =
-    process.env.CI === 'true' || process.env.FAIL_ON_UNAVAILABLE_MONGO === 'true';
 
   function ensureMongoAvailable(t: any): boolean {
     if (!isMongoAvailable) {
