@@ -56,6 +56,13 @@ export function sanitizeMetadata(value: any, depth = 0): any {
   }
 
   if (typeof value === 'string') {
+    if (
+      value.startsWith('Bearer ') ||
+      value.includes('BEGIN PRIVATE KEY') ||
+      value.includes('BEGIN RSA PRIVATE KEY')
+    ) {
+      return '[REDACTED]';
+    }
     // Truncate overly long text fields to max 256 chars for audit log efficiency
     return value.length > 256 ? `${value.substring(0, 253)}...` : value;
   }
