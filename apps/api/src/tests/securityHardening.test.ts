@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Server } from 'node:http';
 import express, { Request, Response } from 'express';
 import { sanitizeMetadata, logAuditEvent, getAuditMetrics, resetAuditMetrics } from '../services/audit.js';
-import { createRateLimiter, clearRateLimits } from '../middleware/rateLimiter.js';
+import { createRateLimiter, clearRateLimits, cleanupExpiredRateLimits, getRateLimitStoreSize } from '../middleware/rateLimiter.js';
 import { errorHandler } from '../middleware/errorHandler.js';
 
 describe('Security Hardening & Protection Tests (Stage 1 & 2)', () => {
@@ -55,6 +55,19 @@ describe('Security Hardening & Protection Tests (Stage 1 & 2)', () => {
       }
       const sanitizedDeep = sanitizeMetadata(deepObj);
       assert.ok(JSON.stringify(sanitizedDeep).includes('[TRUNCATED_DEPTH]'));
+    });
+
+    test('Sec-8: sanitizeMetadata redacts secret-like values (Bearer tokens, PEM keys) under non-sensitive keys', () => {
+      const payloadWithSecretValues = {
+        arbitraryHeader: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy',
+        tlsCertificate: '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----',
+        innocentNote: 'Meeting at 3 PM',
+      };
+
+      const sanitized = sanitizeMetadata(payloadWithSecretValues);
+      assert.equal(sanitized.arbitraryHeader, '[REDACTED]');
+      assert.equal(sanitized.tlsCertificate, '[REDACTED]');
+      assert.equal(sanitized.innocentNote, 'Meeting at 3 PM');
     });
 
     test('Sec-3: logAuditEvent records failure in audit metrics without crashing the application', async () => {
@@ -172,6 +185,18 @@ describe('Security Hardening & Protection Tests (Stage 1 & 2)', () => {
       assert.ok(res4.headers.get('Retry-After'));
       const body4: any = await res4.json();
       assert.equal(body4.code, 'TOO_MANY_REQUESTS');
+    });
+
+    test('Sec-9: cleanupExpiredRateLimits evicts expired bucket entries preventing unbounded memory growth', () => {
+      // Current store has at least one entry from Sec-5
+      assert.ok(getRateLimitStoreSize() > 0, 'Store should contain records from requests');
+
+      // Simulating a future timestamp past the 1-second window
+      const futureTime = Date.now() + 5000;
+      const cleaned = cleanupExpiredRateLimits(futureTime);
+
+      assert.ok(cleaned > 0, 'Should clean up expired rate limit records');
+      assert.equal(getRateLimitStoreSize(), 0, 'All expired records should be evicted from memory');
     });
   });
 

@@ -6,14 +6,19 @@ import { logAuditEvent } from '../services/audit.js';
 describe('Real MongoDB Integration Verification (Stage 3)', () => {
   const mongoUri =
     process.env.TEST_MONGODB_URI ||
-    'mongodb://127.0.0.1:27017/reportbd_test_phase5?directConnection=true';
-  const testDbName = 'reportbd_test_phase5';
+    'mongodb://127.0.0.1:27017/reportbd_test_phase7?directConnection=true';
+  const testDbName = 'reportbd_test_phase7';
   let client: MongoClient;
   let db: Db;
   let isMongoAvailable = false;
 
   before(async () => {
     try {
+      // Safety guard: Never drop a non-test database
+      if (!testDbName.toLowerCase().includes('test')) {
+        throw new Error(`Refusing to drop non-test database: ${testDbName}`);
+      }
+
       client = new MongoClient(mongoUri, {
         directConnection: true,
         serverSelectionTimeoutMS: 5000,
