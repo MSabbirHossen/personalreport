@@ -34,6 +34,8 @@ jobs:
       NODE_ENV: test
       CI: 'true'
       TEST_MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
+      TEST_DB_NAME: reportbd_test_ci
+      MONGODB_DB_NAME: reportbd_test_ci
       FAIL_ON_UNAVAILABLE_MONGO: 'true'
       FIREBASE_PROJECT_ID: reportbd-ci-test
       FIREBASE_CLIENT_EMAIL: ci-service-account@reportbd-ci-test.iam.gserviceaccount.com
@@ -57,7 +59,11 @@ jobs:
       - name: Verify code formatting and whitespace
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git diff --check "origin/${{ github.base_ref }}...HEAD"
+            BASE_REF="${{ github.event.pull_request.base.sha }}"
+            if [ -z "$BASE_REF" ]; then
+              BASE_REF="origin/${{ github.base_ref }}"
+            fi
+            git diff --check "$BASE_REF...HEAD"
           elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && [ -n "${{ github.event.before }}" ]; then
             git diff --check "${{ github.event.before }}...${{ github.sha }}"
           else
