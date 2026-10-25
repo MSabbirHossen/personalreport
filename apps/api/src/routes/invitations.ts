@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { AuthenticatedRequest, requireAuth } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
+import { logAuditEvent } from '../services/audit.js';
 
 export const invitationsRouter = Router();
 
@@ -131,6 +132,22 @@ invitationsRouter.post('/:token/accept', requireAuth, async (req: AuthenticatedR
         },
       }
     );
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: invitation.orgId,
+      actorId: user.userId,
+      actorRole: assignedRole,
+      action: 'invitation.accepted',
+      entityType: 'invitation',
+      entityId: invitation._id.toString(),
+      metadata: {
+        role: assignedRole,
+        branchId: invitation.branchId,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({
       success: true,

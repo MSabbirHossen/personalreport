@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import { SaveMonthlyPlanInputSchema } from '@reportbd/shared';
+import { logAuditEvent } from '../services/audit.js';
 
 export const monthlyPlansRouter = Router();
 
@@ -177,6 +178,19 @@ monthlyPlansRouter.post('/:month/share', async (req: AuthenticatedRequest, res: 
       res.status(404).json({ code: 'NOT_FOUND', message: 'Monthly plan draft not found' });
       return;
     }
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'plan.shared',
+      entityType: 'monthlyPlan',
+      entityId: `${user.userId}_${month}`,
+      metadata: { monthKey: month },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({ success: true, message: 'Plan shared with supervisor' });
   } catch (err: any) {

@@ -8,6 +8,7 @@ import {
   SupervisorQueueQuerySchema,
 } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
+import { logAuditEvent } from '../services/audit.js';
 
 export const supervisorRouter = Router();
 
@@ -602,6 +603,26 @@ supervisorRouter.post('/reviews/:outcomeId', async (req: AuthenticatedRequest, r
       console.error('Failed to dispatch student review notification:', notifErr);
     }
 
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: body.action === 'acknowledge' ? 'review.acknowledged' : 'review.returned',
+      entityType: 'monthlyOutcome',
+      entityId: outcomeId,
+      metadata: {
+        studentId: outcome.studentId,
+        monthKey: outcome.monthKey,
+        action: body.action,
+        status: newStatus,
+        feedback: body.feedback,
+        revision: updatedRevision,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
     res.json({
       success: true,
       message: `Report marked as ${newStatus}`,
@@ -673,6 +694,23 @@ supervisorRouter.post('/advice', async (req: AuthenticatedRequest, res: Response
     } catch (notifErr) {
       console.error('Failed to dispatch advice notification:', notifErr);
     }
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'advice.created',
+      entityType: 'advice',
+      entityId: adviceId,
+      metadata: {
+        studentId: body.studentId,
+        monthKey: body.monthKey,
+        targetType: body.targetType,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({
       success: true,

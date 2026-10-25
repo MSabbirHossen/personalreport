@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import { ReplyAdviceInputSchema } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
+import { logAuditEvent } from '../services/audit.js';
 
 export const adviceRouter = Router();
 
@@ -209,6 +210,22 @@ adviceRouter.post('/:id/reply', async (req: AuthenticatedRequest, res: Response)
     } catch (notifErr) {
       console.error('Failed to dispatch advice reply notification:', notifErr);
     }
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'advice.replied',
+      entityType: 'advice',
+      entityId: id,
+      metadata: {
+        studentId: advice.studentId,
+        replyAuthorRole: replyItem.authorRole,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({
       success: true,

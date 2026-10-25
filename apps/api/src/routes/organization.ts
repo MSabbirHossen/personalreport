@@ -3,7 +3,12 @@ import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import { AuthenticatedRequest, requireRole } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
-import { CreateInvitationInputSchema, AssignSupervisorInputSchema } from '@reportbd/shared';
+import {
+  CreateInvitationInputSchema,
+  AssignSupervisorInputSchema,
+  AuditEventsQuerySchema,
+} from '@reportbd/shared';
+import { logAuditEvent } from '../services/audit.js';
 
 export const organizationRouter = Router();
 
@@ -44,7 +49,24 @@ organizationRouter.post('/assignments', async (req: AuthenticatedRequest, res: R
       createdAt: now,
     };
 
-    await db.collection('supervisorAssignments').insertOne(assignmentDoc);
+    const insertResult = await db.collection('supervisorAssignments').insertOne(assignmentDoc);
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'assignment.created',
+      entityType: 'supervisorAssignment',
+      entityId: insertResult.insertedId.toString(),
+      metadata: {
+        studentId: body.studentId,
+        supervisorId: body.supervisorId,
+        startAt: body.startAt || now,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({ success: true, assignment: assignmentDoc });
   } catch (err: any) {
@@ -106,6 +128,24 @@ organizationRouter.post('/invitations', async (req: AuthenticatedRequest, res: R
     };
 
     const insertResult = await db.collection('invitations').insertOne(invitationDoc);
+
+    // Record audit event (redacting the token)
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'invitation.created',
+      entityType: 'invitation',
+      entityId: insertResult.insertedId.toString(),
+      metadata: {
+        email,
+        role: body.role,
+        branchId: body.branchId,
+        expiresInDays,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({
       success: true,
@@ -173,8 +213,100 @@ organizationRouter.delete('/invitations/:id', async (req: AuthenticatedRequest, 
       return;
     }
 
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'invitation.revoked',
+      entityType: 'invitation',
+      entityId: id,
+      metadata: { status: 'revoked' },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
     res.json({ success: true, message: 'Invitation revoked successfully.' });
   } catch (err: any) {
     res.status(500).json({ code: 'REVOCATION_FAILED', message: err.message });
+  }
+});
+
+// GET /api/v1/organization/audit-events — ADMINISTRATIVE AUDIT LOG EXPLORER (ADMIN-07)
+organizationRouter.get('/audit-events', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    const parsedQuery = AuditEventsQuerySchema.safeParse(req.query);
+
+    if (!parsedQuery.success) {
+      res.status(400).json({
+        code: 'INVALID_QUERY',
+        message: 'Invalid audit query parameters',
+        details: parsedQuery.error.format(),
+      });
+      return;
+    }
+
+    const { from, to, actorId, action, entityType, limit = 50, offset = 0 } = parsedQuery.data;
+    const db = await getDb();
+
+    // Strict organization scoping
+    const filter: Record<string, any> = {
+      orgId: user.orgId!,
+    };
+
+    if (actorId) {
+      filter.actorId = actorId;
+    }
+
+    if (action) {
+      filter.action = action;
+    }
+
+    if (entityType) {
+      filter.entityType = entityType;
+    }
+
+    if (from || to) {
+      filter.time = {};
+      if (from) {
+        filter.time.$gte = from;
+      }
+      if (to) {
+        // If 'to' is only YYYY-MM-DD, set to end of day
+        filter.time.$lte = to.length === 10 ? `${to}T23:59:59.999Z` : to;
+      }
+    }
+
+    const total = await db.collection('auditEvents').countDocuments(filter);
+
+    const events = await db
+      .collection('auditEvents')
+      .find(filter)
+      .sort({ time: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray();
+
+    res.json({
+      events: events.map((ev) => ({
+        id: ev._id ? ev._id.toString() : ev.id,
+        orgId: ev.orgId,
+        actorId: ev.actorId,
+        actorRole: ev.actorRole,
+        action: ev.action,
+        entityType: ev.entityType,
+        entityId: ev.entityId,
+        time: ev.time || ev.timestamp,
+        metadata: ev.metadata,
+        ip: ev.ip,
+        userAgent: ev.userAgent,
+      })),
+      total,
+      limit,
+      offset,
+    });
+  } catch (err: any) {
+    res.status(500).json({ code: 'AUDIT_FETCH_FAILED', message: err.message });
   }
 });

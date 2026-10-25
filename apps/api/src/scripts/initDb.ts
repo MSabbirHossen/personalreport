@@ -89,10 +89,17 @@ export async function initializeDatabase() {
     await db.collection('notifications').createIndex({ orgId: 1, recipientId: 1, isRead: 1, createdAt: -1 });
     await db.collection('notifications').createIndex(
       { orgId: 1, recipientId: 1, idempotencyKey: 1 },
-      { unique: true, sparse: true }
+      { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }
     );
 
-    // 10. Seed default organization
+    // 10. Audit events indexes (ADMIN-07)
+    console.log('📌 Creating auditEvents indexes...');
+    await db.collection('auditEvents').createIndex({ orgId: 1, time: -1 });
+    await db.collection('auditEvents').createIndex({ orgId: 1, action: 1, time: -1 });
+    await db.collection('auditEvents').createIndex({ orgId: 1, entityType: 1, entityId: 1, time: -1 });
+    await db.collection('auditEvents').createIndex({ orgId: 1, actorId: 1, time: -1 });
+
+    // 11. Seed default organization
     console.log('📌 Setting up default organization...');
     await db.collection('organizations').updateOne(
       { slug: 'default-org' },

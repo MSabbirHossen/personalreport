@@ -8,6 +8,7 @@ import {
   SubmitMonthlyOutcomeInputSchema,
 } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
+import { logAuditEvent } from '../services/audit.js';
 
 export const monthlyOutcomesRouter = Router();
 
@@ -303,6 +304,23 @@ monthlyOutcomesRouter.post('/:month/submit', async (req: AuthenticatedRequest, r
     } catch (notifErr) {
       console.error('Failed to dispatch supervisor notification:', notifErr);
     }
+
+    // Record audit event
+    await logAuditEvent(db, {
+      orgId: user.orgId!,
+      actorId: user.userId,
+      actorRole: user.roles[0],
+      action: 'report.submitted',
+      entityType: 'monthlyOutcome',
+      entityId: `${user.userId}_${month}`,
+      metadata: {
+        monthKey: month,
+        dailyReportsCount: dailyDocs.length,
+        revision: nextRevision,
+      },
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
 
     res.json({
       success: true,
