@@ -30,25 +30,34 @@ export const MonthlyOutcomePage: React.FC = () => {
   }>({});
   const [outcomeStatus, setOutcomeStatus] = useState<string>('draft');
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
+  const [isStale, setIsStale] = useState<boolean>(false);
+  const [staleReason, setStaleReason] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<any>(null);
+  const [revision, setRevision] = useState<number>(0);
 
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const loadOutcome = async () => {
+    try {
+      const res = await api.getMonthlyOutcome(selectedMonth);
+      setDerivedValues(res.derivedValues || {});
+      setManualValues(res.manualValues || {});
+      setTargets(res.targets || {});
+      setReflections(res.reflections || {});
+      setOutcomeStatus(res.status || 'draft');
+      setSubmittedAt(res.submittedAt || null);
+      setIsStale(Boolean(res.isStale));
+      setStaleReason(res.staleReason || null);
+      setSnapshot(res.snapshot || null);
+      setRevision(res.revision || 0);
+    } catch (err) {
+      console.warn('Could not fetch monthly outcome:', err);
+    }
+  };
+
   useEffect(() => {
-    const loadOutcome = async () => {
-      try {
-        const res = await api.getMonthlyOutcome(selectedMonth);
-        setDerivedValues(res.derivedValues || {});
-        setManualValues(res.manualValues || {});
-        setTargets(res.targets || {});
-        setReflections(res.reflections || {});
-        setOutcomeStatus(res.status || 'draft');
-        setSubmittedAt(res.submittedAt || null);
-      } catch (err) {
-        console.warn('Could not fetch monthly outcome:', err);
-      }
-    };
     loadOutcome();
   }, [selectedMonth]);
 
@@ -56,10 +65,12 @@ export const MonthlyOutcomePage: React.FC = () => {
     setSaving(true);
     setStatusMsg(null);
     try {
-      await api.saveMonthlyOutcome(selectedMonth, {
+      const res = await api.saveMonthlyOutcome(selectedMonth, {
         manualValues,
         reflections,
+        revision,
       });
+      setRevision(res.outcome?.revision || revision + 1);
       setStatusMsg({ type: 'success', text: 'ফলাফল খসড়া সংরক্ষিত হয়েছে।' });
       setTimeout(() => setStatusMsg(null), 3000);
     } catch (err: any) {
@@ -70,17 +81,24 @@ export const MonthlyOutcomePage: React.FC = () => {
   };
 
   const handleSubmitReport = async () => {
-    if (!window.confirm('আপনি কি নিশ্চিত যে মাসিক রিপোর্টটি দায়িত্বশীলের মূল্যায়নের জন্য জমা দিতে চান?')) {
+    const isResubmit = outcomeStatus === 'returned';
+    const confirmText = isResubmit
+      ? 'আপনি কি নিশ্চিত যে সংশোধিত মাসিক রিপোর্টটি পুনরায় জমা দিতে চান?'
+      : 'আপনি কি নিশ্চিত যে মাসিক রিপোর্টটি দায়িত্বশীলের মূল্যায়নের জন্য জমা দিতে চান? (জমার পর স্ন্যাপশট সংরক্ষিত থাকবে)';
+
+    if (!window.confirm(confirmText)) {
       return;
     }
     setSubmitting(true);
     setStatusMsg(null);
     try {
-      await api.saveMonthlyOutcome(selectedMonth, { manualValues, reflections });
+      await api.saveMonthlyOutcome(selectedMonth, { manualValues, reflections, revision });
       await api.submitMonthlyOutcome(selectedMonth);
-      setOutcomeStatus('submitted');
-      setSubmittedAt(new Date().toISOString());
-      setStatusMsg({ type: 'success', text: 'মাসিক রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে!' });
+      await loadOutcome();
+      setStatusMsg({
+        type: 'success',
+        text: isResubmit ? 'সংশোধিত রিপোর্ট সফলভাবে পুনরায় জমা দেওয়া হয়েছে!' : 'মাসিক রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে!',
+      });
       setTimeout(() => setStatusMsg(null), 4000);
     } catch (err: any) {
       setStatusMsg({ type: 'error', text: err.message || 'রিপোর্ট জমা ব্যর্থ হয়েছে।' });
@@ -111,6 +129,8 @@ export const MonthlyOutcomePage: React.FC = () => {
                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
                   : outcomeStatus === 'submitted'
                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                  : outcomeStatus === 'returned'
+                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
                   : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
               }`}
             >
@@ -118,6 +138,8 @@ export const MonthlyOutcomePage: React.FC = () => {
                 ? 'অনুমোদিত ও পর্যালোচিত'
                 : outcomeStatus === 'submitted'
                 ? 'জমা দেওয়া হয়েছে'
+                : outcomeStatus === 'returned'
+                ? 'সংশোধনের জন্য ফেরত'
                 : 'খসড়া'}
             </span>
           </div>
@@ -147,6 +169,45 @@ export const MonthlyOutcomePage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Status banner */}
+      {statusMsg && (
+        <div
+          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 no-print ${
+            statusMsg.type === 'success'
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200'
+              : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200'
+          }`}
+        >
+          {statusMsg.type === 'success' ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span>{statusMsg.text}</span>
+        </div>
+      )}
+
+      {/* Stale Snapshot Warning */}
+      {isStale && (
+        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-start gap-3 no-print">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <p className="font-bold">সতর্কবার্তা: জমা দেওয়ার পর দৈনিক তথ্যে পরিবর্তন করা হয়েছে (Snapshot Stale)</p>
+            <p className="text-amber-700 dark:text-amber-300">
+              {staleReason || 'রিপোর্ট সাবমিট করার পর এই মাসের দৈনিক এন্ট্রি আপডেট করা হয়েছে।'} দায়িত্বশীলের পর্যালোচনার অখণ্ডতা নিশ্চিত করার স্বার্থে পূর্বে জমাকৃত স্ন্যাপশট অপরিবর্তিত রাখা হয়েছে।
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Snapshot Information Banner */}
+      {snapshot && ['submitted', 'in_review', 'acknowledged'].includes(outcomeStatus) && (
+        <div className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between no-print">
+          <span>📌 প্রদর্শিত ফলাফলসমূহ জমাকৃত স্ন্যাপশট ({new Date(snapshot.calculatedAt).toLocaleString('bn-BD')}) থেকে সংরক্ষিত।</span>
+          <span className="font-medium text-slate-500">মোট দিন: {snapshot.dailyReportsCount || 0}</span>
+        </div>
+      )}
 
       {/* Printable Header details */}
       <div className="hidden print:block mb-6 text-center border-b pb-4">
@@ -299,33 +360,55 @@ export const MonthlyOutcomePage: React.FC = () => {
       </div>
 
       {/* Submission Actions */}
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-print">
         <div className="text-xs text-slate-500">
           {submittedAt ? (
-            <span>জমা দেওয়ার সময়: {new Date(submittedAt).toLocaleString('bn-BD')}</span>
+            <div className="space-y-0.5">
+              <span>জমা দেওয়ার সময়: <strong>{new Date(submittedAt).toLocaleString('bn-BD')}</strong></span>
+              {outcomeStatus === 'acknowledged' && (
+                <span className="block text-emerald-600 dark:text-emerald-400 font-semibold">✓ দায়িত্বশীল কর্তৃক রিপোর্ট অনুমোদিত হয়েছে।</span>
+              )}
+              {outcomeStatus === 'returned' && (
+                <span className="block text-rose-600 dark:text-rose-400 font-semibold">⚠️ রিপোর্টটি সংশোধনের জন্য ফেরত দেওয়া হয়েছে। সংশোধন শেষে পুনরায় জমা দিন।</span>
+              )}
+            </div>
           ) : (
             <span>খসড়া হিসেবে সংরক্ষিত রয়েছে</span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleSaveDraft}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer"
-          >
-            <Save className="h-4 w-4" />
-            <span>খসড়া সংরক্ষণ</span>
-          </button>
+          {outcomeStatus !== 'submitted' && outcomeStatus !== 'acknowledged' ? (
+            <>
+              <button
+                onClick={handleSaveDraft}
+                disabled={saving || submitting}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'খসড়া সংরক্ষণ'}</span>
+              </button>
 
-          <button
-            onClick={handleSubmitReport}
-            disabled={submitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer"
-          >
-            <Send className="h-4 w-4" />
-            <span>মাসিক রিপোর্ট ফাইনাল জমা দিন</span>
-          </button>
+              <button
+                onClick={handleSubmitReport}
+                disabled={submitting || saving}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+                <span>
+                  {submitting
+                    ? 'জমা হচ্ছে...'
+                    : outcomeStatus === 'returned'
+                    ? 'সংশোধিত রিপোর্ট পুনরায় জমা দিন'
+                    : 'মাসিক রিপোর্ট ফাইনাল জমা দিন'}
+                </span>
+              </button>
+            </>
+          ) : (
+            <div className="text-xs text-slate-500 italic">
+              রিপোর্টটি লক করা রয়েছে। কোনো পরিবর্তন আনতে চাইলে দায়িত্বশীলকে রিপোর্টটি ফেরত পাঠানোর অনুরোধ জানান।
+            </div>
+          )}
         </div>
       </div>
     </div>

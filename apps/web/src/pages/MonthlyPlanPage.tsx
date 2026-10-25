@@ -20,21 +20,26 @@ export const MonthlyPlanPage: React.FC = () => {
   const [targets, setTargets] = useState<Record<string, any>>({});
   const [notes, setNotes] = useState<string>('');
   const [planStatus, setPlanStatus] = useState<string>('draft');
+  const [revision, setRevision] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [isConflict, setIsConflict] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const loadPlan = async () => {
+    try {
+      const res = await api.getMonthlyPlan(selectedMonth);
+      setTargets(res.targets || {});
+      setNotes(res.notes || '');
+      setPlanStatus(res.status || 'draft');
+      setRevision(res.revision || 0);
+      setIsConflict(false);
+    } catch (err) {
+      console.warn('Could not fetch monthly plan:', err);
+    }
+  };
+
   useEffect(() => {
-    const loadPlan = async () => {
-      try {
-        const res = await api.getMonthlyPlan(selectedMonth);
-        setTargets(res.targets || {});
-        setNotes(res.notes || '');
-        setPlanStatus(res.status || 'draft');
-      } catch (err) {
-        console.warn('Could not fetch monthly plan:', err);
-      }
-    };
     loadPlan();
   }, [selectedMonth]);
 
@@ -48,15 +53,26 @@ export const MonthlyPlanPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     setStatusMsg(null);
+    setIsConflict(false);
     try {
-      await api.saveMonthlyPlan(selectedMonth, {
+      const res = await api.saveMonthlyPlan(selectedMonth, {
         targets,
         notes,
+        revision,
       });
+      setRevision(res.plan?.revision || revision + 1);
       setStatusMsg({ type: 'success', text: 'পরিকল্পনা সফলভাবে সংরক্ষণ করা হয়েছে।' });
       setTimeout(() => setStatusMsg(null), 3000);
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message || 'সংরক্ষণ ব্যর্থ হয়েছে।' });
+      if (err.status === 409 || err.code === 'CONFLICT') {
+        setIsConflict(true);
+        setStatusMsg({
+          type: 'error',
+          text: 'অন্য ডিভাইসে পরিকল্পনাটি পরিবর্তন হয়েছে। সর্বশেষ তথ্য দেখতে নিচের রিলোড বাটনে চাপ দিন।',
+        });
+      } else {
+        setStatusMsg({ type: 'error', text: err.message || 'সংরক্ষণ ব্যর্থ হয়েছে।' });
+      }
     } finally {
       setSaving(false);
     }
@@ -66,7 +82,7 @@ export const MonthlyPlanPage: React.FC = () => {
     setSharing(true);
     setStatusMsg(null);
     try {
-      await api.saveMonthlyPlan(selectedMonth, { targets, notes });
+      await api.saveMonthlyPlan(selectedMonth, { targets, notes, revision });
       await api.shareMonthlyPlan(selectedMonth);
       setPlanStatus('shared');
       setStatusMsg({ type: 'success', text: 'পরিকল্পনা দায়িত্বশীলের সাথে শেয়ার করা হয়েছে!' });
@@ -133,18 +149,29 @@ export const MonthlyPlanPage: React.FC = () => {
       {/* Status banner */}
       {statusMsg && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 no-print ${
+          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 no-print ${
             statusMsg.type === 'success'
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200'
               : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200'
           }`}
         >
-          {statusMsg.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-2">
+            {statusMsg.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+            ) : (
+              <AlertCircle className="h-4 w-4 shrink-0" />
+            )}
+            <span>{statusMsg.text}</span>
+          </div>
+          {isConflict && (
+            <button
+              type="button"
+              onClick={loadPlan}
+              className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 font-bold text-xs cursor-pointer"
+            >
+              ডাটা রিলোড করুন
+            </button>
           )}
-          <span>{statusMsg.text}</span>
         </div>
       )}
 

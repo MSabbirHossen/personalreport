@@ -74,29 +74,64 @@ export const DailyReportPage: React.FC = () => {
     }));
   };
 
+  const [isConflict, setIsConflict] = useState(false);
+
   const handleSave = async () => {
     setSaving(true);
     setErrorMsg(null);
+    setIsConflict(false);
     try {
-      await api.saveDailyReport(selectedDate, {
+      const currentRev = monthReports[selectedDate]?.revision;
+      const res = await api.saveDailyReport(selectedDate, {
         values: currentDayValues,
+        revision: typeof currentRev === 'number' ? currentRev : undefined,
       });
 
-      // Update local month state
+      // Update local month state with authoritative server record
       setMonthReports((prev) => ({
         ...prev,
         [selectedDate]: {
           ...(prev[selectedDate] || {}),
-          values: currentDayValues,
-          status: 'saved',
-          lastSavedAt: new Date().toISOString(),
+          values: res.report.values,
+          revision: res.report.revision,
+          status: res.report.status,
+          lastSavedAt: res.report.lastSavedAt,
         },
       }));
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
+      if (err.status === 409 || err.code === 'CONFLICT') {
+        setIsConflict(true);
+        setErrorMsg('অন্য ডিভাইসে পরিবর্তন হয়েছে: সার্ভারে নতুন তথ্য বিদ্যমান। প্রতিস্থাপন না করে সর্বশেষ ডাটা দেখতে রিলোড করুন।');
+      } else {
+        setErrorMsg(err.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReload = async () => {
+    try {
+      setSaving(true);
+      const res = await api.getDailyReportForDate(selectedDate);
+      setCurrentDayValues(res.values || {});
+      setMonthReports((prev) => ({
+        ...prev,
+        [selectedDate]: {
+          ...(prev[selectedDate] || {}),
+          values: res.values || {},
+          revision: res.revision,
+          status: res.status,
+          lastSavedAt: res.lastSavedAt,
+        },
+      }));
+      setIsConflict(false);
+      setErrorMsg(null);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'রিলোড করতে ব্যর্থ হয়েছে');
     } finally {
       setSaving(false);
     }
@@ -293,7 +328,7 @@ export const DailyReportPage: React.FC = () => {
 
           {/* Sticky Save Action Bar */}
           <div className="sticky bottom-16 lg:bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-xl flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {saveSuccess && (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="h-4 w-4" />
@@ -301,14 +336,28 @@ export const DailyReportPage: React.FC = () => {
                 </div>
               )}
               {errorMsg && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{errorMsg}</span>
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                  {isConflict && (
+                    <button
+                      type="button"
+                      onClick={handleReload}
+                      className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      ডাটা রিলোড করুন
+                    </button>
+                  )}
                 </div>
               )}
               {!saveSuccess && !errorMsg && (
                 <span className="text-xs text-slate-500 dark:text-slate-400">
                   তারিখ: <strong className="text-slate-800 dark:text-slate-200">{selectedDate}</strong>
+                  {typeof monthReports[selectedDate]?.revision === 'number' && (
+                    <span className="ml-2 text-slate-400">(রিভিশন #{monthReports[selectedDate].revision})</span>
+                  )}
                 </span>
               )}
             </div>
