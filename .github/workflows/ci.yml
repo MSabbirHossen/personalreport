@@ -55,7 +55,14 @@ jobs:
         run: npm ci
 
       - name: Verify code formatting and whitespace
-        run: git diff --check
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && [ -n "${{ github.event.before }}" ]; then
+            git diff --check "${{ github.event.before }}...${{ github.sha }}"
+          else
+            git diff --check HEAD~1...HEAD || true
+          fi
 
       - name: Run shared package tests
         run: npm test -w packages/shared
