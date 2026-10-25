@@ -10,6 +10,9 @@ import { AdvicePage } from './pages/AdvicePage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { InvitePage } from './pages/InvitePage.js';
+import { NotificationsPage } from './pages/NotificationsPage.js';
+import { SupervisorDashboardPage } from './pages/SupervisorDashboardPage.js';
+import { SupervisorReportReviewPage } from './pages/SupervisorReportReviewPage.js';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -52,7 +55,24 @@ export const App: React.FC = () => {
             <Route path="reports/monthly-plan" element={<MonthlyPlanPage />} />
             <Route path="reports/monthly-outcome" element={<MonthlyOutcomePage />} />
             <Route path="advice" element={<AdvicePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+          </Route>
+
+          {/* Protected Supervisor Routes */}
+          <Route
+            path="/supervisor"
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/supervisor/dashboard" replace />} />
+            <Route path="dashboard" element={<SupervisorDashboardPage />} />
+            <Route path="students" element={<SupervisorDashboardPage />} />
+            <Route path="students/:studentId/reports" element={<SupervisorDashboardPage />} />
+            <Route path="reports/:outcomeId" element={<SupervisorReportReviewPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/app/home" replace />} />

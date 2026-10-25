@@ -1,11 +1,22 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext.js';
+import { api } from '../../services/api.js';
 import { Bell, User, LogOut, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const [isDark, setIsDark] = React.useState(false);
+
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => api.getNotifications(),
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = notifData?.unreadCount ?? 0;
 
   const toggleDarkMode = () => {
     document.documentElement.classList.toggle('dark');
@@ -42,14 +53,18 @@ export const Header: React.FC = () => {
           {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
         </button>
 
-        {/* Notifications / Advice Link */}
+        {/* Notifications Link */}
         <Link
-          to="/app/advice"
+          to="/app/notifications"
           className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-          title="পরামর্শ ও বিজ্ঞপ্তি"
+          title="বিজ্ঞপ্তি ও আপডেট"
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-slate-900" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </Link>
 
         {/* User profile dropdown / info */}

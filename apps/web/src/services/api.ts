@@ -22,7 +22,12 @@ export async function fetchWithAuth<T>(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'API request failed');
+    const error: any = new Error(data.message || 'API request failed');
+    error.code = data.code;
+    error.status = response.status;
+    error.serverRevision = data.serverRevision;
+    error.serverValues = data.serverValues;
+    throw error;
   }
 
   return data;
@@ -78,11 +83,87 @@ export const api = {
       method: 'POST',
     }),
 
-  // Advice
-  getAdvice: () => fetchWithAuth<{ advice: any[] }>('/advice'),
+  // Advice & Mentorship
+  getAdvice: (params?: { studentId?: string; monthKey?: string }) => {
+    const search = new URLSearchParams();
+    if (params?.studentId) search.set('studentId', params.studentId);
+    if (params?.monthKey) search.set('monthKey', params.monthKey);
+    const qs = search.toString();
+    return fetchWithAuth<{ advice: any[] }>(`/advice${qs ? `?${qs}` : ''}`);
+  },
   acknowledgeAdvice: (id: string) =>
     fetchWithAuth<{ success: boolean; message: string }>(`/advice/${id}/acknowledge`, {
       method: 'POST',
+    }),
+  replyAdvice: (id: string, body: string) =>
+    fetchWithAuth<{ success: boolean; message: string; reply: any }>(`/advice/${id}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    }),
+
+  // Notifications
+  getNotifications: () =>
+    fetchWithAuth<{ notifications: any[]; unreadCount: number }>('/notifications'),
+  markNotificationRead: (id: string) =>
+    fetchWithAuth<{ success: boolean; message: string }>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+  markAllNotificationsRead: () =>
+    fetchWithAuth<{ success: boolean; message: string; updatedCount: number }>(
+      '/notifications/read-all',
+      { method: 'POST' }
+    ),
+
+  // Supervisor Dashboard & Review
+  getSupervisorDashboard: () =>
+    fetchWithAuth<{ summary: any }>('/supervisor/dashboard'),
+  getSupervisorQueue: (params?: {
+    monthKey?: string;
+    status?: string;
+    studentId?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const search = new URLSearchParams();
+    if (params?.monthKey) search.set('monthKey', params.monthKey);
+    if (params?.status) search.set('status', params.status);
+    if (params?.studentId) search.set('studentId', params.studentId);
+    if (params?.page) search.set('page', params.page.toString());
+    if (params?.limit) search.set('limit', params.limit.toString());
+    const qs = search.toString();
+    return fetchWithAuth<{ queue: any[]; total: number; page: number; limit: number }>(
+      `/supervisor/queue${qs ? `?${qs}` : ''}`
+    );
+  },
+  getSupervisorStudents: () =>
+    fetchWithAuth<{ students: any[] }>('/supervisor/students'),
+  getSupervisorStudentReports: (studentId: string) =>
+    fetchWithAuth<{ studentId: string; reports: any[] }>(`/supervisor/students/${studentId}/reports`),
+  getSupervisorReportDetail: (outcomeId: string) =>
+    fetchWithAuth<{ outcome: any; student: any; plan: any; adviceHistory: any[] }>(
+      `/supervisor/reports/${outcomeId}`
+    ),
+  submitSupervisorReview: (
+    outcomeId: string,
+    payload: { action: 'acknowledge' | 'return'; feedback?: string; revision?: number }
+  ) =>
+    fetchWithAuth<{ success: boolean; message: string; status: string; reviewedAt: string; revision: number }>(
+      `/supervisor/reviews/${outcomeId}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    ),
+  postSupervisorAdvice: (payload: {
+    studentId: string;
+    targetType: 'plan' | 'outcome' | 'general';
+    targetId?: string;
+    monthKey?: string;
+    body: string;
+  }) =>
+    fetchWithAuth<{ success: boolean; advice: any }>('/supervisor/advice', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
 
   // Memberships & Invitations

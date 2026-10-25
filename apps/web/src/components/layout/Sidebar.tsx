@@ -8,6 +8,8 @@ import {
   MessageSquareQuote,
   User,
   ShieldAlert,
+  Bell,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 
@@ -29,6 +31,7 @@ export const Sidebar: React.FC = () => {
     { to: '/app/reports/monthly-plan', labelBn: 'মাসিক পরিকল্পনা', labelEn: 'Monthly Plan', icon: Target },
     { to: '/app/reports/monthly-outcome', labelBn: 'মাসিক ফলাফল', labelEn: 'Monthly Report', icon: FileSpreadsheet },
     { to: '/app/advice', labelBn: 'পরামর্শ ও মন্তব্য', labelEn: 'Advice', icon: MessageSquareQuote },
+    { to: '/app/notifications', labelBn: 'বিজ্ঞপ্তি', labelEn: 'Notifications', icon: Bell },
     { to: '/app/profile', labelBn: 'প্রোফাইল', labelEn: 'Profile', icon: User },
   ];
 
@@ -74,17 +77,17 @@ export const Sidebar: React.FC = () => {
           </p>
           <div className="space-y-1 pt-2">
             <NavLink
-              to="/supervisor/students"
+              to="/supervisor/dashboard"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
                 }`
               }
             >
-              <ShieldAlert className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span>ছাত্র তালিকা ও পর্যালোচনা</span>
+              <ClipboardCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>রিপোর্ট পর্যালোচনা কিউ</span>
             </NavLink>
           </div>
         </div>
