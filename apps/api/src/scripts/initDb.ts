@@ -84,7 +84,15 @@ export async function initializeDatabase() {
       { upsert: true }
     );
 
-    // 9. Seed default organization
+    // 9. Notifications indexes
+    console.log('📌 Creating notifications indexes...');
+    await db.collection('notifications').createIndex({ orgId: 1, recipientId: 1, isRead: 1, createdAt: -1 });
+    await db.collection('notifications').createIndex(
+      { orgId: 1, recipientId: 1, idempotencyKey: 1 },
+      { unique: true, sparse: true }
+    );
+
+    // 10. Seed default organization
     console.log('📌 Setting up default organization...');
     await db.collection('organizations').updateOne(
       { slug: 'default-org' },

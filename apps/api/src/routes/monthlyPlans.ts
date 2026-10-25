@@ -63,6 +63,26 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
       monthKey: month,
     });
 
+    // Check if plan has been acknowledged by supervisor
+    if (existing?.status === 'acknowledged') {
+      res.status(400).json({
+        code: 'PLAN_LOCKED',
+        message: 'This monthly plan has already been acknowledged by your supervisor and cannot be modified.',
+      });
+      return;
+    }
+
+    // Optimistic concurrency check
+    if (existing && body.revision !== undefined && body.revision !== existing.revision) {
+      res.status(409).json({
+        code: 'CONFLICT',
+        message: 'The monthly plan has been modified on another device. Please reload.',
+        serverRevision: existing.revision,
+        serverTargets: existing.targets,
+      });
+      return;
+    }
+
     const nextRevision = existing ? (existing.revision || 1) + 1 : 1;
 
     const planDoc = {
@@ -76,14 +96,57 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
       updatedAt: now,
     };
 
-    await db.collection('monthlyPlans').updateOne(
-      { orgId: user.orgId!, studentId: user.userId, monthKey: month },
-      {
-        $set: planDoc,
-        $setOnInsert: { createdAt: now },
-      },
-      { upsert: true }
-    );
+    if (existing) {
+      const updateResult = await db.collection('monthlyPlans').updateOne(
+        {
+          orgId: user.orgId!,
+          studentId: user.userId,
+          monthKey: month,
+          revision: existing.revision,
+        },
+        {
+          $set: planDoc,
+        }
+      );
+
+      if (updateResult.matchedCount === 0) {
+        const latest = await db.collection('monthlyPlans').findOne({
+          orgId: user.orgId!,
+          studentId: user.userId,
+          monthKey: month,
+        });
+        res.status(409).json({
+          code: 'CONFLICT',
+          message: 'Concurrent update conflict detected. The plan was modified by another request.',
+          serverRevision: latest?.revision,
+          serverTargets: latest?.targets,
+        });
+        return;
+      }
+    } else {
+      try {
+        await db.collection('monthlyPlans').insertOne({
+          ...planDoc,
+          createdAt: now,
+        });
+      } catch (insertErr: any) {
+        if (insertErr.code === 11000) {
+          const latest = await db.collection('monthlyPlans').findOne({
+            orgId: user.orgId!,
+            studentId: user.userId,
+            monthKey: month,
+          });
+          res.status(409).json({
+            code: 'CONFLICT',
+            message: 'A plan for this month was created concurrently.',
+            serverRevision: latest?.revision,
+            serverTargets: latest?.targets,
+          });
+          return;
+        }
+        throw insertErr;
+      }
+    }
 
     res.json({ success: true, plan: planDoc });
   } catch (err: any) {

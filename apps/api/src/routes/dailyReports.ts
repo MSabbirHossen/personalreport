@@ -129,14 +129,57 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
       updatedAt: now,
     };
 
-    await db.collection('dailyReports').updateOne(
-      { orgId: user.orgId!, studentId: user.userId, dateKey: date },
-      {
-        $set: reportDoc,
-        $setOnInsert: { createdAt: now },
-      },
-      { upsert: true }
-    );
+    if (existing) {
+      const updateResult = await db.collection('dailyReports').updateOne(
+        {
+          orgId: user.orgId!,
+          studentId: user.userId,
+          dateKey: date,
+          revision: existing.revision,
+        },
+        {
+          $set: reportDoc,
+        }
+      );
+
+      if (updateResult.matchedCount === 0) {
+        const latest = await db.collection('dailyReports').findOne({
+          orgId: user.orgId!,
+          studentId: user.userId,
+          dateKey: date,
+        });
+        res.status(409).json({
+          code: 'CONFLICT',
+          message: 'Concurrent update conflict detected. The report was modified by another request.',
+          serverRevision: latest?.revision,
+          serverValues: latest?.values,
+        });
+        return;
+      }
+    } else {
+      try {
+        await db.collection('dailyReports').insertOne({
+          ...reportDoc,
+          createdAt: now,
+        });
+      } catch (insertErr: any) {
+        if (insertErr.code === 11000) {
+          const latest = await db.collection('dailyReports').findOne({
+            orgId: user.orgId!,
+            studentId: user.userId,
+            dateKey: date,
+          });
+          res.status(409).json({
+            code: 'CONFLICT',
+            message: 'A report for this date was created concurrently.',
+            serverRevision: latest?.revision,
+            serverValues: latest?.values,
+          });
+          return;
+        }
+        throw insertErr;
+      }
+    }
 
     // Save revision audit log if it's a correction
     if (isCorrection) {
@@ -151,6 +194,34 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
         reason: body.reason || 'User update',
         timestamp: now,
       });
+    }
+
+    // Stale snapshot detection: check if a submitted monthly outcome exists for this month
+    const monthKey = date.substring(0, 7);
+    const submittedOutcome = await db.collection('monthlyOutcomes').findOne({
+      orgId: user.orgId!,
+      studentId: user.userId,
+      monthKey,
+    });
+
+    if (
+      submittedOutcome &&
+      ['submitted', 'in_review', 'acknowledged'].includes(submittedOutcome.status)
+    ) {
+      await db.collection('monthlyOutcomes').updateOne(
+        {
+          _id: submittedOutcome._id,
+          orgId: user.orgId!,
+        },
+        {
+          $set: {
+            isStale: true,
+            staleReason: `Daily report for ${date} was updated after submission.`,
+            staleAt: now,
+            updatedAt: now,
+          },
+        }
+      );
     }
 
     res.json({
