@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
   const { data: notifData } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api.getNotifications(),
-    enabled: !!user,
+    enabled: !!user && !!user.orgId && (user.roles?.length ?? 0) > 0,
     refetchInterval: 30000,
   });
 
