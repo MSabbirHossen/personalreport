@@ -148,3 +148,23 @@
 | **G7** | Expanded persona UAT scenarios | Confirmed Implemented | Added concurrent daily editing conflict recovery (`UAT-STU-07`), concurrent supervisor review rejection (`UAT-SUP-05`), and invitation generation rate limiting (`UAT-ADM-05`) in `docs/BETA_UAT_CHECKLIST.md`. |
 | **G8** | Comprehensive automated regression suite | Confirmed Implemented & Tested | 73 API tests passing across 7 suites + 5 shared package tests passing. 100% pass rate (78/78 passing tests, 0 failures, 0 skipped). |
 | **G9** | Release Gate Decision | **Implementation Verified; Beta Validation Pending** | All automated quality gates, security sanitization, and configuration rules pass. Local Docker build is documented as unverified due to local daemon unavailability; physical A4 printout checks and manual browser UI tests remain explicitly pending human verification. |
+
+---
+
+## Phase 8: Release-Gate Closure & Beta Readiness
+**Target Milestone:** Release-Gate Closure & Operational Hand-Off
+**Status:** Beta Deployment Candidate
+**Objective:** Close all technical release gates, resolve build and containerization defects with evidence, verify real Docker startup and healthcheck, harden database safety guards, audit CI workflows, and prepare human UAT execution protocols.
+
+### Scope Checklist & Acceptance Criteria
+| Item | Requirement | Status | Evidence / Verification |
+|---|---|---|---|
+| **H1** | Strict test database allowlist guard | Confirmed Implemented & Tested | Replaced substring matching in `realMongoIntegration.test.ts` with explicit `ALLOWED_TEST_DB_NAMES` set. Protects production, staging, and development databases from accidental destructive drops. Verified in `npm run test:integration -w apps/api`. |
+| **H2** | Fail-fast integration test connectivity | Confirmed Implemented & Tested | `realMongoIntegration.test.ts` asserts connectivity immediately and throws on failure when `FAIL_ON_UNAVAILABLE_MONGO=true` or `CI=true`. Verified locally. |
+| **H3** | CI workflow harmonization & diff validation | Confirmed Implemented & Tested | Updated `.github/workflows/ci.yml` with `MONGODB_DB_NAME: reportbd_test_ci`, `TEST_DB_NAME: reportbd_test_ci`, added `reportbd_test_ci` to the test allowlist, and hardened PR base ref diff checks. |
+| **H4** | Docker container build defect remediation | Confirmed Implemented & Tested | Corrected multi-stage `apps/api/Dockerfile` runner stage to use `--from=builder --chown=node:node /app/...`. Copied workspace `apps/api/node_modules` and symlinked `packages/shared/node_modules` to resolve ESM runtime dependencies. Expanded `.dockerignore` to recursively block `.env` and service account credentials. |
+| **H5** | Live Docker container execution & health check | Confirmed Implemented & Tested | Successfully built `reportbd-api:beta-test`, ran container, and verified HTTP 200 response on `GET /health` (`{"status":"ok","service":"reportbd-api"}`). Verified execution as non-root user `node`. |
+| **H6** | Web app React-Query and Header membership guard | Confirmed Implemented & Tested | Wrapped root component tree with `QueryClientProvider` and added active membership guard (`!!user.orgId && user.roles.length > 0`) in `Header.tsx` to prevent 403 Forbidden query errors for unassigned users. |
+| **H7** | Comprehensive regression suite & production build | Confirmed Implemented & Tested | 78 tests passing across 8 suites (5 shared, 73 API, 0 failures, 0 skipped). Monorepo typecheck passed cleanly (`tsc --noEmit`). Production builds succeeded across all workspaces (`packages/shared`, `apps/api`, `apps/web`). `git diff --check` passed cleanly. |
+| **H8** | Operational runbook & human UAT handoff | Confirmed Implemented | `docs/BETA_UAT_CHECKLIST.md` and `docs/DEPLOYMENT_GUIDE.md` updated with exact persona test accounts, step-by-step Chrome A4 print verification, and first remote GitHub Actions run manual verification steps. |
+| **H9** | Release Decision | **Beta Deployment Candidate** | All technical pre-deployment gates (code, tests, build, typecheck, Docker, security) pass with observable evidence. Actual remote GitHub Actions execution, live cloud deployment, and human exploratory browser/print UAT remain pending authorized human verification. |

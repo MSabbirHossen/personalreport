@@ -222,3 +222,31 @@
 - **Remediation Status:** **Resolved**.
 - **Fix Details:** Implemented automated periodic garbage collection running every 5 minutes (`cleanupInterval.unref()`), plus exported `cleanupExpiredRateLimits(currentTime)` to evict expired bucket records deterministically.
 - **Verification Evidence:** `Sec-9: cleanupExpiredRateLimits evicts expired bucket entries preventing unbounded memory growth` in `apps/api/src/tests/securityHardening.test.ts`.
+
+---
+
+### 20. Permissive Substring Matching on Destructive Test Database Cleanup
+- **Severity:** Medium / Data Loss Prevention
+- **Location:** `apps/api/src/tests/realMongoIntegration.test.ts`
+- **Vulnerability:** `testDbName.toLowerCase().includes('test')` permitted any database containing the substring `"test"`. A misconfigured environment variable (e.g. `TEST_DB_NAME=production_test_backup` or `test_prod`) could have targeted sensitive non-test databases for destructive `dropDatabase()` execution.
+- **Impact:** Accidental data loss on non-isolated databases.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Replaced substring check with a strict allowlist of explicitly approved test database names (`ALLOWED_TEST_DB_NAMES`). Verifies both configured name and connected database name (`db.databaseName`) against the allowlist before any destructive drops in `before()` and `after()`.
+- **Verification Evidence:** Tested and verified in `npm run test:integration --workspace apps/api`.
+
+---
+
+### 21. Multi-Stage Dockerfile Missing Builder Context & Workspace Dependency Resolution
+- **Severity:** High / Container Availability
+- **Location:** `apps/api/Dockerfile`, `.dockerignore`
+- **Vulnerability:**
+  1. The runner stage in `apps/api/Dockerfile` used `COPY --chown=node:node` without `--from=builder` and `/app/` paths, causing Docker build failures because `dist` and `node_modules` were ignored by `.dockerignore`.
+  2. Npm workspaces in Node 22 placed hoisted dependencies into `apps/api/node_modules`, causing runtime ESM module resolution failure (`ERR_MODULE_NOT_FOUND: Cannot find package 'express'` and `'zod'`) on container startup.
+  3. `.dockerignore` lacked recursive patterns (`**/.env*`, `**/*firebase-service-account*.json`) to prevent sensitive development files from entering the Docker build context.
+- **Impact:** Broken container build pipeline and container crash loop on container startup.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:**
+  1. Updated `COPY` commands in runner stage with `--from=builder --chown=node:node /app/...`.
+  2. Copied both root `node_modules` and workspace `apps/api/node_modules`, and established workspace symlink `ln -s /app/apps/api/node_modules /app/packages/shared/node_modules` for ESM resolution.
+  3. Expanded `.dockerignore` to recursively exclude `**/.env*`, `**/*firebase-service-account*.json`, `**/*.pem`, and `**/*.key`.
+- **Verification Evidence:** Container successfully built (`reportbd-api:beta-test`), executed with Docker, and responded with HTTP 200 on `/health`.

@@ -122,3 +122,12 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
    - **CI Whitespace Validation:** Hardened GitHub Actions workflow to check whitespace across actual commits/PR diffs (`origin/${{ github.base_ref }}...HEAD` or `HEAD~1...HEAD`).
    - **Deployment Topology Documentation:** Formally documented reverse proxy topology (`TRUST_PROXY`), single-process in-memory rate limiting boundaries, and emergency rollback procedures in `docs/DEPLOYMENT_GUIDE.md`.
    - **Automated Test Suite:** Expanded to 78 passing tests across 8 suites (5 shared, 73 API tests, 0 failures, 0 skipped).
+
+8. **Phase 8 (Release-Gate Closure & Beta Readiness) — Beta Deployment Candidate:**
+   - **Release Status:** **Beta deployment candidate** (All pre-deployment technical gates, builds, typechecks, real Docker startup, and automated tests pass; actual deployment and human UAT pending).
+   - **Strict Test Database Allowlist:** Replaced substring matching in `realMongoIntegration.test.ts` with explicit `ALLOWED_TEST_DB_NAMES` set. Connected database verified before destructive drops.
+   - **CI Pipeline Configuration:** Harmonized `ci.yml` with `MONGODB_DB_NAME: reportbd_test_ci`, `TEST_DB_NAME: reportbd_test_ci`, added `reportbd_test_ci` to allowlist, and hardened PR base ref check.
+   - **Docker Multi-Stage Build Fix:** Resolved missing builder context bug (`--from=builder /app/...`), copied workspace `apps/api/node_modules`, and added symlink for `@reportbd/shared` ESM resolution. Expanded `.dockerignore` to recursively exclude `.env*` and service account keys.
+   - **Docker Runtime Verification:** Built `reportbd-api:beta-test`, ran live container, verified `/health` endpoint returning HTTP 200 `{ status: "ok" }`, and confirmed non-root user execution.
+   - **Frontend Query Guard:** Wrapped root with `QueryClientProvider` and safeguarded `<Header>` notifications query with active membership check.
+   - **Automated Test Suite:** 78 tests passing across 8 suites (100% pass rate). Monorepo typecheck and production build passed cleanly.
