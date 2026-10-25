@@ -53,7 +53,7 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
 | Plan | PLAN-01 | One plan per student/month | Confirmed Implemented & Tested | `PUT /api/v1/monthly-plans/:month` with optimistic revision locking. |
 | Plan | PLAN-02 | Grouped targets | Confirmed Implemented & Tested | Zod schema & input matrix; validated per template. |
 | Plan | PLAN-03 | Share with supervisor | Confirmed Implemented & Tested | `POST /api/v1/monthly-plans/:month/share` transitions plan to `shared`. |
-| Plan | PLAN-04 | Print view | Partially Implemented | Print CSS styles present; A4 layout needs dedicated testing. |
+| Plan | PLAN-04 | Print view (A4 Monthly Plan) | Confirmed Implemented & Tested | Dedicated A4 portrait `@page` stylesheet with 12mm/15mm margins, printable metadata header, high-density Bangla tables, supervisor advice log, official dual signature blocks, `.no-print` control stripping, and manual Chrome print verification. |
 | Outcome | MON-01 | Derived monthly values | Confirmed Implemented & Tested | Canonical formulas in `@reportbd/shared` handle leap years and missing vs 0. |
 | Outcome | MON-02 | Manual monthly values | Confirmed Implemented & Tested | Preserved in `monthlyOutcomes.manualValues` without silent overwrites. |
 | Outcome | MON-03 | Plan comparison | Confirmed Implemented & Tested | Visual target vs actual comparison displayed side-by-side. |
@@ -65,9 +65,9 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
 | Mentorship | MENT-04 | Advice history & threads | Confirmed Implemented & Tested | `GET /api/v1/advice`, `POST /api/v1/supervisor/advice`, `POST /api/v1/advice/:id/reply` with conversation replies. |
 | Notifications | NOTIF-01 | Submission & review triggers | Confirmed Implemented & Tested | In-app alerts delivered on student submission (to supervisors), review ack/return (to student), and advice replies. |
 | Notifications | NOTIF-02 | Notification inbox & badges | Confirmed Implemented & Tested | `GET /api/v1/notifications`, `PATCH /:id/read`, `POST /read-all`, unread badge in web header and `NotificationsPage.tsx`. |
-| Notifications | NOTIF-03 | Notification deduplication | Confirmed Implemented & Tested | `idempotencyKey` with compound unique sparse index `(orgId, recipientId, idempotencyKey)` prevents duplicate alerts. |
+| Notifications | NOTIF-03 | Notification deduplication | Confirmed Implemented & Tested | `idempotencyKey` with compound unique partial index `(orgId, recipientId, idempotencyKey)` prevents duplicate alerts. |
 | Admin | ADMIN-01 | Users & scoped roles | Confirmed Implemented & Tested | Role checking middleware and tenant isolation verified. |
-| Admin | ADMIN-07 | Audit log | Partially Implemented | Revision logs present; general `auditEvents` endpoint not wired. |
+| Admin | ADMIN-07 | Audit log (Admin Explorer) | Confirmed Implemented & Tested | `auditEvents` collection with compound indexes, automated metadata sanitization (redacting tokens, passwords, credentials), server-side event emissions on key lifecycles, org-isolated `GET /api/v1/organization/audit-events` API with filters/pagination, and React explorer UI `AuditLogPage.tsx`. |
 
 ---
 
@@ -98,8 +98,13 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
    - Two-way threaded mentorship advice conversation (`replies` array) with participant-scoped authorization.
    - In-app notification engine with idempotent deduplication via `(orgId, recipientId, idempotencyKey)`.
    - Integrated React views: `SupervisorDashboardPage.tsx`, `SupervisorReportReviewPage.tsx`, `NotificationsPage.tsx`, and unread badge in navigation header.
-   - 16 new automated tests in `apps/api/src/tests/supervisorAndNotifications.test.ts` (all 50 API tests passing).
+   - 16 automated tests in `apps/api/src/tests/supervisorAndNotifications.test.ts`.
 
-5. **Outstanding Requirements & Next Recommended Phase (Phase 5):**
-   - **Outstanding Requirement `PLAN-04`:** Monthly plan print layout exists in basic CSS but dedicated A4 print stylesheet and verified page-break rendering remain outstanding.
-   - **Phase 5 Scope:** Organization administration, bulk member management, aggregate analytics, audit logging (`ADMIN-07`), and verified A4 printable report export.
+5. **Phase 5 (Printable Reports, Administrative Audit Logs & Database Verification) — Completed & Tested:**
+   - **`PLAN-04` A4 Monthly Plan Printing:** Implemented dedicated A4 portrait `@page` stylesheet with 12mm/15mm margins, high-density Bangla typography, student/org/supervisor metadata header, target metrics tables, notes, supervisor advice history, dual signature blocks, `.no-print` interactive control stripping, and manual Chrome print verification procedure.
+   - **`ADMIN-07` Administrative Audit Log Explorer:** Implemented structured `auditEvents` collection, server-side `logAuditEvent` helper with automatic sensitive field redaction, event emissions across key lifecycles (invitations, supervisor assignments, plan sharing, report submissions, supervisor reviews, and advice), server-enforced role authorization (`org_admin`, `platform_admin`), tenant isolation, bounded query schema (`AuditEventsQuerySchema`), and React explorer UI `AuditLogPage.tsx` with date/actor/action/entity filters and safe metadata inspection.
+   - **Real MongoDB Engine Verification:** Verified critical database behavior against a live MongoDB engine (`mongodb://127.0.0.1:27017/reportbd_test_phase5?directConnection=true`), confirming idempotent index creation, partial unique index idempotency (`partialFilterExpression`), atomic conditional review concurrency under conflicting updates, and cross-organization audit query isolation.
+   - **Automated Test Suite:** 10 new tests in `auditAndAdmin.test.ts` + 4 integration tests in `realMongoIntegration.test.ts` (total monorepo automated test count: 69 tests across 7 test suites, 0 failures).
+
+6. **Next Recommended Milestone (Phase 6):**
+   - **Phase 6 Scope:** End-to-end user acceptance testing, production deployment scripts, containerization/orchestration, external backup automation, and live pilot monitoring.

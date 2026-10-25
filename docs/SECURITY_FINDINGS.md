@@ -143,5 +143,32 @@
 - **Vulnerability:** Client-supplied recipient parameters or unscoped notification queries could allow malicious actors to inject notifications into other users' feeds or read private notifications belonging to other students/supervisors. Furthermore, network retries could generate unbounded duplicate notifications.
 - **Impact:** Cross-student information disclosure and notification flooding.
 - **Remediation Status:** **Resolved**.
-- **Fix Details:** Notification recipients are strictly determined on the server from verified database relationships (`supervisorAssignments` and `monthlyOutcomes.userId`). Notification read/query endpoints enforce `recipientId: req.user.userId`. Idempotent delivery uses compound unique sparse indexing on `(orgId, recipientId, idempotencyKey)` to drop duplicate deliveries gracefully.
+- **Fix Details:** Notification recipients are strictly determined on the server from verified database relationships (`supervisorAssignments` and `monthlyOutcomes.userId`). Notification read/query endpoints enforce `recipientId: req.user.userId`. Idempotent delivery uses compound unique partial indexing on `(orgId, recipientId, idempotencyKey)` to drop duplicate deliveries gracefully.
 - **Verification Evidence:** `Notif-3`, `Notif-4`, and `Notif-5` in `apps/api/src/tests/supervisorAndNotifications.test.ts`.
+
+---
+
+### 14. Sensitive Credential Exposure in System Audit Trails & Client Audit Forgery
+- **Severity:** High / Confidentiality & Integrity
+- **Location:** `apps/api/src/services/audit.ts`, `apps/api/src/routes/organization.ts`
+- **Vulnerability:** Unfiltered audit logging can capture authorization tokens, invitation crypto keys, passwords, or private report content in metadata blobs. Furthermore, trusting client-submitted audit records allows malicious users to falsify administrative actions or cover their tracks.
+- **Impact:** Permanent disclosure of sensitive secrets in audit logs; corrupted forensic evidence.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:**
+  1. Audit events are strictly generated server-side within authenticated service and route handlers; no client endpoint exists to inject or mutate audit events.
+  2. The `logAuditEvent` helper automatically scans and redacts sensitive field names (`password`, `token`, `secret`, `credential`, `key`, `hash`, `authorization`, `cookie`, etc.), replacing values with `"[REDACTED]"`.
+  3. String values are capped at 500 characters to prevent audit-log bloat attacks.
+  4. Audit logs are strictly immutable: no endpoints exist for administrators to update or delete audit records.
+  5. Cross-organization leakage is physically blocked by forcing `orgId: req.user.orgId` in `GET /api/v1/organization/audit-events`.
+- **Verification Evidence:** `Audit-2`, `Audit-8` in `apps/api/src/tests/auditAndAdmin.test.ts`.
+
+---
+
+### 15. Compound Unique Sparse Index Null-Collision Flaw in MongoDB Deduplication Engine
+- **Severity:** Medium / Reliability & Data Integrity
+- **Location:** `apps/api/src/scripts/initDb.ts`, `apps/api/src/services/notifications.ts`
+- **Vulnerability:** In MongoDB, a compound unique index with `{ unique: true, sparse: true }` over `(orgId, recipientId, idempotencyKey)` will still index documents where `idempotencyKey` is missing or `null` if `orgId` and `recipientId` are present. This causes the second notification without an idempotency key to be rejected with `E11000 duplicate key error collection: reportbd.notifications index: org_recipient_idempotency_uniq dup key: { orgId: "...", recipientId: "...", idempotencyKey: null }`.
+- **Impact:** Ordinary system notifications without idempotency keys crashed or dropped subsequent messages for the same recipient.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Upgraded the index definition in `initDb.ts` from `{ sparse: true }` to `{ unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }`. MongoDB now only enforces uniqueness when `idempotencyKey` is an actual string, allowing multiple standard notifications per recipient while strictly deduplicating idempotent operations.
+- **Verification Evidence:** Verified against a live MongoDB engine in `apps/api/src/tests/realMongoIntegration.test.ts`.
