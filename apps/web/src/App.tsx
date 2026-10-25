@@ -13,6 +13,7 @@ import { InvitePage } from './pages/InvitePage.js';
 import { NotificationsPage } from './pages/NotificationsPage.js';
 import { SupervisorDashboardPage } from './pages/SupervisorDashboardPage.js';
 import { SupervisorReportReviewPage } from './pages/SupervisorReportReviewPage.js';
+import { AuditLogPage } from './pages/AuditLogPage.js';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -73,6 +74,19 @@ export const App: React.FC = () => {
             <Route path="students" element={<SupervisorDashboardPage />} />
             <Route path="students/:studentId/reports" element={<SupervisorDashboardPage />} />
             <Route path="reports/:outcomeId" element={<SupervisorReportReviewPage />} />
+          </Route>
+
+          {/* Protected Organization Routes */}
+          <Route
+            path="/organization"
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/organization/audit-log" replace />} />
+            <Route path="audit-log" element={<AuditLogPage />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/app/home" replace />} />

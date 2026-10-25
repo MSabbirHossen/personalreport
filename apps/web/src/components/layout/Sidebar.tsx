@@ -69,26 +69,44 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Supervisor section if applicable */}
-      {isSupervisor && (
+      {/* Supervisor & Admin section if applicable */}
+      {(isSupervisor || user?.roles?.some((r) => ['org_admin', 'platform_admin'].includes(r))) && (
         <div className="space-y-1 pt-4 border-t border-slate-200 dark:border-slate-800">
           <p className="px-3 text-[11px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
             দায়িত্বশীল ও প্রশাসন
           </p>
           <div className="space-y-1 pt-2">
-            <NavLink
-              to="/supervisor/dashboard"
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                  isActive
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
-                }`
-              }
-            >
-              <ClipboardCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span>রিপোর্ট পর্যালোচনা কিউ</span>
-            </NavLink>
+            {isSupervisor && (
+              <NavLink
+                to="/supervisor/dashboard"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                    isActive
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                  }`
+                }
+              >
+                <ClipboardCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span>রিপোর্ট পর্যালোচনা কিউ</span>
+              </NavLink>
+            )}
+
+            {user?.roles?.some((r) => ['org_admin', 'platform_admin'].includes(r)) && (
+              <NavLink
+                to="/organization/audit-log"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-semibold shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                  }`
+                }
+              >
+                <ShieldAlert className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span>অডিট ও নিরাপত্তা লগ</span>
+              </NavLink>
+            )}
           </div>
         </div>
       )}

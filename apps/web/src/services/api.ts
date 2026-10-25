@@ -185,4 +185,28 @@ export const api = {
     fetchWithAuth<{ success: boolean; message: string }>(`/organization/invitations/${id}`, {
       method: 'DELETE',
     }),
+
+  // Audit Log Explorer (ADMIN-07)
+  getAuditEvents: (params?: {
+    from?: string;
+    to?: string;
+    actorId?: string;
+    action?: string;
+    entityType?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const search = new URLSearchParams();
+    if (params?.from) search.set('from', params.from);
+    if (params?.to) search.set('to', params.to);
+    if (params?.actorId) search.set('actorId', params.actorId);
+    if (params?.action) search.set('action', params.action);
+    if (params?.entityType) search.set('entityType', params.entityType);
+    if (params?.limit) search.set('limit', params.limit.toString());
+    if (params?.offset !== undefined) search.set('offset', params.offset.toString());
+    const qs = search.toString();
+    return fetchWithAuth<{ events: any[]; total: number; limit: number; offset: number }>(
+      `/organization/audit-events${qs ? `?${qs}` : ''}`
+    );
+  },
 };
