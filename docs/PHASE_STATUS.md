@@ -128,3 +128,23 @@
 | **F9** | Deployment guide & operational runbooks | Confirmed Implemented | Published `docs/DEPLOYMENT_GUIDE.md` detailing prerequisites, zero-downtime deployment steps, database initialization (`npm run db:init -w apps/api`), index migration guide, health endpoints (`/health`, `/health/ready`), and emergency rollback runbook. |
 | **F10** | Beta UAT & A4 Print Verification Checklist | Confirmed Implemented | Published `docs/BETA_UAT_CHECKLIST.md` defining role-based acceptance criteria for Student, Supervisor, Org Admin, and Platform Admin personas, clearly marking manual browser checks and Chrome A4 print preview as **Pending Human Verification**. |
 | **F11** | Full automated regression suite | Confirmed Implemented & Tested | 71 API tests passing across 7 suites + 5 shared package tests passing. 100% pass rate (76/76 passing tests, 0 failures, 0 skipped). |
+
+---
+
+## Phase 7: Beta Validation, Deployment Rehearsal & Release Gate
+**Target Milestone:** Beta Readiness Sign-Off & Operational Release Gate
+**Status:** Implementation Verified; Beta Validation Pending
+**Objective:** Confirm ReportBD technical readiness for a controlled beta deployment through rigorous defect remediation, memory bounds verification, safe integration testing, CI validation, and persona UAT specifications.
+
+### Scope Checklist & Acceptance Criteria
+| Item | Requirement | Status | Evidence / Verification |
+|---|---|---|---|
+| **G1** | Non-destructive database drop protection | Confirmed Implemented & Tested | Added strict assertion in `realMongoIntegration.test.ts` requiring database name to explicitly contain `test` before `dropDatabase()` can execute, eliminating accidental data loss on staging/production databases. |
+| **G2** | In-memory rate limiter memory cleanup | Confirmed Implemented & Tested | Exported `cleanupExpiredRateLimits(currentTime)` and verified in `securityHardening.test.ts` (Sec-9) that expired request counters are evicted from memory to prevent unbounded memory growth in long-running processes. |
+| **G3** | Value-level credential & key redaction | Confirmed Implemented & Tested | Enhanced `sanitizeMetadata` to identify and redact string values containing Bearer tokens or PEM private keys (`BEGIN PRIVATE KEY`) regardless of the property key name. Tested in `securityHardening.test.ts` (Sec-8). |
+| **G4** | Targeted integration testing script | Confirmed Implemented & Tested | Added `"test:integration": "tsx --test src/tests/realMongoIntegration.test.ts"` in `apps/api/package.json` to allow isolated execution of real database verification without test-file glob duplication. |
+| **G5** | CI commit/PR diff whitespace check | Confirmed Implemented & Tested | Updated `.github/workflows/ci.yml` to check whitespace formatting across the actual changes introduced by pull requests (`origin/${{ github.base_ref }}...HEAD`) or commits (`${{ github.event.before }}...${{ github.sha }}`). |
+| **G6** | Reverse proxy topology & architecture runbook | Confirmed Implemented | Formally documented reverse proxy topology options (`TRUST_PROXY=true` for Cloud Run / ALB / Cloudflare, `false` for direct exposure), single-process in-memory limiter boundaries, and zero-downtime rollback runbooks in `docs/DEPLOYMENT_GUIDE.md`. |
+| **G7** | Expanded persona UAT scenarios | Confirmed Implemented | Added concurrent daily editing conflict recovery (`UAT-STU-07`), concurrent supervisor review rejection (`UAT-SUP-05`), and invitation generation rate limiting (`UAT-ADM-05`) in `docs/BETA_UAT_CHECKLIST.md`. |
+| **G8** | Comprehensive automated regression suite | Confirmed Implemented & Tested | 73 API tests passing across 7 suites + 5 shared package tests passing. 100% pass rate (78/78 passing tests, 0 failures, 0 skipped). |
+| **G9** | Release Gate Decision | **Implementation Verified; Beta Validation Pending** | All automated quality gates, security sanitization, and configuration rules pass. Local Docker build is documented as unverified due to local daemon unavailability; physical A4 printout checks and manual browser UI tests remain explicitly pending human verification. |

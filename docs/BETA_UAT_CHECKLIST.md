@@ -15,6 +15,7 @@
 | **UAT-STU-04** | A4 Monthly Plan Browser Print | Active student with saved plan | 1. Open `/monthly-plan`<br>2. Click "প্রিন্ট ভিউ (A4)" button or press Ctrl+P<br>3. Check print preview dialog | A4 portrait layout with metadata strip, dense tables, signature lines, no buttons/nav. | **Pending Human Verification** (Procedure below) |
 | **UAT-STU-05** | Monthly Outcome Submission & Snapshot Freeze | Completed daily reports for month | 1. Open `/monthly-outcome`<br>2. Review derived values<br>3. Click "রিপোর্ট জমা দিন" | Status freezes to `submitted`; immutable snapshot recorded; editing locked. | **Automated Passed** (Outcome-1, 4) / **Pending Human UI Check** |
 | **UAT-STU-06** | Stale Snapshot Warning on Post-Submission Daily Edits | Submitted monthly outcome | 1. Modify a daily report from submitted month<br>2. Open `/monthly-outcome` | Amber warning banner displayed: "রিপোর্ট পরিবর্তন করা হয়েছে (Stale)". Frozen snapshot remains intact. | **Automated Passed** (Outcome-2) / **Pending Human UI Check** |
+| **UAT-STU-07** | Revision Conflict Handling on Concurrent Daily Edits | Active student | 1. Open daily report in two browser tabs<br>2. Save update in Tab A (rev 1 -> 2)<br>3. Attempt save in Tab B using stale rev 1 | HTTP 409 Conflict modal triggered; informs student that data was updated; prompts reload. | **Automated Passed** (Daily-3, 4) / **Pending Human UI Check** |
 
 ---
 
@@ -26,6 +27,7 @@
 | **UAT-SUP-02** | Report Review & Plan vs Actual Comparison | Submitted student report in queue | 1. Open report from review queue<br>2. Compare planned targets with actual outcome<br>3. Enter review feedback | Targets and actuals displayed side-by-side; historical advice loaded. | **Automated Passed** (Sup-6, 7) / **Pending Human UI Check** |
 | **UAT-SUP-03** | Report Return & Resubmission Flow | Submitted report | 1. Click "সংশোধনের জন্য ফেরত দিন" with feedback<br>2. Student updates daily entries and resubmits | Status changes to `returned`; student editing unlocked; resubmission notifies supervisor. | **Automated Passed** (Review-2, Sup-9) / **Pending Human UI Check** |
 | **UAT-SUP-04** | Mentorship Thread & Two-Way Advice | Existing report or advice thread | 1. Supervisor posts mentorship advice<br>2. Student posts reply in thread | Threaded replies update chronologically; in-app notification delivered. | **Automated Passed** (Advice-1, Adv-1) / **Pending Human UI Check** |
+| **UAT-SUP-05** | Concurrent Supervisor Review Protection | Submitted report in queue | 1. Two supervisors open same report<br>2. Supervisor A acknowledges report<br>3. Supervisor B attempts return simultaneously | Supervisor A succeeds; Supervisor B receives HTTP 409 `ALREADY_REVIEWED` conflict alert. | **Automated Passed** (Sup-7, RealMongo-3) / **Pending Human UI Check** |
 
 ---
 
@@ -37,6 +39,7 @@
 | **UAT-ADM-02** | Revoke Pending Invitation | Active pending invitation | 1. Click "বাতিল করুন" on pending invitation | Invitation status marked `revoked`; public preview returns 410 Gone. | **Automated Passed** (Inv-8, B4) / **Pending Human UI Check** |
 | **UAT-ADM-03** | Supervisor Assignment Linkage | Active student & supervisor in org | 1. Assign student to supervisor via admin modal | `supervisorAssignments` updated; supervisor immediately sees student in queue. | **Automated Passed** (MENT-01) / **Pending Human UI Check** |
 | **UAT-ADM-04** | Administrative Audit Log Explorer | `org_admin` role | 1. Open `/organization/audit-log`<br>2. Filter by date range, action, or actor<br>3. Click "বিস্তারিত" to inspect metadata | Historical actions listed with Bangla timestamps; sensitive keys redacted; strictly scoped to org. | **Automated Passed** (Audit-1–10) / **Pending Human UI Check** |
+| **UAT-ADM-05** | Invitation Creation Rate Limiting | `org_admin` role | 1. Rapidly submit >30 invitation generation requests within 15 minutes | HTTP 429 Too Many Requests returned with `Retry-After` header; protects against invitation spam. | **Automated Passed** (Sec-5) / **Pending Human UI Check** |
 
 ---
 

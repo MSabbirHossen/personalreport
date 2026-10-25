@@ -200,3 +200,25 @@
   1. Enhanced `sanitizeMetadata` to recursively sanitize nested objects and arrays up to depth 6, truncating strings > 256 characters and replacing sensitive keys with `"[REDACTED]"`.
   2. Implemented operational metrics tracking (`getAuditMetrics()`) with `totalLogged`, `totalFailures`, `lastFailureAt`, and `lastFailureReason` for operational monitoring and health alerting.
 - **Verification Evidence:** `Sec-1`, `Sec-2`, `Sec-3`, and `Sec-4` in `apps/api/src/tests/securityHardening.test.ts`.
+
+---
+
+### 18. Value-Level Token and Key Disclosure via Arbitrary Metadata Key Names
+- **Severity:** Medium / Data Confidentiality
+- **Location:** `apps/api/src/services/audit.ts`
+- **Vulnerability:** Sanitization regex only checked whether object property *names* matched sensitive patterns (e.g. `password`, `token`, `key`). If a caller stored an authorization header or TLS private key in an arbitrarily named property (e.g. `rawHeader`, `note`, `authValue`), the value was persisted unredacted.
+- **Impact:** Potential forensic leakage of sensitive authentication headers or private keys into database audit storage.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Added value-level string pattern detection in `sanitizeMetadata`: any string value prefixed with `Bearer ` or containing `BEGIN PRIVATE KEY` / `BEGIN RSA PRIVATE KEY` is automatically replaced with `"[REDACTED]"` regardless of the key name.
+- **Verification Evidence:** `Sec-8: sanitizeMetadata redacts secret-like values (Bearer tokens, PEM keys) under non-sensitive keys` in `apps/api/src/tests/securityHardening.test.ts`.
+
+---
+
+### 19. Memory Accumulation in In-Memory Rate Limiting Bucket Store
+- **Severity:** Low / Operational Resilience
+- **Location:** `apps/api/src/middleware/rateLimiter.ts`
+- **Vulnerability:** High request volumes from distinct IP addresses or users could cause in-memory rate limiting Map size to grow indefinitely if expired window entries were not proactively deleted.
+- **Impact:** Gradual memory bloat over extended server uptime under distributed scanning or user load.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Implemented automated periodic garbage collection running every 5 minutes (`cleanupInterval.unref()`), plus exported `cleanupExpiredRateLimits(currentTime)` to evict expired bucket records deterministically.
+- **Verification Evidence:** `Sec-9: cleanupExpiredRateLimits evicts expired bucket entries preventing unbounded memory growth` in `apps/api/src/tests/securityHardening.test.ts`.

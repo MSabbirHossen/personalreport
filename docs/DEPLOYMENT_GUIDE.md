@@ -22,11 +22,14 @@ ReportBD uses a decoupled, multi-tenant MERN architecture hardened for security 
 | `MONGODB_URI` | **Yes** | Connection string to MongoDB cluster | `mongodb+srv://<user>:<password>@cluster0.mongodb.net/reportbd?retryWrites=true&w=majority` |
 | `MONGODB_DB_NAME` | Optional (default: `reportbd`) | Database name within MongoDB cluster | `reportbd` |
 | `CORS_ORIGIN` | **Yes** | Comma-separated list of permitted frontend origins (wildcards prohibited in production) | `https://app.reportbd.com,https://beta.reportbd.com` |
-| `TRUST_PROXY` | **Yes** (if behind proxy) | Enables Express trusted proxy header resolution for reverse proxies | `true` or `false` |
+| `TRUST_PROXY` | **Yes** (if behind proxy) | Enables Express trusted proxy header resolution for reverse proxies. Set `true` if behind Google Cloud Run, AWS ALB, Cloudflare, or Nginx. Leave `false` if exposed directly without a proxy to prevent source IP spoofing. | `true` or `false` |
 | `FIREBASE_PROJECT_ID` | **Yes** | Firebase project identifier | `reportbd-prod` |
 | `FIREBASE_CLIENT_EMAIL` | **Yes** | Service account email from Firebase console | `firebase-adminsdk-xxxxx@reportbd-prod.iam.gserviceaccount.com` |
 | `FIREBASE_PRIVATE_KEY` | **Yes** | Cryptographic private key for Firebase Admin verification | `"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"` |
 | `ALLOW_DEV_MOCK_AUTH` | **FORBIDDEN** in prod | Bypass flag for local testing. In production, startup fails if `true`. | `false` |
+
+> **Operational Note on Rate Limiting Architecture:**
+> The sliding-window rate limiters (`authRateLimiter`, `inviteRateLimiter`, `sensitiveOpsLimiter`, `generalApiLimiter`) utilize an in-memory bucket store. In-memory counters are scoped per Node.js process and do NOT provide a shared global quota across horizontally scaled replicas. For multi-instance container clusters requiring global quota synchronization, configure Redis-backed storage or enforce rate limiting at the ingress/API gateway layer.
 
 ### Frontend Web SPA (`apps/web`)
 
