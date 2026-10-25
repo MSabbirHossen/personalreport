@@ -98,3 +98,13 @@ export const AssignSupervisorInputSchema = z.object({
   supervisorId: z.string(),
   startAt: z.string().optional(),
 });
+
+export const AuditEventsQuerySchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+  actorId: z.string().optional(),
+  action: z.string().optional(),
+  entityType: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});

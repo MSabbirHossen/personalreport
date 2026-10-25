@@ -185,14 +185,21 @@ export interface TemplateVersion {
 }
 
 export interface AuditEvent {
-  id: string;
+  id?: string;
+  _id?: string;
   orgId: string;
   actorId: string;
+  actorRole?: string;
   action: string;
-  targetType: string;
-  targetId: string;
+  targetType?: string;
+  targetId?: string;
+  entityType: string;
+  entityId: string;
   metadata?: Record<string, any>;
-  timestamp: string;
+  timestamp?: string;
+  time: string;
+  ip?: string;
+  userAgent?: string;
 }
 
 export interface Invitation {
@@ -269,4 +276,12 @@ export interface SupervisorDashboardSummary {
   acknowledgedThisMonthCount: number;
   returnedThisMonthCount: number;
   recentQueue: SupervisorQueueItem[];
+}
+
+// ==================== Audit Log (ADMIN-07) ====================
+export interface AuditEventsResponse {
+  events: AuditEvent[];
+  total: number;
+  limit: number;
+  offset: number;
 }
