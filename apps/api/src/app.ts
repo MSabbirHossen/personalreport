@@ -17,7 +17,14 @@ import { organizationRouter } from './routes/organization.js';
 import { invitationsRouter } from './routes/invitations.js';
 import { notificationsRouter } from './routes/notifications.js';
 
+import { generalApiLimiter } from './middleware/rateLimiter.js';
+
 export const app = express();
+
+// Configure trust proxy setting for reverse proxies (Nginx, AWS ALB, Cloudflare)
+if (config.trustProxy) {
+  app.set('trust proxy', 1);
+}
 
 // Validate critical security configuration at startup
 const configValidation = validateStartupConfig();
@@ -93,6 +100,9 @@ app.get('/health/ready', async (_req, res) => {
 
 // API v1 Routes
 const v1 = express.Router();
+
+// General API Rate Limiting across all v1 routes
+v1.use(generalApiLimiter);
 
 // Self / Profile routes: authenticated users without membership can still access their own profile
 v1.use('/me', requireAuth, meRouter);

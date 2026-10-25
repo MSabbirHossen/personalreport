@@ -30,12 +30,17 @@ export const config = {
   },
   // Isolated development/test mock auth: STRICTLY forbidden in production
   allowDevMockAuth: !isProduction && process.env.ALLOW_DEV_MOCK_AUTH === 'true',
+  // Trusted reverse proxy configuration (e.g. Nginx, Cloudflare, AWS ALB)
+  trustProxy: process.env.TRUST_PROXY === 'true',
 };
 
 export function validateStartupConfig(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (config.isProduction) {
+    if (!config.mongodbUri || config.mongodbUri.includes('localhost') || config.mongodbUri.includes('127.0.0.1')) {
+      errors.push('MONGODB_URI must be configured for a production database cluster (cannot point to localhost/127.0.0.1).');
+    }
     if (!config.firebase.projectId) {
       errors.push('FIREBASE_PROJECT_ID is required in production.');
     }
@@ -47,6 +52,9 @@ export function validateStartupConfig(): { valid: boolean; errors: string[] } {
     }
     if (config.cors.allowedOrigins.includes('*')) {
       errors.push('Wildcard "*" CORS origin is forbidden in production with credentialed requests.');
+    }
+    if (config.allowDevMockAuth) {
+      errors.push('ALLOW_DEV_MOCK_AUTH cannot be enabled in production.');
     }
   }
 
