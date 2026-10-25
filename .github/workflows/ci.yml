@@ -1,0 +1,75 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Test, Lint & Production Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      TEST_MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
+      FAIL_ON_UNAVAILABLE_MONGO: 'true'
+      FIREBASE_PROJECT_ID: reportbd-ci-test
+      FIREBASE_CLIENT_EMAIL: ci-service-account@reportbd-ci-test.iam.gserviceaccount.com
+      FIREBASE_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies reproducibly
+        run: npm ci
+
+      - name: Verify code formatting and whitespace
+        run: git diff --check
+
+      - name: Run shared package tests
+        run: npm test -w packages/shared
+
+      - name: Verify database initialization on MongoDB engine
+        run: npm run db:init -w apps/api
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
+
+      - name: Run full API test suite with real MongoDB integration
+        run: npm test -w apps/api
+
+      - name: Run workspace typecheck
+        run: npm run typecheck
+
+      - name: Run production build
+        run: npm run build

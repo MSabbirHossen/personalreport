@@ -1,0 +1,17 @@
+.git
+.github
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+dist
+apps/*/dist
+packages/*/dist
+.env
+.env.*
+!.env.example
+*.log
+*.webp
+.vscode
+.agents
+docs
+ReportBD-Product-Requirements-Document.md
