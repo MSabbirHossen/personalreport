@@ -101,3 +101,47 @@
 - **Vulnerability:** Broad `.env.*` rule prevented `.env.example` templates from being committed.
 - **Remediation Status:** **Resolved**.
 - **Fix Details:** Added `!.env.example` to `.gitignore`. Real `.env`, `.env.local`, and `*firebase-service-account*.json` remain strictly ignored.
+
+---
+
+### 10. Daily Reporting & Monthly Plan Concurrent Overwrites (Race Condition)
+- **Severity:** Medium / Data Integrity
+- **Location:** `apps/api/src/routes/dailyReports.ts`, `apps/api/src/routes/monthlyPlans.ts`
+- **Vulnerability:** Blind `updateOne` with `$set` would allow a client with stale values to overwrite a newer revision submitted from another browser session or device.
+- **Impact:** Silently lost student reporting corrections or goals.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Implemented revision-based optimistic concurrency. Queries include `{ revision: existing.revision }`. If `matchedCount === 0`, update fails and returns HTTP 409 `CONFLICT` alongside `serverRevision`.
+- **Verification Evidence:** `Daily-3`, `Daily-4`, `Plan-2` in `apps/api/src/tests/studentReportingAndOutcomes.test.ts`.
+
+---
+
+### 11. Retroactive Mutation of Submitted Monthly Outcome Records
+- **Severity:** Medium / Auditability
+- **Location:** `apps/api/src/routes/monthlyOutcomes.ts`, `apps/api/src/routes/dailyReports.ts`
+- **Vulnerability:** If daily reports were modified after a student submitted their monthly outcome, historical calculations viewed by the supervisor would silently drift, undermining review integrity.
+- **Impact:** Reports acknowledged by supervisors would not reflect the actual numbers evaluated during mentorship.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Submission freezes a complete immutable snapshot (`snapshot.derivedValues`, `dailyValuesSummary`, `dailyReportsCount`, timestamp). Modifying a daily report for that period leaves the submitted snapshot intact and flags `isStale: true` with audit reason and timestamp.
+- **Verification Evidence:** `Outcome-1`, `Outcome-2`, `Outcome-3` in `apps/api/src/tests/studentReportingAndOutcomes.test.ts`.
+
+---
+
+### 12. Supervisor Concurrent Review Action Race Condition
+- **Severity:** High / Concurrency & Auditability
+- **Location:** `apps/api/src/routes/supervisor.ts`
+- **Vulnerability:** Unsynchronized read-then-write updates allowed two concurrent supervisor requests (or double-clicks) to simultaneously review a report. One could acknowledge while another returned, silently overwriting status, feedback, and review audit metadata.
+- **Impact:** Inconsistent review lifecycle state, corrupted audit trail, and duplicate/conflicting advice records.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Implemented conditional atomic updates in MongoDB `updateOne` filtering on `{ _id, orgId, status: { $in: ['submitted', 'in_review'] }, revision: expectedRevision }`. If another review action resolved first, the query fails with `matchedCount === 0`. The handler performs a post-check and responds with HTTP 409 `ALREADY_REVIEWED` or `CONFLICT`.
+- **Verification Evidence:** `Sup-4` and `Sup-5` in `apps/api/src/tests/supervisorAndNotifications.test.ts`.
+
+---
+
+### 13. Notification Cross-Tenant Disclosure & Duplication via Insecure Recipient Injection
+- **Severity:** High / Access Control & Integrity
+- **Location:** `apps/api/src/routes/notifications.ts`, `apps/api/src/services/notifications.ts`
+- **Vulnerability:** Client-supplied recipient parameters or unscoped notification queries could allow malicious actors to inject notifications into other users' feeds or read private notifications belonging to other students/supervisors. Furthermore, network retries could generate unbounded duplicate notifications.
+- **Impact:** Cross-student information disclosure and notification flooding.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:** Notification recipients are strictly determined on the server from verified database relationships (`supervisorAssignments` and `monthlyOutcomes.userId`). Notification read/query endpoints enforce `recipientId: req.user.userId`. Idempotent delivery uses compound unique sparse indexing on `(orgId, recipientId, idempotencyKey)` to drop duplicate deliveries gracefully.
+- **Verification Evidence:** `Notif-3`, `Notif-4`, and `Notif-5` in `apps/api/src/tests/supervisorAndNotifications.test.ts`.

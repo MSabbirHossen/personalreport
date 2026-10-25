@@ -38,3 +38,49 @@
 | **B6** | List user memberships via `/me/memberships` | Confirmed Implemented & Tested | `GET /api/v1/me/memberships` returns user's active memberships with populated organization names. Tested in `invitations.test.ts` (Inv-7). |
 | **B7** | Admin can list and revoke pending invitations | Confirmed Implemented & Tested | `GET /api/v1/organization/invitations` and `DELETE /api/v1/organization/invitations/:id`. Tested in `invitations.test.ts` (Inv-8). |
 | **B8** | Frontend `/invite/:token` invitation page | Confirmed Implemented & Tested | Created `apps/web/src/pages/InvitePage.tsx` with Bangla UI, Google/Email login integration, and one-click accept. |
+
+---
+
+## Phase 3: Student Reporting, Monthly Outcomes & Snapshot Integrity
+**Target Milestone:** Reporting Core & Review Readiness (PRD DAY-01–06, PLAN-01–04, MON-01–06)
+**Status:** Completed (Implemented & Tested)
+**Objective:** Make daily reporting, monthly planning, and monthly outcomes persistent, concurrency-safe, tamper-resistant, and ready for supervisor review.
+
+### Scope Checklist & Acceptance Criteria
+| Item | Requirement | Status | Evidence / Verification |
+|---|---|---|---|
+| **C1** | Optimistic concurrency locking on daily reporting | Confirmed Implemented & Tested | `PUT /api/v1/daily-reports/:date` validates incoming revision and performs conditional DB update `{ revision: existing.revision }`. Stale revision returns HTTP 409 `CONFLICT` without overwriting latest data. Tested in `studentReportingAndOutcomes.test.ts` (Daily-3, Daily-4). |
+| **C2** | Missing values distinguished from numeric zero | Confirmed Implemented & Tested | Aggregations and forms distinguish `null`/`undefined` from explicit `0`. Null entries do not artificially drag down active-day or answered-day averages. Tested in `studentReportingAndOutcomes.test.ts` (Daily-5) and `aggregations.test.ts`. |
+| **C3** | Revision history audit trail | Confirmed Implemented & Tested | Edits to existing daily entries create entries in `dailyReportRevisions` capturing timestamp, author, previous values, and incremented revision. Tested in `studentReportingAndOutcomes.test.ts` (Daily-2). |
+| **C4** | Monthly planning persistence & revision tracking | Confirmed Implemented & Tested | `PUT /api/v1/monthly-plans/:month` persists target metrics per organization and student with optimistic concurrency. Returns 409 `CONFLICT` on stale writes. Tested in `studentReportingAndOutcomes.test.ts` (Plan-1, Plan-2). |
+| **C5** | Monthly plan sharing & supervisor visibility | Confirmed Implemented & Tested | `POST /api/v1/monthly-plans/:month/share` transitions plan status to `shared`, making targets available to assigned supervisor. Tested in `studentReportingAndOutcomes.test.ts` (Plan-3). |
+| **C6** | Canonical calculation formulas in shared package | Confirmed Implemented & Tested | `calculateMetricAggregate` in `@reportbd/shared` handles leap years, month boundaries (e.g. Feb 28/29, 30, 31 days), duration conversions, and count sums with deterministic precision. Tested in `aggregations.test.ts`. |
+| **C7** | Immutable submission snapshot capture | Confirmed Implemented & Tested | `POST /api/v1/monthly-outcomes/:month/submit` captures immutable snapshot (`derivedValues`, `dailyValuesSummary`, `dailyReportsCount`, timestamp). Submissions freeze outcome status to `submitted`. Tested in `studentReportingAndOutcomes.test.ts` (Outcome-1). |
+| **C8** | Stale snapshot detection on post-submission edits | Confirmed Implemented & Tested | When a daily report affecting a submitted month is saved, API marks `isStale: true`, logs `staleReason`, and records `staleAt` while keeping frozen snapshot unmodified. Tested in `studentReportingAndOutcomes.test.ts` (Outcome-2). |
+| **C9** | Isolation of stale detection to relevant month | Confirmed Implemented & Tested | Edits to daily reports for unrelated months do not trigger staleness flags on submitted outcomes. Tested in `studentReportingAndOutcomes.test.ts` (Outcome-3). |
+| **C10** | Outcome lifecycle state transition guards | Confirmed Implemented & Tested | Once submitted, outcome cannot be edited via PUT (HTTP 400 `IMMUTABLE_OUTCOME`) or re-submitted (HTTP 400 `INVALID_STATE_TRANSITION`) unless supervisor returns it. Tested in `studentReportingAndOutcomes.test.ts` (Outcome-4). |
+| **C11** | Supervisor review & return/resubmission lifecycle | Confirmed Implemented & Tested | Assigned supervisor can review and acknowledge or return report with advice. Returned status unlocks student editing for resubmission. Tested in `studentReportingAndOutcomes.test.ts` (Review-1, Review-2). |
+| **C12** | Frontend UX for conflict reload & stale warnings | Confirmed Implemented | `DailyReportPage.tsx` and `MonthlyPlanPage.tsx` present revision badges, display 409 conflict notifications, and offer reload recovery buttons. `MonthlyOutcomePage.tsx` displays amber warning banners when report is stale and distinguishes live vs submitted values. |
+
+---
+
+## Phase 4: Supervisor Dashboard, Mentorship, Feedback & Notifications
+**Target Milestone:** Supervisor Workflow, Two-Way Feedback & In-App Alerts (PRD MENT-01–04, NOTIF-01–03)
+**Status:** Completed (Implemented & Tested)
+**Objective:** Harden supervisor review concurrency, implement supervisor dashboard and review queue, enable threaded mentorship feedback, and deliver idempotent in-app notifications.
+
+### Scope Checklist & Acceptance Criteria
+| Item | Requirement | Status | Evidence / Verification |
+|---|---|---|---|
+| **D1** | Atomic supervisor review conditional update | Confirmed Implemented & Tested | `POST /api/v1/supervisor/reports/:outcomeId/review` executes an atomic conditional update `{ _id: outcomeId, orgId, status: { $in: ['submitted', 'in_review'] }, revision: expectedRevision }`. If a concurrent supervisor or action already transitioned the status, returns HTTP 409 `ALREADY_REVIEWED`. If revision is stale, returns HTTP 409 `CONFLICT`. Tested in `supervisorAndNotifications.test.ts` (Sup-4, Sup-5). |
+| **D2** | Strict tenant & assignment scoping on reviews | Confirmed Implemented & Tested | Supervisors can only inspect or review reports for students actively assigned to them within the same organization (`supervisorAssignments` collection check). Unassigned access returns HTTP 403 `FORBIDDEN_STUDENT_NOT_ASSIGNED`. Cross-org access returns HTTP 403. Tested in `supervisorAndNotifications.test.ts` (Sup-1, Sup-2). |
+| **D3** | Draft report review rejection | Confirmed Implemented & Tested | Attempting to review a report with status `draft` is strictly rejected with HTTP 400 `CANNOT_REVIEW_DRAFT`. Tested in `supervisorAndNotifications.test.ts` (Sup-3). |
+| **D4** | Review audit metadata & snapshot preservation | Confirmed Implemented & Tested | Server stamps `reviewedBy` (actor userId), `reviewedAt` (ISO date), increments `revision`, and retains immutable snapshot data. A returned report reverts to editable status for student resubmission. Tested in `supervisorAndNotifications.test.ts` (Sup-6). |
+| **D5** | Supervisor dashboard KPI metrics | Confirmed Implemented & Tested | `GET /api/v1/supervisor/dashboard` aggregates bounded counts for `assignedStudentsCount`, `pendingReviewsCount`, `acknowledgedThisMonthCount`, and `returnedThisMonthCount` alongside the recent review queue. Tested in `supervisorAndNotifications.test.ts` (Sup-9). |
+| **D6** | Supervisor review queue with filters & pagination | Confirmed Implemented & Tested | `GET /api/v1/supervisor/queue` supports query filtering by `monthKey`, `status` (`submitted`, `in_review`, `acknowledged`, `returned`), and `studentId` with `limit` and `offset` bounds. Tested in `supervisorAndNotifications.test.ts` (Sup-10). |
+| **D7** | Report comparison & review endpoint | Confirmed Implemented & Tested | `GET /api/v1/supervisor/reports/:outcomeId` loads outcome details, student identity, shared monthly plan targets for side-by-side metric comparison, and historical advice threads. Tested in `supervisorAndNotifications.test.ts` (Sup-6). |
+| **D8** | Two-way threaded mentorship advice & replies | Confirmed Implemented & Tested | `POST /api/v1/advice/:id/reply` allows students and assigned supervisors to post conversation replies. Unauthorized users are blocked with HTTP 403. Tested in `supervisorAndNotifications.test.ts` (Adv-1, Adv-2). |
+| **D9** | In-app notification triggers | Confirmed Implemented & Tested | Submission trigger notifies all assigned supervisors; review action (acknowledged or returned) triggers student notification; advice reply notifies student or supervisor. Tested in `supervisorAndNotifications.test.ts` (Notif-1, Notif-2, Adv-1). |
+| **D10** | Notification idempotency & deduplication | Confirmed Implemented & Tested | `createInAppNotification` enforces unique `(orgId, recipientId, idempotencyKey)` to eliminate duplicate alerts from retried operations. Tested in `supervisorAndNotifications.test.ts` (Notif-5). |
+| **D11** | Recipient notification management & isolation | Confirmed Implemented & Tested | `GET /api/v1/notifications`, `PATCH /api/v1/notifications/:id/read`, and `POST /api/v1/notifications/read-all` strictly query by `recipientId: req.user.userId`. Students cannot view other users' alerts. Tested in `supervisorAndNotifications.test.ts` (Notif-3, Notif-4). |
+| **D12** | Responsive React SPA supervisor & notification UX | Confirmed Implemented | `SupervisorDashboardPage.tsx` (KPI cards, filters, quick queue), `SupervisorReportReviewPage.tsx` (plan vs actual table, conflict recovery button, feedback entry), `NotificationsPage.tsx` (unread indicators, links, mark all read), and header notification badge. |
