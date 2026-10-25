@@ -7,44 +7,43 @@ describe('Reporting Arithmetic & Aggregations Unit Tests', () => {
   const sumMetric: MetricDefinition = {
     id: 'quran_study_ayah',
     groupId: 'quran',
-    nameBn: 'কুরআন অধ্যয়ন (আয়াত)',
-    nameEn: "Qur'an Study (Ayat)",
+    labelBn: 'কুরআন অধ্যয়ন (আয়াত)',
+    labelEn: "Qur'an Study (Ayat)",
     type: 'count',
-    unit: 'ayat',
+    unitBn: 'আয়াত',
+    unitEn: 'ayat',
     aggregation: 'sum',
-    order: 1,
   };
 
   const avgAnsweredMetric: MetricDefinition = {
     id: 'book_study_minutes',
     groupId: 'textbook',
-    nameBn: 'পাঠ্যবই অধ্যয়ন (মিনিট)',
-    nameEn: 'Textbook Study (Minutes)',
-    type: 'duration',
-    unit: 'minutes',
+    labelBn: 'পাঠ্যবই অধ্যয়ন (মিনিট)',
+    labelEn: 'Textbook Study (Minutes)',
+    type: 'duration_minutes',
+    unitBn: 'মিনিট',
+    unitEn: 'minutes',
     aggregation: 'avg_answered_days',
-    order: 2,
   };
 
   const avgCalendarMetric: MetricDefinition = {
     id: 'reading_literature_pages',
     groupId: 'reading',
-    nameBn: 'সাহিত্য অধ্যয়ন (পৃষ্ঠা)',
-    nameEn: 'Literature Pages',
+    labelBn: 'সাহিত্য অধ্যয়ন (পৃষ্ঠা)',
+    labelEn: 'Literature Pages',
     type: 'count',
-    unit: 'pages',
+    unitBn: 'পৃষ্ঠা',
+    unitEn: 'pages',
     aggregation: 'avg_calendar_days',
-    order: 3,
   };
 
   const boolActiveDaysMetric: MetricDefinition = {
     id: 'salah_fajr_jamaat',
     groupId: 'salah',
-    nameBn: 'ফজর জামায়াত',
-    nameEn: 'Fajr in Jamaat',
+    labelBn: 'ফজর জামায়াত',
+    labelEn: 'Fajr in Jamaat',
     type: 'boolean',
     aggregation: 'count_active_days',
-    order: 4,
   };
 
   test('Empty month returns null instead of false zero performance', () => {

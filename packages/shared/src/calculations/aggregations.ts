@@ -9,7 +9,14 @@ export function calculateMetricAggregate(
   dailyValues: DailyValuesByDate,
   calendarDaysInMonth: number
 ): number | null {
-  const dates = Object.keys(dailyValues);
+  const dates = Object.keys(dailyValues).filter((d) => {
+    const parts = d.split('-');
+    if (parts.length === 3) {
+      const day = parseInt(parts[2], 10);
+      if (isNaN(day) || day < 1 || day > calendarDaysInMonth) return false;
+    }
+    return true;
+  });
   if (dates.length === 0) return null;
 
   const validValues: number[] = [];

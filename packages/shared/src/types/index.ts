@@ -121,15 +121,28 @@ export interface MonthlyOutcome {
     dailyValuesSummary?: Record<string, any>;
     calculatedAt: string;
     templateVersionId: string;
+    derivedValues?: Record<string, number | null>;
+    dailyReportsCount?: number;
   };
   status: MonthlyOutcomeStatus;
   isStale?: boolean; // True if daily entries were modified after submission snapshot
+  staleReason?: string;
+  staleAt?: string;
   submittedAt?: string;
   reviewedAt?: string;
   reviewedBy?: string;
   revision: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AdviceReply {
+  id?: string;
+  authorId: string;
+  authorName: string;
+  authorRole: string;
+  body: string;
+  createdAt: string;
 }
 
 export interface Advice {
@@ -145,6 +158,7 @@ export interface Advice {
   body: string;
   isAcknowledged: boolean;
   acknowledgedAt?: string;
+  replies?: AdviceReply[];
   createdAt: string;
   updatedAt?: string;
 }
@@ -206,4 +220,53 @@ export interface UserAuthContext {
   orgId?: string;
   roles: SystemRole[];
   membership?: Membership;
+}
+
+// ==================== Notifications ====================
+export type NotificationType =
+  | 'report_submitted'
+  | 'report_returned'
+  | 'report_acknowledged'
+  | 'advice_received'
+  | 'plan_shared';
+
+export interface InAppNotification {
+  id: string;
+  orgId: string;
+  recipientId: string;
+  actorId: string;
+  actorName: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  link: string;
+  targetType: 'outcome' | 'plan' | 'advice';
+  targetId: string;
+  isRead: boolean;
+  readAt?: string;
+  idempotencyKey?: string;
+  createdAt: string;
+}
+
+// ==================== Supervisor Dashboard & Queue ====================
+export interface SupervisorQueueItem {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  monthKey: string;
+  status: MonthlyOutcomeStatus;
+  submittedAt?: string;
+  reviewedAt?: string;
+  isStale: boolean;
+  staleReason?: string | null;
+  revision: number;
+}
+
+export interface SupervisorDashboardSummary {
+  assignedStudentsCount: number;
+  pendingReviewsCount: number;
+  acknowledgedThisMonthCount: number;
+  returnedThisMonthCount: number;
+  recentQueue: SupervisorQueueItem[];
 }

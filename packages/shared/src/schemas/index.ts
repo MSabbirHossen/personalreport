@@ -42,7 +42,7 @@ export const SaveMonthlyPlanInputSchema = z.object({
 // ==================== Monthly Outcome ====================
 export const SaveMonthlyOutcomeInputSchema = z.object({
   monthKey: MonthKeySchema,
-  manualValues: z.record(z.union([z.number(), z.string(), z.null()])),
+  manualValues: z.record(z.union([z.number(), z.string(), z.null()])).optional().default({}),
   reflections: z.object({
     achievements: z.string().max(2000).optional(),
     challenges: z.string().max(2000).optional(),
@@ -61,6 +61,7 @@ export const ReviewOutcomeInputSchema = z.object({
   outcomeId: z.string(),
   action: z.enum(['acknowledge', 'return']),
   feedback: z.string().max(2000).optional(),
+  revision: z.number().int().nonnegative().optional(),
 });
 
 export const CreateAdviceInputSchema = z.object({
@@ -69,6 +70,18 @@ export const CreateAdviceInputSchema = z.object({
   targetId: z.string().optional(),
   monthKey: MonthKeySchema.optional(),
   body: z.string().min(5).max(3000),
+});
+
+export const ReplyAdviceInputSchema = z.object({
+  body: z.string().min(2).max(2000),
+});
+
+export const SupervisorQueueQuerySchema = z.object({
+  monthKey: MonthKeySchema.optional(),
+  status: z.enum(['all', 'submitted', 'in_review', 'acknowledged', 'returned']).optional().default('submitted'),
+  studentId: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
 });
 
 // ==================== Organization Admin ====================

@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "npx tsx --test src/tests/**/*.test.ts",
+    "test": "tsx --test src/tests/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
