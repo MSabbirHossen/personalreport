@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { AuthenticatedRequest, requireAuth } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import { logAuditEvent } from '../services/audit.js';
+import { authRateLimiter } from '../middleware/rateLimiter.js';
 
 export const invitationsRouter = Router();
 
@@ -66,7 +67,7 @@ invitationsRouter.get('/:token', async (req, res: Response) => {
 });
 
 // POST /api/v1/invitations/:token/accept — Accept invitation (Requires authentication)
-invitationsRouter.post('/:token/accept', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+invitationsRouter.post('/:token/accept', authRateLimiter, requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const token = req.params.token as string;
     const user = req.user!;

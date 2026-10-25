@@ -9,6 +9,7 @@ import {
   AuditEventsQuerySchema,
 } from '@reportbd/shared';
 import { logAuditEvent } from '../services/audit.js';
+import { inviteRateLimiter, sensitiveOpsLimiter } from '../middleware/rateLimiter.js';
 
 export const organizationRouter = Router();
 
@@ -75,7 +76,7 @@ organizationRouter.post('/assignments', async (req: AuthenticatedRequest, res: R
 });
 
 // POST /api/v1/organization/invitations — Generate expiring single-use invitation
-organizationRouter.post('/invitations', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.post('/invitations', inviteRateLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const body = CreateInvitationInputSchema.parse(req.body);
@@ -233,7 +234,7 @@ organizationRouter.delete('/invitations/:id', async (req: AuthenticatedRequest, 
 });
 
 // GET /api/v1/organization/audit-events — ADMINISTRATIVE AUDIT LOG EXPLORER (ADMIN-07)
-organizationRouter.get('/audit-events', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.get('/audit-events', sensitiveOpsLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const parsedQuery = AuditEventsQuerySchema.safeParse(req.query);

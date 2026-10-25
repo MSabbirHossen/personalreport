@@ -13,55 +13,90 @@ export interface LogAuditEventParams {
   userAgent?: string;
 }
 
-const SENSITIVE_KEY_REGEX = /(password|token|secret|credential|key|auth|private)/i;
+export interface AuditMetrics {
+  totalLogged: number;
+  totalFailures: number;
+  lastFailureAt: string | null;
+  lastFailureReason: string | null;
+}
+
+// In-memory audit metrics for operational observability
+const auditMetrics: AuditMetrics = {
+  totalLogged: 0,
+  totalFailures: 0,
+  lastFailureAt: null,
+  lastFailureReason: null,
+};
+
+export function getAuditMetrics(): Readonly<AuditMetrics> {
+  return { ...auditMetrics };
+}
+
+export function resetAuditMetrics(): void {
+  auditMetrics.totalLogged = 0;
+  auditMetrics.totalFailures = 0;
+  auditMetrics.lastFailureAt = null;
+  auditMetrics.lastFailureReason = null;
+}
+
+const SENSITIVE_KEY_REGEX = /(password|token|secret|credential|key|auth|private|cookie|hash)/i;
 
 /**
- * Sanitizes metadata before persisting to audit log.
- * Removes sensitive authentication tokens, passwords, and shrinks large text.
+ * Recursively sanitizes metadata before persisting to audit storage.
+ * Performs deep traversal on nested objects and arrays up to depth 6,
+ * redacting sensitive keys and capping string lengths to 256 characters.
  */
-function sanitizeMetadata(metadata?: Record<string, any>): Record<string, any> | undefined {
-  if (!metadata || typeof metadata !== 'object') {
+export function sanitizeMetadata(value: any, depth = 0): any {
+  if (depth > 6) {
+    return '[TRUNCATED_DEPTH]';
+  }
+
+  if (value === null || value === undefined) {
     return undefined;
   }
 
-  const sanitized: Record<string, any> = {};
-
-  for (const [key, val] of Object.entries(metadata)) {
-    if (SENSITIVE_KEY_REGEX.test(key)) {
-      sanitized[key] = '[REDACTED]';
-      continue;
-    }
-
-    if (val === null || val === undefined) {
-      continue;
-    }
-
-    if (typeof val === 'string') {
-      // Truncate overly long text fields (e.g. advice bodies or notes) to max 256 chars for audit trail
-      sanitized[key] = val.length > 256 ? `${val.substring(0, 253)}...` : val;
-    } else if (typeof val === 'number' || typeof val === 'boolean') {
-      sanitized[key] = val;
-    } else if (Array.isArray(val)) {
-      sanitized[key] = `[Array (${val.length} items)]`;
-    } else if (typeof val === 'object') {
-      // Shallow copy safe primitives
-      const subObj: Record<string, any> = {};
-      for (const [subK, subV] of Object.entries(val)) {
-        if (!SENSITIVE_KEY_REGEX.test(subK) && (typeof subV === 'string' || typeof subV === 'number' || typeof subV === 'boolean')) {
-          subObj[subK] = subV;
-        }
-      }
-      sanitized[key] = subObj;
-    }
+  if (typeof value === 'string') {
+    // Truncate overly long text fields to max 256 chars for audit log efficiency
+    return value.length > 256 ? `${value.substring(0, 253)}...` : value;
   }
 
-  return sanitized;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    // Recursively sanitize array elements (capped at first 50 items)
+    return value.slice(0, 50).map((item) => sanitizeMetadata(item, depth + 1));
+  }
+
+  if (typeof value === 'object') {
+    const sanitizedObj: Record<string, any> = {};
+    for (const [key, val] of Object.entries(value)) {
+      if (SENSITIVE_KEY_REGEX.test(key)) {
+        sanitizedObj[key] = '[REDACTED]';
+      } else {
+        const sanitizedVal = sanitizeMetadata(val, depth + 1);
+        if (sanitizedVal !== undefined) {
+          sanitizedObj[key] = sanitizedVal;
+        }
+      }
+    }
+    return sanitizedObj;
+  }
+
+  return String(value);
 }
 
 /**
- * Appends a tamper-resistant, server-timestamped record to the auditEvents collection.
+ * Appends an application-level immutable, server-timestamped record to the auditEvents collection.
+ *
+ * Reliability & Tamper-Resistance Notice:
+ * - Audit records are generated strictly server-side; ordinary API routes expose NO update or delete endpoints.
+ * - Sensitive credentials, tokens, and raw private reports are excluded or deep-redacted before persistence.
+ * - If MongoDB write fails, the failure is recorded in operational metrics (`getAuditMetrics`) and logged,
+ *   preventing silent log failures without breaking non-critical caller workflows.
  */
-export async function logAuditEvent(db: Db, params: LogAuditEventParams): Promise<void> {
+export async function logAuditEvent(db: Db, params: LogAuditEventParams): Promise<boolean> {
   try {
     const time = new Date().toISOString();
     const doc: AuditEvent = {
@@ -79,7 +114,18 @@ export async function logAuditEvent(db: Db, params: LogAuditEventParams): Promis
     };
 
     await db.collection('auditEvents').insertOne(doc as any);
-  } catch (err) {
-    console.error('❌ Failed to log audit event:', err);
+    auditMetrics.totalLogged += 1;
+    return true;
+  } catch (err: any) {
+    auditMetrics.totalFailures += 1;
+    auditMetrics.lastFailureAt = new Date().toISOString();
+    auditMetrics.lastFailureReason = err?.message || 'Unknown database write error';
+    console.error('❌ [AUDIT_LOG_FAILURE] Failed to record audit event:', {
+      action: params.action,
+      entityType: params.entityType,
+      entityId: params.entityId,
+      error: err?.message,
+    });
+    return false;
   }
 }

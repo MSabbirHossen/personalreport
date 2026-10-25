@@ -9,6 +9,7 @@ import {
 } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
 import { logAuditEvent } from '../services/audit.js';
+import { sensitiveOpsLimiter } from '../middleware/rateLimiter.js';
 
 export const supervisorRouter = Router();
 
@@ -444,7 +445,7 @@ supervisorRouter.get('/reports/:outcomeId', async (req: AuthenticatedRequest, re
 });
 
 // POST /api/v1/supervisor/reviews/:outcomeId
-supervisorRouter.post('/reviews/:outcomeId', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.post('/reviews/:outcomeId', sensitiveOpsLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const outcomeId = req.params.outcomeId as string;
     const body = ReviewOutcomeInputSchema.parse({ ...req.body, outcomeId });
