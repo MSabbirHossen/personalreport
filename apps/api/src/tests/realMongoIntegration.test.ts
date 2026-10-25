@@ -42,11 +42,26 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
     }
   });
 
-  test('RealMongo-1: Database index initialization is idempotent on real MongoDB engine', async (t) => {
+  const shouldFailIfUnavailable =
+    process.env.CI === 'true' || process.env.FAIL_ON_UNAVAILABLE_MONGO === 'true';
+
+  function ensureMongoAvailable(t: any): boolean {
     if (!isMongoAvailable) {
-      t.skip('Skipped: Real MongoDB instance not reachable.');
-      return;
+      if (shouldFailIfUnavailable) {
+        assert.fail(
+          `CRITICAL: Real MongoDB instance required but not accessible at ${mongoUri}. In CI/enforced mode, integration tests cannot be skipped.`
+        );
+      }
+      t.skip(
+        `Skipped: Real MongoDB instance not reachable at ${mongoUri} (set FAIL_ON_UNAVAILABLE_MONGO=true to enforce).`
+      );
+      return false;
     }
+    return true;
+  }
+
+  test('RealMongo-1: Database index initialization is idempotent on real MongoDB engine', async (t) => {
+    if (!ensureMongoAvailable(t)) return;
 
     // 1. Create indexes matching initDb.ts
     await db.collection('users').createIndex({ firebaseUid: 1 }, { unique: true });
@@ -86,10 +101,7 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
   });
 
   test('RealMongo-2: Notification sparse unique index enforces idempotency and drops duplicates on real MongoDB engine', async (t) => {
-    if (!isMongoAvailable) {
-      t.skip('Skipped: Real MongoDB instance not reachable.');
-      return;
-    }
+    if (!ensureMongoAvailable(t)) return;
 
     const orgId = 'org_real_test';
     const recipientId = 'student_real_1';
@@ -145,10 +157,7 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
   });
 
   test('RealMongo-3: Concurrent atomic conditional updates prevent race conditions on real MongoDB engine', async (t) => {
-    if (!isMongoAvailable) {
-      t.skip('Skipped: Real MongoDB instance not reachable.');
-      return;
-    }
+    if (!ensureMongoAvailable(t)) return;
 
     const orgId = 'org_real_concurrency';
     const outcomeId = new ObjectId();
@@ -214,10 +223,7 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
   });
 
   test('RealMongo-4: Audit log insertion and organization isolation on real MongoDB engine', async (t) => {
-    if (!isMongoAvailable) {
-      t.skip('Skipped: Real MongoDB instance not reachable.');
-      return;
-    }
+    if (!ensureMongoAvailable(t)) return;
 
     const orgA = 'org_alpha';
     const orgB = 'org_beta';
