@@ -104,3 +104,56 @@ Deploy the container to your orchestration platform with the required environmen
 ### Disaster Recovery
 - MongoDB Atlas maintains automated snapshots every 6 hours and continuous oplog backup.
 - In case of catastrophic data corruption, initiate point-in-time recovery to the desired timestamp via the MongoDB Atlas Cloud console.
+
+---
+
+## 6. Staging Handoff & Release Readiness Checklist
+
+### 1. Required Production Environment Variables (Names Only)
+- **Backend API:** `NODE_ENV`, `PORT`, `MONGODB_URI`, `MONGODB_DB_NAME`, `CORS_ORIGIN`, `TRUST_PROXY`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`.
+- **Frontend SPA:** `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, `VITE_API_BASE_URL`.
+
+### 2. Firebase Provisioning Protocol
+1. Create a Firebase Project in Google Cloud console.
+2. Enable **Authentication** -> Sign-in methods: **Email/Password** and **Google**.
+3. In Project Settings -> **Service accounts**, generate a new private key JSON.
+4. Extract `project_id`, `client_email`, and format `private_key` with actual newlines (`\n`) for environment injection.
+5. In Project Settings -> General -> **Your apps**, register a Web App and extract Client SDK keys for `apps/web`.
+
+### 3. Database Replica Set & Migration Requirements
+1. MongoDB cluster must run MongoDB 7.0+ as a replica set (required for multi-document ACID transactions in supervisor reviews and snapshot submission).
+2. Execute `npm run db:init -w apps/api` against target cluster to generate all 15 compound, unique, and partial indexes before directing traffic.
+3. Verify partial index on notifications (`idempotencyKey`) and unique index on memberships (`orgId`, `userId`).
+
+### 4. Backup & Pre-Release Safeguards
+1. Verify automated cloud backup snapshot state in MongoDB Atlas console prior to executing data migrations.
+2. Confirm oplog retention window is active (minimum 24-hour continuous recovery).
+
+### 5. Ingress, Reverse-Proxy & CORS Controls
+1. Set `CORS_ORIGIN` to exact comma-separated production origins (e.g. `https://app.reportbd.com`). Wildcards (`*`) are rejected at startup in production.
+2. If API is deployed behind Cloud Run, AWS ALB, Nginx, or Cloudflare, ensure `TRUST_PROXY=true` to resolve client IP addresses correctly for rate limiting.
+
+### 6. Deployment Sequence & Post-Deployment Smoke Checks
+1. **Phase 1: Database Initialization:** Run `npm run db:init -w apps/api`.
+2. **Phase 2: API Container Rollout:** Deploy `reportbd-api:<tag>`.
+3. **Phase 3: Backend Smoke Check:** Query `GET /health` (expect 200 `{ status: "ok" }`) and `GET /health/ready` (expect 200 `{ status: "ready", database: "connected" }`).
+4. **Phase 4: Frontend Rollout:** Deploy `apps/web` to Vercel/CDN.
+5. **Phase 5: End-to-End Smoke Check:** Sign in with seeded test account; confirm profile loads and active organization displays.
+
+### 7. Health & Readiness Monitoring
+- Monitor `GET /health` for process liveness (container restart trigger if unresponsive).
+- Monitor `GET /health/ready` for traffic routing (load balancer cuts traffic on 503 `disconnected` state).
+
+### 8. Release Abort & Rollback Criteria
+- **Abort Release If:**
+  - Database readiness check fails for > 3 consecutive health checks.
+  - API error rate exceeds 1% of total requests during smoke testing.
+  - Startup throws validation error (e.g. missing credentials or loopback URI).
+- **Rollback Procedure:** Redeploy previous verified Docker container tag on backend; promote previous verified deployment on Vercel frontend.
+
+### 9. Remaining Human Verification Tasks
+- Browser UI exploration for Student, Supervisor, Org Admin, and Platform Admin flows.
+- Visual Chrome / Edge A4 print preview inspection for `/monthly-plan`.
+
+### 10. Outstanding Security & Architectural Boundaries
+- In-memory rate limiting stores state per Node.js process. In multi-replica configurations, migrate rate limiter storage to Redis or manage rate limiting at the ingress API gateway.
