@@ -1,4 +1,4 @@
-# ReportBD — Project Status
+# Report-BPS — Project Status
 
 **Inspected Commit:** `30233e7ffd1b6d5e45693c2b583e716739800108`  
 **Current Branch:** `main`  
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-ReportBD is a Bangla-first, mobile-friendly personal reporting platform designed for students, supervisors, and organization administrators. The platform architecture is organized as an npm workspace monorepo comprising:
+Report-BPS is a Bangla-first, mobile-friendly personal reporting platform designed for students, supervisors, and organization administrators. The platform architecture is organized as an npm workspace monorepo comprising:
 - `packages/shared`: Shared TypeScript domain models, Zod validation schemas, role definitions, and calculation logic.
 - `apps/api`: Express 4 backend with MongoDB Atlas driver, Firebase Admin authentication, and REST API v1 endpoints.
 - `apps/web`: React 19 + Vite SPA with Tailwind CSS, React Router v7, TanStack Query v5, and Firebase Client SDK.

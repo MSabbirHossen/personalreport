@@ -3,7 +3,7 @@
 **Version:** 1.0  
 **Date:** 28 September 2026  
 **Status:** Build-ready proposal; stakeholder validation required for unobserved roles  
-**Working name:** ReportBD (replace before public launch if needed)  
+**Working name:** Report-BPS (formerly ReportBD)  
 **Owner:** Md. Sabbir Hossen
 
 ## 1. Executive summary

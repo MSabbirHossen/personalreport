@@ -1,8 +1,8 @@
-# ReportBD — Production Deployment & Operations Guide
+# Report-BPS — Production Deployment & Operations Guide
 
 ## 1. System Architecture Overview
 
-ReportBD uses a decoupled, multi-tenant MERN architecture hardened for security and scalability:
+Report-BPS uses a decoupled, multi-tenant MERN architecture hardened for security and scalability:
 
 - **Frontend SPA:** React 19 + TypeScript + Vite, deployed as a static Single Page Application (e.g. Vercel, Cloudflare Pages, AWS S3 + CloudFront).
 - **Backend API:** Node.js 22 + Express 4 + TypeScript, containerized using multi-stage Alpine Docker runtime (e.g. Render, Railway, AWS ECS, Google Cloud Run).

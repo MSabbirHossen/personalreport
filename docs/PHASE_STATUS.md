@@ -1,4 +1,4 @@
-# ReportBD — Phase Status Ledger
+# Report-BPS — Phase Status Ledger
 
 ## Phase 1: Authentication and Security Foundation
 **Target Milestone:** Hardening Foundation for V1 Pilot  
@@ -112,7 +112,7 @@
 ## Phase 6: Production Readiness, CI/CD & Security Hardening
 **Target Milestone:** Beta Deployment Preparation, Automated CI, Security & Runbooks
 **Status:** Completed (Implemented & Tested)
-**Objective:** Prepare ReportBD for controlled beta deployment with automated GitHub Actions CI, multi-layered security hardening, runtime resilience, deployment specifications, and persona acceptance protocols.
+**Objective:** Prepare Report-BPS for controlled beta deployment with automated GitHub Actions CI, multi-layered security hardening, runtime resilience, deployment specifications, and persona acceptance protocols.
 
 ### Scope Checklist & Acceptance Criteria
 | Item | Requirement | Status | Evidence / Verification |
@@ -134,7 +134,7 @@
 ## Phase 7: Beta Validation, Deployment Rehearsal & Release Gate
 **Target Milestone:** Beta Readiness Sign-Off & Operational Release Gate
 **Status:** Implementation Verified; Beta Validation Pending
-**Objective:** Confirm ReportBD technical readiness for a controlled beta deployment through rigorous defect remediation, memory bounds verification, safe integration testing, CI validation, and persona UAT specifications.
+**Objective:** Confirm Report-BPS technical readiness for a controlled beta deployment through rigorous defect remediation, memory bounds verification, safe integration testing, CI validation, and persona UAT specifications.
 
 ### Scope Checklist & Acceptance Criteria
 | Item | Requirement | Status | Evidence / Verification |
