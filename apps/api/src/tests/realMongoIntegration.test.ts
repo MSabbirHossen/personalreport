@@ -49,26 +49,50 @@ export function assertSafeIntegrationTarget(
     );
   }
 
-  // 2. Reject unapproved database names (strict allowlist)
-  if (!ALLOWED_TEST_DB_NAMES.has(dbName)) {
+  // 2. Reject missing, empty, or non-string URI
+  if (!uri || typeof uri !== 'string' || !uri.trim()) {
+    throw new Error('Refusing to execute: MongoDB connection URI is missing, empty, or invalid.');
+  }
+
+  // 3. Reject unsupported URI schemes
+  if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+    throw new Error('Refusing to execute: Invalid MongoDB URI scheme. Must start with mongodb://.');
+  }
+
+  // 4. Reject unapproved database names (strict allowlist)
+  if (!dbName || !ALLOWED_TEST_DB_NAMES.has(dbName)) {
     throw new Error(
       `Refusing to drop or operate on unapproved database: "${dbName}". Only explicit test databases (${Array.from(ALLOWED_TEST_DB_NAMES).join(', ')}) are permitted.`
     );
   }
 
-  // 3. Reject unapproved remote hosts/clusters (only loopback or container service allowed)
+  // 5. Reject unapproved remote hosts/clusters or embedded unapproved database paths
   try {
-    const parsed = new URL(uri.replace(/^mongodb(\+srv)?:\/\//, 'http://'));
-    const hostname = parsed.hostname.toLowerCase();
     const isSrv = uri.startsWith('mongodb+srv://');
+    if (isSrv) {
+      throw new Error(
+        'Refusing to connect integration test harness to remote SRV cluster (mongodb+srv://). Integration tests only permit local/CI instances.'
+      );
+    }
+
+    const parsed = new URL(uri.replace(/^mongodb:\/\//, 'http://'));
+    const hostname = parsed.hostname.toLowerCase();
     const isApprovedHost =
       hostname === '127.0.0.1' ||
       hostname === 'localhost' ||
       hostname === 'mongo';
 
-    if (isSrv || !isApprovedHost) {
+    if (!isApprovedHost) {
       throw new Error(
         `Refusing to connect integration test harness to remote or unapproved MongoDB host: "${hostname}". Integration tests only permit local/CI instances (127.0.0.1, localhost, mongo).`
+      );
+    }
+
+    // Verify embedded pathname database if present
+    const embeddedDb = parsed.pathname.replace(/^\//, '').split('?')[0];
+    if (embeddedDb && !ALLOWED_TEST_DB_NAMES.has(embeddedDb)) {
+      throw new Error(
+        `Refusing to connect: URI embedded database "${embeddedDb}" does not match approved test databases.`
       );
     }
   } catch (err: any) {
@@ -76,6 +100,7 @@ export function assertSafeIntegrationTarget(
     throw new Error(`Failed to safely parse MongoDB URI for target validation: ${err.message}`);
   }
 }
+
 
 describe('Real MongoDB Integration Verification (Stage 3)', () => {
   const mongoUri =
@@ -171,8 +196,9 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
     // 4. Rejects remote Atlas SRV URI
     assert.throws(
       () => assertSafeIntegrationTarget('mongodb+srv://admin:pass@cluster0.mongodb.net/reportbd_test', 'reportbd_test', 'test'),
-      /remote or unapproved MongoDB host/
+      /remote SRV cluster/
     );
+
 
     // 5. Rejects remote host/IP
     assert.throws(
@@ -185,14 +211,42 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
     assert.ok(!sanitized.includes('supersecretpass'));
     assert.ok(sanitized.includes('***:***'));
 
-    // 7. Permits valid local and CI targets
+    // 7. Rejects missing, empty, or whitespace URI
+    assert.throws(
+      () => assertSafeIntegrationTarget('', 'reportbd_test', 'test'),
+      /MongoDB connection URI is missing, empty, or invalid/
+    );
+
+    // 8. Rejects non-mongo URI schemes
+    assert.throws(
+      () => assertSafeIntegrationTarget('http://127.0.0.1:27017/reportbd_test', 'reportbd_test', 'test'),
+      /Invalid MongoDB URI scheme/
+    );
+
+    // 9. Rejects missing or empty dbName
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/reportbd_test', '', 'test'),
+      /Refusing to drop or operate on unapproved database/
+    );
+
+    // 10. Rejects URI with embedded unapproved database name
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/production_cluster', 'reportbd_test', 'test'),
+      /URI embedded database "production_cluster" does not match approved test databases/
+    );
+
+    // 11. Permits valid local and CI targets
     assert.doesNotThrow(() =>
       assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/reportbd_test_phase9', 'reportbd_test_phase9', 'test')
     );
     assert.doesNotThrow(() =>
       assertSafeIntegrationTarget('mongodb://mongo:27017/reportbd_test_ci', 'reportbd_test_ci', 'test')
     );
+    assert.doesNotThrow(() =>
+      assertSafeIntegrationTarget('mongodb://localhost:27017/reportbd_test', 'reportbd_test', 'test')
+    );
   });
+
 
   test('RealMongo-1: Database index initialization is idempotent on real MongoDB engine', async (t) => {
     if (!ensureMongoAvailable(t)) return;
