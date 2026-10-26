@@ -231,3 +231,22 @@
 | **L6** | Human UAT manual execution test sheet | Confirmed Implemented | Updated `docs/BETA_UAT_CHECKLIST.md` with Section 6, establishing a 17-point manual execution test sheet with setup, actions, expected outcomes, screenshot/evidence placeholders, and sign-off statuses for Student, Supervisor, Org Admin, Platform Admin, and A4 print verification. |
 | **L7** | Remote CI workflow audit & verification plan | Confirmed Implemented | Audited `.github/workflows/ci.yml`. Confirmed pipeline runs `mongo:7.0`, `npm ci`, shared package compilation, database index initialization, full test suite against live MongoDB, typecheck, build, and diff checks. Prepared exact verification commands for post-push evaluation. |
 | **L8** | Technical Authorization Gate Stop | **Beta Deployment Candidate** | All local quality gates verified. Explicitly stopped at the technical gate without pushing to GitHub, modifying remote infrastructure, or triggering deployment. Awaiting explicit user authorization. |
+
+---
+
+## Phase 12: Test Evidence Reconciliation & Pre-Push Readiness
+**Target Milestone:** Test Reconciliation & Pre-Push Release Gate<br/>
+**Status:** Beta Deployment Candidate<br/>
+**Objective:** Reconcile all local test claims against direct runner evidence, verify fail-fast and connected database behavior, inspect safety guards and CI harmonization, review operational readiness, and prepare an uncompromised pre-push handoff.
+
+### Scope Checklist & Acceptance Criteria
+| Item | Requirement | Status | Evidence / Verification |
+|---|---|---|---|
+| **M1** | Establish baseline & commit chain | Confirmed Implemented & Verified | Audited starting commit `e0d7ef8` (superseding `6cced0b` via commits `a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8` aligning platform branding and docs to `Report-BPS`). Working tree audited as clean. |
+| **M2** | Live connected database test verification | Confirmed Implemented & Tested | Executed full test suites with live MongoDB connection on 127.0.0.1:27017: `packages/shared` passed 5/5 tests (100%); `apps/api` passed 78/78 tests across 11 suites (100% pass rate, 0 failed, 0 skipped), including all 5 real MongoDB integration tests (`RealMongo-0` through `RealMongo-4`). Monorepo unique total: **83 unique tests passing**. |
+| **M3** | Test count reconciliation & discrepancy resolution | Confirmed Implemented & Verified | Explicitly documented and reconciled test execution differences: offline MongoDB results in 74 mock/unit tests passed and 4 real MongoDB tests skipped; online MongoDB results in 78 tests passed and 0 skipped. Isolated integration command (`npm run test:integration -w apps/api`) reruns the 5 integration tests (already part of the 78 API tests). |
+| **M4** | Target safety guard audit | Confirmed Implemented & Tested | Inspected `assertSafeIntegrationTarget` in `realMongoIntegration.test.ts`. Confirmed strict rejection of `NODE_ENV=production`, non-mongo schemes, remote SRV clusters (`mongodb+srv://`), unapproved hosts (only `127.0.0.1`, `localhost`, `mongo`), and unapproved database names. Confirmed credential sanitization (`***:***`) in logs. |
+| **M5** | Fail-fast outage rejection verification | Confirmed Implemented & Tested | Re-verified that `$env:FAIL_ON_UNAVAILABLE_MONGO="true"` immediately throws `CRITICAL: Real MongoDB instance required but failed to connect` and exits with code 1 if MongoDB is offline, preventing silent pass. |
+| **M6** | Workspace typecheck & production build | Confirmed Implemented & Tested | Verified clean pass of `npm run typecheck` (code 0) and `npm run build` (code 0) across `@reportbd/shared`, `@reportbd/api`, and `@reportbd/web`. |
+| **M7** | Code formatting & whitespace validation | Confirmed Implemented & Tested | Executed `git diff --check`, confirming zero whitespace or formatting errors across all committed and modified files. |
+| **M8** | Release Gate Decision | **Beta Deployment Candidate** | All 83 automated tests passed with live runner evidence, builds/typechecks passed, safety guards verified, and documentation reconciled. Remote GitHub Actions run and 17 manual human UAT scenarios remain pending authorization. |

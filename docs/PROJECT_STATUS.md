@@ -168,3 +168,18 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
       - Documented operational telemetry prerequisites for enforcing the 1% error rate threshold via APM alert rules (Datadog, CloudWatch, GCP Monitoring) versus manual log inspection during smoke rollouts.
     - **Human UAT Execution Protocol:** Enhanced `docs/BETA_UAT_CHECKLIST.md` with Section 6, establishing a 17-point manual execution test sheet with setup, actions, expected outcomes, screenshot/evidence placeholders, and sign-off statuses for Student, Supervisor, Org Admin, Platform Admin, and A4 print verification.
     - **Authorization Gate:** Established the release checklist and stopped at the technical gate without pushing to GitHub, modifying remote infrastructure, or deploying.
+
+12. **Phase 12 (Test Evidence Reconciliation & Pre-Push Readiness) — Beta Deployment Candidate:**
+    - **Release Status:** **Beta deployment candidate** (All 83 unique tests passing with real database connection verified in current session, fail-fast outage rejection demonstrated, workspace builds and typechecks clean, and release documentation reconciled; standing at the Authorization Gate awaiting explicit authorization to push or trigger staging deployment).
+    - **Baseline & Commit Chain:** Established baseline at commit `e0d7ef8`, which succeeded `6cced0b` with branding and specification alignment to `Report-BPS` (`a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8`). Working tree audited and clean.
+    - **Live Connected Database Test Evidence (83 Unique Tests Passing):** In the current session, local MongoDB instance on 127.0.0.1:27017 was actively reached and verified:
+      - `packages/shared`: 5 tests executed, 5 passed, 0 failed, 0 skipped.
+      - `apps/api`: 78 tests executed across 11 test suites, 78 passed, 0 failed, 0 skipped (including all 5 real MongoDB integration tests `RealMongo-0` through `RealMongo-4`).
+      - Dedicated integration command (`npm run test:integration -w apps/api`): 5 tests executed, 5 passed, 0 failed, 0 skipped.
+      - Monorepo unique test total: **83 unique tests, all 83 passed, 0 failed, 0 skipped, 100% pass rate** backed by direct runner output.
+    - **Reconciliation of Discrepancies:**
+      - Explicitly reconciled that when MongoDB is offline, 74 mock/unit API tests pass and 4 real MongoDB tests skip, with `FAIL_ON_UNAVAILABLE_MONGO=true` immediately halting execution with code 1, whereas when MongoDB is online, all 78 API tests and all 5 shared tests pass (83 unique tests).
+      - Reconciled command-level test counts: `npm test -w apps/api` executes 78 tests; the dedicated integration command reruns the 5 integration tests (already part of the 78).
+    - **Target Safety & CI Harmonization:** Re-verified `assertSafeIntegrationTarget` strictly rejects `NODE_ENV=production`, non-mongo schemes, remote SRV clusters, unapproved hosts, unapproved database names, and redacts credentials. Confirmed `.github/workflows/ci.yml` uses allowlisted `TEST_DB_NAME: reportbd_test_ci` with service container healthchecks.
+    - **Quality Gates:** Revalidated workspace typecheck (`npm run typecheck`, code 0), production build (`npm run build`, code 0), and whitespace checks (`git diff --check`, code 0).
+    - **Outstanding Non-Code Blockers:** Remote GitHub Actions run has not yet executed for this commit (requires authorized push). 17 manual human UAT scenarios remain pending human verification.
