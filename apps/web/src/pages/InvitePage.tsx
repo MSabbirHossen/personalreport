@@ -117,7 +117,7 @@ export const InvitePage: React.FC = () => {
                 <span>আমন্ত্রণ পত্র</span>
               </span>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {invitationData?.organization?.nameBn || 'রিপোর্টবিডি প্ল্যাটফর্ম'}
+                {invitationData?.organization?.nameBn || 'Report-BPS প্ল্যাটফর্ম'}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {invitationData?.organization?.nameEn}

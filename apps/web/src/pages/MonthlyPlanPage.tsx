@@ -172,7 +172,7 @@ export const MonthlyPlanPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-slate-950">
-              ব্যক্তিগত রিপোর্ট ম্যানেজমেন্ট প্ল্যাটফর্ম — ReportBD
+              ব্যক্তিগত রিপোর্ট ম্যানেজমেন্ট প্ল্যাটফর্ম — Report-BPS
             </h1>
             <p className="text-xs text-slate-600 font-semibold">
               মাসিক পরিকল্পনা ও লক্ষ্যমাত্রা বিবরণী (Monthly Plan & Target Sheet)
