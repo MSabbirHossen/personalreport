@@ -5,6 +5,8 @@ import express, { Request, Response } from 'express';
 import { sanitizeMetadata, logAuditEvent, getAuditMetrics, resetAuditMetrics } from '../services/audit.js';
 import { createRateLimiter, clearRateLimits, cleanupExpiredRateLimits, getRateLimitStoreSize } from '../middleware/rateLimiter.js';
 import { errorHandler } from '../middleware/errorHandler.js';
+import { config, validateStartupConfig } from '../config/index.js';
+import { requireAuth, setCustomTokenVerifier } from '../middleware/auth.js';
 
 describe('Security Hardening & Protection Tests (Stage 1 & 2)', () => {
   describe('Audit Trail Deep Recursive Redaction & Observability', () => {
@@ -257,6 +259,116 @@ describe('Security Hardening & Protection Tests (Stage 1 & 2)', () => {
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.received.number, 42);
+    });
+
+    test('Sec-10: Production 500 errors conceal internal messages and omit stack traces', async () => {
+      const origProd = config.isProduction;
+      try {
+        config.isProduction = true;
+        const res = await fetch(`${baseUrl}/test-500`);
+        assert.equal(res.status, 500);
+        const data: any = await res.json();
+        assert.equal(data.code, 'INTERNAL_SERVER_ERROR');
+        assert.equal(data.message, 'An internal server error occurred.');
+        assert.equal(data.message.includes('postgres_root_secret'), false);
+        assert.equal(data.stack, undefined);
+      } finally {
+        config.isProduction = origProd;
+      }
+    });
+  });
+
+  describe('Production Configuration & Auth Rejection Guards (Stage 3)', () => {
+    test('Sec-11: validateStartupConfig fails closed on invalid/missing production settings', () => {
+      const origProd = config.isProduction;
+      const origMongoUri = config.mongodbUri;
+      const origFirebase = { ...config.firebase };
+      const origCors = { ...config.cors };
+      const origMock = config.allowDevMockAuth;
+
+      try {
+        config.isProduction = true;
+        config.mongodbUri = 'mongodb://127.0.0.1:27017/reportbd';
+        config.firebase = { projectId: undefined, clientEmail: undefined, privateKey: undefined };
+        config.cors = { raw: '', allowedOrigins: [], isWildcardAllowed: false };
+        config.allowDevMockAuth = true;
+
+        const validation = validateStartupConfig();
+        assert.equal(validation.valid, false);
+        assert.ok(
+          validation.errors.some((e) =>
+            e.includes('MONGODB_URI must be configured for a production database cluster')
+          )
+        );
+        assert.ok(validation.errors.some((e) => e.includes('FIREBASE_PROJECT_ID is required')));
+        assert.ok(validation.errors.some((e) => e.includes('Firebase Admin credentials')));
+        assert.ok(validation.errors.some((e) => e.includes('CORS_ORIGIN must be explicitly configured')));
+        assert.ok(
+          validation.errors.some((e) => e.includes('ALLOW_DEV_MOCK_AUTH cannot be enabled in production'))
+        );
+      } finally {
+        config.isProduction = origProd;
+        config.mongodbUri = origMongoUri;
+        config.firebase = origFirebase;
+        config.cors = origCors;
+        config.allowDevMockAuth = origMock;
+      }
+    });
+
+    test('Sec-12: Mock authentication cannot authenticate in production even if requested', async () => {
+      const origProd = config.isProduction;
+      const origMock = config.allowDevMockAuth;
+      setCustomTokenVerifier(null);
+
+      try {
+        config.isProduction = true;
+        config.allowDevMockAuth = false;
+
+        let resStatus = 0;
+        let resJson: any = null;
+        const mockReq: any = {
+          headers: { authorization: 'Bearer mock-token' },
+        };
+        const mockRes: any = {
+          status: (code: number) => {
+            resStatus = code;
+            return {
+              json: (data: any) => {
+                resJson = data;
+              },
+            };
+          },
+        };
+        const next = () => {};
+
+        await requireAuth(mockReq, mockRes, next);
+        assert.equal(resStatus, 401);
+        assert.equal(resJson?.code, 'MOCK_AUTH_DISABLED');
+      } finally {
+        config.isProduction = origProd;
+        config.allowDevMockAuth = origMock;
+      }
+    });
+
+    test('Sec-13: Wildcard CORS origin is strictly forbidden in production with credentials', () => {
+      const origProd = config.isProduction;
+      const origCors = { ...config.cors };
+
+      try {
+        config.isProduction = true;
+        config.cors = { raw: '*', allowedOrigins: ['*'], isWildcardAllowed: false };
+
+        const validation = validateStartupConfig();
+        assert.equal(validation.valid, false);
+        assert.ok(
+          validation.errors.some((e) =>
+            e.includes('Wildcard "*" CORS origin is forbidden in production')
+          )
+        );
+      } finally {
+        config.isProduction = origProd;
+        config.cors = origCors;
+      }
     });
   });
 });
