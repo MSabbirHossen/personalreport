@@ -71,7 +71,7 @@ export const LoginPage: React.FC = () => {
             <span className="font-bold text-2xl">রি</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            রিপোর্ট<span className="text-brand-600 dark:text-brand-400">বিডি</span> তে স্বাগতম
+            Report<span className="text-brand-600 dark:text-brand-400">-BPS</span> এ স্বাগতম
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
             ব্যক্তিগত মাসিক ও দৈনিক আমল রিপোর্ট পোর্টাল
@@ -132,7 +132,7 @@ export const LoginPage: React.FC = () => {
               <input
                 type="email"
                 required
-                placeholder="student@reportbd.org"
+                placeholder="student@report-bps.org"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"

@@ -147,8 +147,11 @@ Deploy the container to your orchestration platform with the required environmen
 ### 8. Release Abort & Rollback Criteria
 - **Abort Release If:**
   - Database readiness check fails for > 3 consecutive health checks.
-  - API error rate exceeds 1% of total requests during smoke testing.
+  - API error rate exceeds 1% of total requests during smoke testing or initial traffic.
   - Startup throws validation error (e.g. missing credentials or loopback URI).
+- **Operational Monitoring Prerequisites for Automated Enforcement:**
+  - *Readiness Enforcement:* Handled natively by container orchestrators (e.g., Kubernetes `readinessProbe` with `failureThreshold: 3`, AWS ECS target group health check, or GCP Cloud Run health checks) which automatically cease traffic routing to instances returning 503 `disconnected`.
+  - *Error Rate Observability:* The 1% error threshold cannot be assumed to be enforced automatically without configured telemetry. Prior to deployment, establish an APM alarm (e.g., AWS CloudWatch 5XX Metric Alarm, GCP Cloud Monitoring Error Ratio Alert, or Datadog Synthetic Monitor). In environments without automated APM alerting, an engineer must actively observe live server access logs (`docker logs -f` or Cloud Logging) for 15 minutes post-deployment to manually verify error rates.
 - **Rollback Procedure:** Redeploy previous verified Docker container tag on backend; promote previous verified deployment on Vercel frontend.
 
 ### 9. Remaining Human Verification Tasks
@@ -156,4 +159,9 @@ Deploy the container to your orchestration platform with the required environmen
 - Visual Chrome / Edge A4 print preview inspection for `/monthly-plan`.
 
 ### 10. Outstanding Security & Architectural Boundaries
-- In-memory rate limiting stores state per Node.js process. In multi-replica configurations, migrate rate limiter storage to Redis or manage rate limiting at the ingress API gateway.
+- **Multi-Instance Rate Limiting Limitations:**
+  - The built-in sliding-window rate limiters store bucket state in memory (`Map<string, RateLimitRecord>`) local to each Node.js process.
+  - *Why Sticky Sessions / IP Hashing is Insufficient:* Sticky routing does not provide globally consistent rate limits. If traffic is distributed across $N$ API instances, a malicious or abusive actor can consume up to $N \times \text{limit}$ total requests if their requests balance across instances. Furthermore, authenticated users sharing an organization or NAT IP will have split state across instances, while IP failover or pod restarts reset in-memory buckets immediately.
+  - *Required Architecture for Scaled Multi-Instance Deployments:*
+    1. **Shared Memory Store:** Connect the Express rate limiting middleware to an external distributed cache such as Redis (e.g., via `rate-limit-redis` with `ioredis`). This ensures all API pods atomically increment and evaluate the same sliding-window key.
+    2. **Edge / API Gateway Rate Limiting:** Enforce baseline IP and route rate limiting upstream at the reverse proxy or CDN edge (e.g., Cloudflare Rate Limiting Rules, AWS WAF rate-based rules, GCP Cloud Armor, or Nginx `limit_req_zone`). Edge limiting mitigates volumetric abuse and DoS attacks before traffic reaches the container cluster, while application-level rate limiting enforces authenticated user/organization business quotas.

@@ -33,7 +33,7 @@ export const Header: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="font-bold tracking-tight text-slate-900 dark:text-white text-base">
-              Report<span className="text-brand-600 dark:text-brand-400">BD</span>
+              Report<span className="text-brand-600 dark:text-brand-400">-BPS</span>
             </span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 -mt-1">
               ব্যক্তিগত রিপোর্ট প্ল্যাটফর্ম

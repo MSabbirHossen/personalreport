@@ -70,3 +70,29 @@ To verify `PLAN-04` manual print rendering:
    - [ ] Notes and supervisor advice are formatted as print cards.
    - [ ] Dual signature blocks ("শিক্ষার্থীর স্বাক্ষর" and "সুপারভাইজারের স্বাক্ষর ও মন্তব্য") appear neatly at the document footer.
    - [ ] No trailing blank pages.
+
+---
+
+## 6. Manual Human UAT Execution Test Sheet & Sign-Off Template
+
+*Note: All listed accounts are synthetic development/test accounts seeded locally. No production accounts or credentials are used.*
+
+| Persona | Scenario ID | Target Workflow | Setup & Prerequisites | Test Actions & Execution | Expected Outcome | Evidence Field (Screenshot / Log) | Sign-Off Status |
+|---|---|---|---|---|---|---|---|
+| **Student** | `UAT-STU-01` | Invitation Acceptance & Onboarding | Seeded invite link for `org_test` | Open `/invite/:token`, log in, click accept | Active student membership granted; dashboard accessible | `[Record URL / Screenshot]` | [ ] Pending |
+| **Student** | `UAT-STU-02` | Daily Report Entry & Dynamic Sums | Active student session | Fill daily fields (Quran, Hadith, Study) across 3 days | Saved with revision counter increment; auto-sums update | `[Record revision # / Screenshot]` | [ ] Pending |
+| **Student** | `UAT-STU-03` | Monthly Plan Setup & Sharing | Active student session | Input target metrics in `/monthly-plan`, click share | Status transitions to `shared`; visible to supervisor | `[Record Plan Status / Screenshot]` | [ ] Pending |
+| **Student** | `UAT-STU-05` | Monthly Outcome Submission & Snapshot | Completed daily reports | Navigate to `/monthly-outcome`, click submit | Status marked `submitted`; snapshot frozen; inputs locked | `[Record Outcome ID / Screenshot]` | [ ] Pending |
+| **Student** | `UAT-STU-06` | Stale Snapshot Warning on Post-Edit | Submitted outcome | Modify past daily report in submitted month | Warning banner: "রিপোর্ট পরিবর্তন করা হয়েছে (Stale)" | `[Record Banner Text / Screenshot]` | [ ] Pending |
+| **Student** | `UAT-STU-07` | Concurrency Conflict Recovery (409) | Active student session | Open report in two browser tabs; save in Tab A, then Tab B | Tab B receives HTTP 409 Conflict prompt with reload action | `[Record Modal Alert / Screenshot]` | [ ] Pending |
+| **Supervisor** | `UAT-SUP-01` | Dashboard Queue & KPI Counters | Supervisor session with assigned student | Open `/supervisor/dashboard`, apply status/month filter | KPI numbers match queue counts; only assigned students visible | `[Record KPI numbers / Screenshot]` | [ ] Pending |
+| **Supervisor** | `UAT-SUP-02` | Plan vs Actual Comparison & Review | Submitted outcome in queue | Open student review view, inspect targets vs actuals | Comparison table displayed side-by-side; advice log visible | `[Record Side-by-side UI Screenshot]` | [ ] Pending |
+| **Supervisor** | `UAT-SUP-03` | Return for Resubmission Flow | Submitted report | Click "সংশোধনের জন্য ফেরত দিন" with comment | Report status changes to `returned`; student editing unlocked | `[Record Returned Status / Screenshot]` | [ ] Pending |
+| **Supervisor** | `UAT-SUP-04` | Two-Way Mentorship Threading | Active advice thread | Supervisor posts advice; student posts response | Thread updates in chronological order; notifications increment | `[Record Thread UI Screenshot]` | [ ] Pending |
+| **Supervisor** | `UAT-SUP-05` | Concurrent Review Conflict (409) | Submitted report | Two supervisors review same report concurrently | First review succeeds; second receives `ALREADY_REVIEWED` 409 | `[Record 409 Toast / Screenshot]` | [ ] Pending |
+| **Org Admin** | `UAT-ADM-01` | Expiring Invitation Creation | `org_admin` session | Open `/organization/invitations`, create student invite | 48-char crypto token created with 7-day expiration | `[Record Token Preview / Screenshot]` | [ ] Pending |
+| **Org Admin** | `UAT-ADM-02` | Invitation Revocation | Pending invitation | Click "বাতিল করুন" on pending invitation | Invitation status marked `revoked`; preview returns 410 | `[Record Revoked Badge / Screenshot]` | [ ] Pending |
+| **Org Admin** | `UAT-ADM-03` | Supervisor-Student Linkage | Active student & supervisor | Link student to supervisor in modal | Immediate appearance of student in supervisor queue | `[Record Assignment Modal Screenshot]` | [ ] Pending |
+| **Org Admin** | `UAT-ADM-04` | Audit Explorer Filter & Redaction | `org_admin` session | Open `/organization/audit-log`, inspect event metadata | Actions listed; tokens, passwords, and secrets redacted | `[Record Sanitized Metadata Screenshot]`| [ ] Pending |
+| **Platform Admin** | `UAT-PLT-01` | Cross-Tenant Data Isolation | `platform_admin` session | Query audit logs and reports across distinct orgs | Data strictly isolated to requested orgId; no cross-leakage | `[Record Tenant Header / Screenshot]` | [ ] Pending |
+| **Print** | `PLAN-04` | Chrome / Edge A4 Portrait Print | Configured monthly plan | Open `/monthly-plan`, click A4 Print or Ctrl+P | A4 portrait, 12mm/15mm margins, signature block, no UI nav | `[Attach Print PDF Artifact / Scan]` | [ ] Pending |
