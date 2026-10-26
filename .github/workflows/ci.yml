@@ -33,6 +33,7 @@ jobs:
     env:
       NODE_ENV: test
       CI: 'true'
+      MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
       TEST_MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
       TEST_DB_NAME: reportbd_test_ci
       MONGODB_DB_NAME: reportbd_test_ci
@@ -56,6 +57,9 @@ jobs:
       - name: Install dependencies reproducibly
         run: npm ci
 
+      - name: Build shared package
+        run: npm run build -w packages/shared
+
       - name: Verify code formatting and whitespace
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -75,8 +79,6 @@ jobs:
 
       - name: Verify database initialization on MongoDB engine
         run: npm run db:init -w apps/api
-        env:
-          MONGODB_URI: mongodb://127.0.0.1:27017/reportbd_test_ci?directConnection=true
 
       - name: Run full API test suite with real MongoDB integration
         run: npm test -w apps/api
