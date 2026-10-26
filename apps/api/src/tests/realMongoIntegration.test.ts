@@ -4,17 +4,30 @@ import { MongoClient, Db, ObjectId } from 'mongodb';
 import { logAuditEvent } from '../services/audit.js';
 
 // Strict allowlist of approved test database names: prevents accidental target of dev or prod DBs
-const ALLOWED_TEST_DB_NAMES = new Set([
+export const ALLOWED_TEST_DB_NAMES = new Set([
   'reportbd_test',
   'reportbd_test_ci',
   'reportbd_test_phase5',
   'reportbd_test_phase6',
   'reportbd_test_phase7',
   'reportbd_test_phase8',
+  'reportbd_test_phase9',
   'reportbd_integration_test',
 ]);
 
-function extractDatabaseName(uri: string, fallback: string): string {
+export function sanitizeMongoUri(uri: string): string {
+  try {
+    const url = new URL(uri.replace(/^mongodb(\+srv)?:\/\//, 'http://'));
+    if (url.username || url.password) {
+      return uri.replace(/\/\/[^@]+@/, '//***:***@');
+    }
+    return uri;
+  } catch {
+    return 'mongodb://[REDACTED_URI]';
+  }
+}
+
+export function extractDatabaseName(uri: string, fallback: string): string {
   try {
     const url = new URL(uri.replace(/^mongodb(\+srv)?:\/\//, 'http://'));
     const pathname = url.pathname.replace(/^\//, '').split('?')[0];
@@ -24,11 +37,51 @@ function extractDatabaseName(uri: string, fallback: string): string {
   }
 }
 
+export function assertSafeIntegrationTarget(
+  uri: string,
+  dbName: string,
+  nodeEnv: string = process.env.NODE_ENV || 'test'
+): void {
+  // 1. Reject production environment
+  if (nodeEnv === 'production') {
+    throw new Error(
+      'Refusing to execute destructive MongoDB integration tests in production environment (NODE_ENV=production).'
+    );
+  }
+
+  // 2. Reject unapproved database names (strict allowlist)
+  if (!ALLOWED_TEST_DB_NAMES.has(dbName)) {
+    throw new Error(
+      `Refusing to drop or operate on unapproved database: "${dbName}". Only explicit test databases (${Array.from(ALLOWED_TEST_DB_NAMES).join(', ')}) are permitted.`
+    );
+  }
+
+  // 3. Reject unapproved remote hosts/clusters (only loopback or container service allowed)
+  try {
+    const parsed = new URL(uri.replace(/^mongodb(\+srv)?:\/\//, 'http://'));
+    const hostname = parsed.hostname.toLowerCase();
+    const isSrv = uri.startsWith('mongodb+srv://');
+    const isApprovedHost =
+      hostname === '127.0.0.1' ||
+      hostname === 'localhost' ||
+      hostname === 'mongo';
+
+    if (isSrv || !isApprovedHost) {
+      throw new Error(
+        `Refusing to connect integration test harness to remote or unapproved MongoDB host: "${hostname}". Integration tests only permit local/CI instances (127.0.0.1, localhost, mongo).`
+      );
+    }
+  } catch (err: any) {
+    if (err.message.includes('Refusing')) throw err;
+    throw new Error(`Failed to safely parse MongoDB URI for target validation: ${err.message}`);
+  }
+}
+
 describe('Real MongoDB Integration Verification (Stage 3)', () => {
   const mongoUri =
     process.env.TEST_MONGODB_URI ||
-    'mongodb://127.0.0.1:27017/reportbd_test_phase8?directConnection=true';
-  const testDbName = process.env.TEST_DB_NAME || extractDatabaseName(mongoUri, 'reportbd_test_phase8');
+    'mongodb://127.0.0.1:27017/reportbd_test_phase9?directConnection=true';
+  const testDbName = process.env.TEST_DB_NAME || extractDatabaseName(mongoUri, 'reportbd_test_phase9');
   let client: MongoClient;
   let db: Db;
   let isMongoAvailable = false;
@@ -38,17 +91,13 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
 
   before(async () => {
     try {
-      // Safety guard: Strict allowlist check to protect production and development databases
-      if (!ALLOWED_TEST_DB_NAMES.has(testDbName)) {
-        throw new Error(
-          `Refusing to drop or operate on unapproved database: "${testDbName}". Only explicit test databases (${Array.from(ALLOWED_TEST_DB_NAMES).join(', ')}) are permitted.`
-        );
-      }
+      // Safety guard: Strict target validation to protect production and remote databases
+      assertSafeIntegrationTarget(mongoUri, testDbName);
 
       client = new MongoClient(mongoUri, {
         directConnection: true,
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 15000,
+        connectTimeoutMS: 15000,
       });
       await client.connect();
       db = client.db(testDbName);
@@ -62,7 +111,7 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
       // Clean slate for testing
       await db.dropDatabase();
     } catch (err: any) {
-      console.warn('⚠️ Real MongoDB not accessible on', mongoUri, err.message);
+      console.warn('⚠️ Real MongoDB not accessible on', sanitizeMongoUri(mongoUri), err.message);
       isMongoAvailable = false;
       if (shouldFailIfUnavailable) {
         throw new Error(
@@ -89,16 +138,61 @@ describe('Real MongoDB Integration Verification (Stage 3)', () => {
     if (!isMongoAvailable) {
       if (shouldFailIfUnavailable) {
         assert.fail(
-          `CRITICAL: Real MongoDB instance required but not accessible at ${mongoUri}. In CI/enforced mode, integration tests cannot be skipped.`
+          `CRITICAL: Real MongoDB instance required but not accessible at ${sanitizeMongoUri(mongoUri)}. In CI/enforced mode, integration tests cannot be skipped.`
         );
       }
       t.skip(
-        `Skipped: Real MongoDB instance not reachable at ${mongoUri} (set FAIL_ON_UNAVAILABLE_MONGO=true to enforce).`
+        `Skipped: Real MongoDB instance not reachable at ${sanitizeMongoUri(mongoUri)} (set FAIL_ON_UNAVAILABLE_MONGO=true to enforce).`
       );
       return false;
     }
     return true;
   }
+
+  test('RealMongo-0: Target validation safety guard rejects production mode, remote hosts, and unapproved DBs', () => {
+    // 1. Rejects production environment
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/reportbd_test', 'reportbd_test', 'production'),
+      /NODE_ENV=production/
+    );
+
+    // 2. Rejects unapproved database name (e.g. production database)
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/reportbd', 'reportbd', 'test'),
+      /Refusing to drop or operate on unapproved database/
+    );
+
+    // 3. Rejects substring match trickery like 'production_test_backup'
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/production_test_backup', 'production_test_backup', 'test'),
+      /Refusing to drop or operate on unapproved database/
+    );
+
+    // 4. Rejects remote Atlas SRV URI
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb+srv://admin:pass@cluster0.mongodb.net/reportbd_test', 'reportbd_test', 'test'),
+      /remote or unapproved MongoDB host/
+    );
+
+    // 5. Rejects remote host/IP
+    assert.throws(
+      () => assertSafeIntegrationTarget('mongodb://192.168.1.100:27017/reportbd_test', 'reportbd_test', 'test'),
+      /remote or unapproved MongoDB host/
+    );
+
+    // 6. Sanitizes credential-bearing URI in logging
+    const sanitized = sanitizeMongoUri('mongodb://user:supersecretpass@127.0.0.1:27017/reportbd_test');
+    assert.ok(!sanitized.includes('supersecretpass'));
+    assert.ok(sanitized.includes('***:***'));
+
+    // 7. Permits valid local and CI targets
+    assert.doesNotThrow(() =>
+      assertSafeIntegrationTarget('mongodb://127.0.0.1:27017/reportbd_test_phase9', 'reportbd_test_phase9', 'test')
+    );
+    assert.doesNotThrow(() =>
+      assertSafeIntegrationTarget('mongodb://mongo:27017/reportbd_test_ci', 'reportbd_test_ci', 'test')
+    );
+  });
 
   test('RealMongo-1: Database index initialization is idempotent on real MongoDB engine', async (t) => {
     if (!ensureMongoAvailable(t)) return;
