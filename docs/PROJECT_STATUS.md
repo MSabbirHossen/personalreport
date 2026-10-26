@@ -139,3 +139,21 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
    - **Production Docker Image Verification:** Rebuilt `reportbd-api:phase9`. Confirmed non-root execution (`USER node`), verified no environment secrets or `.env` files baked into the image, verified failure to start on missing production credentials or forbidden `ALLOW_DEV_MOCK_AUTH=true`, and verified healthy runtime startup with HTTP 200 responses on `/health` and `/health/ready`.
    - **Workspace Quality Gates:** Revalidated clean workspace typecheck (`npm run typecheck`), production builds (`npm run build`), zero whitespace errors (`git diff --check`), and confirmed CI pipeline alignment in `.github/workflows/ci.yml`.
    - **Beta Handoff Readiness:** Role-based human UAT and Chrome A4 print preview verified as properly structured in `docs/BETA_UAT_CHECKLIST.md` and marked **Pending Human Verification**. All test credentials verified as synthetic development-only accounts.
+
+10. **Phase 10 (Release Gate Closure, Browser UAT & Staging Readiness) — Beta Deployment Candidate:**
+    - **Release Status:** **Beta deployment candidate** (All automated release gates, production configuration proofs, MongoDB safety guards, containerized readiness failure handling, and operational staging handoffs verified; actual remote GitHub Actions execution, cloud deployment, and human browser/A4 print UAT remain pending authorized execution).
+    - **Reconciled Test Suite (83 Unique Tests):** Expanded automated test suite to **83 unique monorepo tests** (5 in `@reportbd/shared`, 78 in `@reportbd/api`), passing with 0 failures, 0 skipped:
+      - `packages/shared`: 5 tests (`aggregations.test.ts`).
+      - `apps/api`: 78 unique tests across 7 test suites:
+        - `authAndSecurity.test.ts`: 10 tests (Auth Gates 1–10).
+        - `invitations.test.ts`: 8 tests (Inv 1–8).
+        - `studentReportingAndOutcomes.test.ts`: 16 tests (Daily 1–5, Plan 1–3, Outcome 1–8).
+        - `supervisorAndNotifications.test.ts`: 16 tests (Sup 1–6, Advice 1–3, Notif 1–7).
+        - `auditAndAdmin.test.ts`: 10 tests (Audit 1–10).
+        - `securityHardening.test.ts`: 13 tests (Sec 1–9, plus new Sec 10–13).
+        - `realMongoIntegration.test.ts`: 5 tests (RealMongo 0–4).
+      - Dedicated integration command (`npm run test:integration -w apps/api`) cleanly reruns the 5 real MongoDB integration tests.
+    - **Hardened MongoDB Safety Guard:** Extended `assertSafeIntegrationTarget` to enforce `mongodb://` scheme (rejecting `mongodb+srv://`), reject remote or non-approved hosts (only `127.0.0.1`, `localhost`, `mongo`), and inspect embedded path database names. Expanded `RealMongo-0` non-destructive test suite with 6 boundary rejection assertions.
+    - **Production Auth & Config Proofs:** Added tests `Sec-10`–`Sec-13` verifying `validateStartupConfig()` fail-closed behavior on missing/invalid production settings, rejection of `ALLOW_DEV_MOCK_AUTH=true` in production, rejection of wildcard CORS origin in production, and sanitization of production 500 error responses (no internal errors or stack traces leaked).
+    - **Docker Image & Runtime Verification:** Built `reportbd-api:phase10`. Verified non-root user `node`, confirmed `curl` available for healthcheck, confirmed no `.env` files or secrets baked in, verified immediate exit on invalid production config, verified live runtime HTTP 200 on `/health` and `/health/ready`, and verified container readiness reports HTTP 503 `{"status":"unready","database":"disconnected"}` when MongoDB is unavailable. Disposable containers cleanly removed.
+    - **Staging Handoff & Rollback Checklist:** Added Section 6 to `docs/DEPLOYMENT_GUIDE.md` detailing the 10-point staging readiness checklist (environment variables, Firebase credentials, MongoDB replica set/transaction requirements, backup prerequisites, reverse-proxy CORS, deployment order, health/readiness monitoring, rollback criteria, pending human UAT, and in-memory rate limiting boundaries).
