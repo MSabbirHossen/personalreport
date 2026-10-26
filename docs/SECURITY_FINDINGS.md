@@ -250,3 +250,21 @@
   2. Copied both root `node_modules` and workspace `apps/api/node_modules`, and established workspace symlink `ln -s /app/apps/api/node_modules /app/packages/shared/node_modules` for ESM resolution.
   3. Expanded `.dockerignore` to recursively exclude `**/.env*`, `**/*firebase-service-account*.json`, `**/*.pem`, and `**/*.key`.
 - **Verification Evidence:** Container successfully built (`reportbd-api:beta-test`), executed with Docker, and responded with HTTP 200 on `/health`.
+
+---
+
+### 22. Target Environment & Remote Cluster Protection in Integration Test Harness
+- **Severity:** High / Target Safeguarding & Credential Sanitization
+- **Location:** `apps/api/src/tests/realMongoIntegration.test.ts`
+- **Vulnerability:** While an allowlist for test database names was introduced in Phase 8, the test runner did not guard against execution under `NODE_ENV=production` and did not evaluate connection URIs. If configured with a remote cluster URI (e.g. `mongodb+srv://user:pass@cluster.mongodb.net/reportbd_test_phase9`), tests could have connected to or executed drop commands against remote cloud infrastructure. Furthermore, unhandled connection failure logs risked exposing embedded database credentials in terminal logs or CI artifacts.
+- **Impact:** Risk of executing destructive testing operations against remote cloud databases; credential exposure in test logs.
+- **Remediation Status:** **Resolved**.
+- **Fix Details:**
+  1. Implemented `assertSafeIntegrationTarget(uri, dbName, nodeEnv)` in `realMongoIntegration.test.ts`. The guard fails closed before any database connection attempt:
+     - Rejects `NODE_ENV === 'production'`.
+     - Validates that `dbName` matches `ALLOWED_TEST_DB_NAMES`.
+     - Rejects remote protocols (`mongodb+srv://`).
+     - Restricts permitted hosts strictly to local development and test container network endpoints (`localhost`, `127.0.0.1`, `host.docker.internal`, or CI host).
+  2. Implemented `sanitizeMongoUri(uri)` to strip embedded username and password credentials (`mongodb://***:***@...`) before logging target connection URIs.
+  3. Added subtest `RealMongo-0` confirming that attempts to target `NODE_ENV=production`, remote clusters, unapproved DB names, or empty configurations are rejected immediately without connecting.
+- **Verification Evidence:** `RealMongo-0: target safety guards reject production, remote clusters, unapproved DB names, and sanitize credentials` passed in `apps/api/src/tests/realMongoIntegration.test.ts`.
