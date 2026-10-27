@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import {
   MessageSquareQuote,
   CheckCircle2,
@@ -8,11 +9,11 @@ import {
   Check,
   Send,
   MessageCircle,
-  AlertCircle,
 } from 'lucide-react';
 
 export const AdvicePage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { t, isRTL, formatDate, formatMonthKey } = useLanguage();
   const [replyTextMap, setReplyTextMap] = useState<Record<string, string>>({});
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
 
@@ -36,7 +37,7 @@ export const AdvicePage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['advice-list'] });
     },
     onError: (err: any) => {
-      alert(err.message || 'উত্তর পাঠাতে ব্যর্থ হয়েছে।');
+      alert(err.message || t('common.error'));
     },
   });
 
@@ -49,25 +50,25 @@ export const AdvicePage: React.FC = () => {
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <MessageSquareQuote className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-            পরামর্শ ও দিকনির্দেশনা
+            <span>{t('advice.title')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            মাসিক রিপোর্ট ও পরিকল্পনার প্রেক্ষিতে দায়িত্বশীলদের মূল্যবান মতামত ও প্রশ্নোত্তর
+            {t('advice.subtitle')}
           </p>
         </div>
       </div>
 
       {isLoading && (
         <div className="p-12 text-center text-slate-500 text-sm">
-          পরামর্শ লোড হচ্ছে...
+          {t('common.loading')}
         </div>
       )}
 
       {error && (
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-center justify-between text-sm">
-          <span>পরামর্শ লোড করতে সমস্যা হয়েছে।</span>
+          <span>{t('common.error')}</span>
           <button onClick={() => refetch()} className="font-semibold underline">
-            পুনরায় চেষ্টা
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -79,10 +80,10 @@ export const AdvicePage: React.FC = () => {
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-2">
               <MessageSquareQuote className="h-10 w-10 text-slate-300 mx-auto" />
               <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                এখনও কোনো পরামর্শ আসেনি
+                {t('advice.noThreadsTitle')}
               </div>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                মাসিক রিপোর্ট জমা দিলে পর্যবেক্ষক পর্যালোচনার পর এখানে পরামর্শ ও প্রয়োজনীয় দিকনির্দেশনা প্রদান করবেন।
+                {t('advice.noThreadsDesc')}
               </p>
             </div>
           ) : (
@@ -98,21 +99,21 @@ export const AdvicePage: React.FC = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-sm">
-                      {item.authorName?.charAt(0) || 'P'}
+                      {item.authorName?.charAt(0) || 'U'}
                     </div>
                     <div>
                       <div className="font-bold text-sm text-slate-800 dark:text-slate-200">
                         {item.authorName}
                       </div>
                       <div className="text-[11px] text-slate-500">
-                        {item.authorRole} {item.monthKey && `• মাস: ${item.monthKey}`}
+                        {item.authorRole || t('profile.supervisorRole')} {item.monthKey && `• ${t('monthlyPlan.monthSelectLabel')} ${formatMonthKey(item.monthKey)}`}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                     <Clock className="h-3.5 w-3.5" />
-                    <span>{new Date(item.createdAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' })}</span>
+                    <span>{formatDate(item.createdAt, { day: 'numeric', month: 'short' })}</span>
                   </div>
                 </div>
 
@@ -122,14 +123,14 @@ export const AdvicePage: React.FC = () => {
 
                 {/* Thread Replies */}
                 {item.replies && item.replies.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5 pl-4 border-l-2 border-brand-200 dark:border-brand-900">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5 ps-4 border-inline-start-2 border-brand-200 dark:border-brand-900">
                     {item.replies.map((reply: any, rIdx: number) => (
                       <div key={rIdx} className="text-xs space-y-0.5">
                         <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
                           <span>{reply.authorName}</span>
                           <span className="text-[10px] text-slate-400">({reply.authorRole})</span>
                           <span className="text-[10px] text-slate-400 font-normal">
-                            {new Date(reply.createdAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' })}
+                            {formatDate(reply.createdAt, { day: 'numeric', month: 'short' })}
                           </span>
                         </div>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{reply.body}</p>
@@ -147,7 +148,7 @@ export const AdvicePage: React.FC = () => {
                       onChange={(e) =>
                         setReplyTextMap((prev) => ({ ...prev, [item.id]: e.target.value }))
                       }
-                      placeholder="আপনার অনুভূতি বা প্রশ্ন লিখুন..."
+                      placeholder={t('advice.replyPlaceholder')}
                       className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none"
                     />
                     <div className="flex items-center justify-end gap-2">
@@ -155,7 +156,7 @@ export const AdvicePage: React.FC = () => {
                         onClick={() => setActiveReplyId(null)}
                         className="px-3 py-1.5 text-xs text-slate-500"
                       >
-                        বাতিল
+                        {t('common.cancel')}
                       </button>
                       <button
                         onClick={() =>
@@ -166,8 +167,8 @@ export const AdvicePage: React.FC = () => {
                         }
                         className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold disabled:opacity-50"
                       >
-                        <Send className="h-3.5 w-3.5" />
-                        <span>উত্তর পাঠান</span>
+                        <Send className={`h-3.5 w-3.5 ${isRTL ? 'rtl-flip' : ''}`} />
+                        <span>{t('advice.sendReplyBtn')}</span>
                       </button>
                     </div>
                   </div>
@@ -179,11 +180,11 @@ export const AdvicePage: React.FC = () => {
                     {item.isAcknowledged ? (
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-4 w-4" />
-                        পরামর্শটি পড়া ও গ্রহণ করা হয়েছে
+                        {t('advice.statusRead')}
                       </span>
                     ) : (
                       <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                        নতুন পরামর্শ
+                        {t('advice.statusUnread')}
                       </span>
                     )}
 
@@ -193,7 +194,7 @@ export const AdvicePage: React.FC = () => {
                         className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
                       >
                         <MessageCircle className="h-3.5 w-3.5" />
-                        <span>উত্তর দিন</span>
+                        <span>{t('advice.sendReplyBtn')}</span>
                       </button>
                     )}
                   </div>
@@ -205,7 +206,7 @@ export const AdvicePage: React.FC = () => {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm cursor-pointer disabled:opacity-50"
                     >
                       <Check className="h-3.5 w-3.5" />
-                      <span>গ্রহণ করলাম</span>
+                      <span>{t('common.confirm')}</span>
                     </button>
                   )}
                 </div>

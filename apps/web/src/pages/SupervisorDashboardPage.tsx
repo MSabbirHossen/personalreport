@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import {
   Users,
   ClipboardList,
@@ -12,11 +13,11 @@ import {
   ArrowRight,
   Search,
   Filter,
-  AlertCircle,
   UserCheck,
 } from 'lucide-react';
 
 export const SupervisorDashboardPage: React.FC = () => {
+  const { t, isRTL, formatDate, formatNumber } = useLanguage();
   const [activeTab, setActiveTab] = useState<'queue' | 'students'>('queue');
   const [statusFilter, setStatusFilter] = useState<string>('submitted');
   const [searchStudent, setSearchStudent] = useState<string>('');
@@ -26,7 +27,6 @@ export const SupervisorDashboardPage: React.FC = () => {
   const {
     data: dashboardData,
     isLoading: isSummaryLoading,
-    error: summaryError,
     refetch: refetchSummary,
   } = useQuery({
     queryKey: ['supervisor-dashboard'],
@@ -79,10 +79,10 @@ export const SupervisorDashboardPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              পর্যবেক্ষক ড্যাশবোর্ড ও রিপোর্ট কিউ
+              {t('supervisor.dashboardTitle')}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              দায়িত্বপ্রাপ্ত শিক্ষার্থীদের মাসিক রিপোর্ট পর্যালোচনা, অনুমোদন এবং সংশোধনী নির্দেশনা।
+              {t('supervisor.dashboardSubtitle')}
             </p>
           </div>
 
@@ -92,9 +92,9 @@ export const SupervisorDashboardPage: React.FC = () => {
                 refetchSummary();
                 refetchQueue();
               }}
-              className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition-colors shadow-sm"
+              className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition-colors shadow-sm cursor-pointer"
             >
-              রিফ্রেশ করুন
+              {t('audit.refreshBtn')}
             </button>
           </div>
         </div>
@@ -105,49 +105,49 @@ export const SupervisorDashboardPage: React.FC = () => {
         {/* Card 1: Assigned Students */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">দায়িত্বপ্রাপ্ত শিক্ষার্থী</span>
+            <span className="text-xs font-medium">{t('supervisor.assignedStudentsTitle')}</span>
             <Users className="h-4 w-4 text-brand-600" />
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {isSummaryLoading ? '...' : summary?.assignedStudentsCount ?? 0}
+            {isSummaryLoading ? '...' : formatNumber(summary?.assignedStudentsCount ?? 0)}
           </div>
-          <span className="text-[11px] text-slate-400">সক্রিয় মেন্টরশিপ অ্যাসাইনমেন্ট</span>
+          <span className="text-[11px] text-slate-400">{t('profile.studentRole')}</span>
         </div>
 
         {/* Card 2: Pending Reviews */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-amber-200/70 dark:border-amber-900/50 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-amber-700 dark:text-amber-400">
-            <span className="text-xs font-medium">পর্যালোচনার অপেক্ষায়</span>
+            <span className="text-xs font-medium">{t('supervisor.pendingReviewsCount')}</span>
             <ClipboardList className="h-4 w-4 text-amber-600" />
           </div>
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-            {isSummaryLoading ? '...' : summary?.pendingReviewsCount ?? 0}
+            {isSummaryLoading ? '...' : formatNumber(summary?.pendingReviewsCount ?? 0)}
           </div>
-          <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80">জমা দেওয়া রিপোর্ট</span>
+          <span className="text-[11px] text-amber-600/80 dark:text-amber-400/80">{t('monthlyOutcome.statusSubmitted')}</span>
         </div>
 
-        {/* Card 3: Acknowledged this month */}
+        {/* Card 3: Approved */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400">
-            <span className="text-xs font-medium">এ মাসে অনুমোদিত</span>
+            <span className="text-xs font-medium">{t('supervisor.approvedCount')}</span>
             <CheckCircle className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {isSummaryLoading ? '...' : summary?.acknowledgedThisMonthCount ?? 0}
+            {isSummaryLoading ? '...' : formatNumber(summary?.acknowledgedThisMonthCount ?? 0)}
           </div>
-          <span className="text-[11px] text-slate-400">অনুমোদিত মাসিক রিপোর্ট</span>
+          <span className="text-[11px] text-slate-400">{t('monthlyOutcome.statusApproved')}</span>
         </div>
 
-        {/* Card 4: Returned this month */}
+        {/* Card 4: Returned */}
         <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-medium">সংশোধনে ফেরত</span>
+            <span className="text-xs font-medium">{t('supervisor.returnedCount')}</span>
             <RotateCcw className="h-4 w-4 text-rose-600" />
           </div>
           <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-            {isSummaryLoading ? '...' : summary?.returnedThisMonthCount ?? 0}
+            {isSummaryLoading ? '...' : formatNumber(summary?.returnedThisMonthCount ?? 0)}
           </div>
-          <span className="text-[11px] text-slate-400">পুনরায় জমা দিতে বলা হয়েছে</span>
+          <span className="text-[11px] text-slate-400">{t('monthlyOutcome.statusReturned')}</span>
         </div>
       </div>
 
@@ -155,26 +155,26 @@ export const SupervisorDashboardPage: React.FC = () => {
       <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab('queue')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
             activeTab === 'queue'
               ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/20'
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
           <ClipboardList className="h-4 w-4" />
-          <span>রিপোর্ট পর্যালোচনা কিউ</span>
+          <span>{t('supervisor.reviewQueueTitle')}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('students')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
             activeTab === 'students'
               ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/20'
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
           <Users className="h-4 w-4" />
-          <span>দায়িত্বপ্রাপ্ত ছাত্র তালিকা ({students.length})</span>
+          <span>{t('supervisor.assignedStudentsTitle')} ({formatNumber(students.length)})</span>
         </button>
       </div>
 
@@ -184,10 +184,10 @@ export const SupervisorDashboardPage: React.FC = () => {
           {/* Filters Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center gap-2 flex-1 max-w-md">
-              <Search className="h-4 w-4 text-slate-400 shrink-0 ml-1" />
+              <Search className="h-4 w-4 text-slate-400 shrink-0 mx-1" />
               <input
                 type="text"
-                placeholder="শিক্ষার্থীর নাম বা ইমেইল খুঁজুন..."
+                placeholder={t('common.search')}
                 value={searchStudent}
                 onChange={(e) => setSearchStudent(e.target.value)}
                 className="w-full text-xs bg-transparent border-none focus:outline-none text-slate-800 dark:text-slate-200"
@@ -197,17 +197,17 @@ export const SupervisorDashboardPage: React.FC = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-slate-500">
                 <Filter className="h-3.5 w-3.5" />
-                <span>স্ট্যাটাস:</span>
+                <span>{t('common.status')}:</span>
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none"
               >
-                <option value="submitted">পর্যালোচনার অপেক্ষায় (Submitted)</option>
-                <option value="all">সকল রিপোর্ট (All)</option>
-                <option value="acknowledged">অনুমোদিত (Acknowledged)</option>
-                <option value="returned">সংশোধনে ফেরত (Returned)</option>
+                <option value="submitted">{t('monthlyOutcome.statusSubmitted')}</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="acknowledged">{t('monthlyOutcome.statusApproved')}</option>
+                <option value="returned">{t('monthlyOutcome.statusReturned')}</option>
               </select>
 
               <input
@@ -219,9 +219,9 @@ export const SupervisorDashboardPage: React.FC = () => {
               {selectedMonth && (
                 <button
                   onClick={() => setSelectedMonth('')}
-                  className="text-[11px] text-slate-400 hover:text-slate-600 underline"
+                  className="text-[11px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
                 >
-                  ক্লিয়ার
+                  {t('common.cancel')}
                 </button>
               )}
             </div>
@@ -230,16 +230,16 @@ export const SupervisorDashboardPage: React.FC = () => {
           {/* Loading */}
           {isQueueLoading && (
             <div className="p-12 text-center text-slate-500 text-sm">
-              রিপোর্ট কিউ লোড হচ্ছে...
+              {t('common.loading')}
             </div>
           )}
 
           {/* Error */}
           {queueError && (
             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-center justify-between text-sm">
-              <span>রিপোর্ট লোড করতে সমস্যা হয়েছে।</span>
-              <button onClick={() => refetchQueue()} className="underline font-semibold">
-                পুনরায় চেষ্টা
+              <span>{t('common.error')}</span>
+              <button onClick={() => refetchQueue()} className="underline font-semibold cursor-pointer">
+                {t('common.retry')}
               </button>
             </div>
           )}
@@ -249,11 +249,8 @@ export const SupervisorDashboardPage: React.FC = () => {
             <div className="p-16 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 space-y-2">
               <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto" />
               <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
-                কোনো পেন্ডিং রিপোর্ট নেই
+                {t('supervisor.noPendingReviews')}
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                এই ফিল্টারে পর্যালোচনার অপেক্ষায় থাকা কোনো রিপোর্ট পাওয়া যায়নি।
-              </p>
             </div>
           )}
 
@@ -262,11 +259,11 @@ export const SupervisorDashboardPage: React.FC = () => {
             {filteredQueue.map((item: any) => {
               const statusBadge =
                 item.status === 'submitted'
-                  ? { label: 'পর্যালোচনার জন্য জমা', bg: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' }
+                  ? { label: t('monthlyOutcome.statusSubmitted'), bg: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' }
                   : item.status === 'acknowledged'
-                  ? { label: 'অনুমোদিত', bg: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' }
+                  ? { label: t('monthlyOutcome.statusApproved'), bg: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' }
                   : item.status === 'returned'
-                  ? { label: 'সংশোধনে ফেরত', bg: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' }
+                  ? { label: t('monthlyOutcome.statusReturned'), bg: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' }
                   : { label: item.status, bg: 'bg-slate-100 text-slate-800' };
 
               return (
@@ -286,7 +283,7 @@ export const SupervisorDashboardPage: React.FC = () => {
                       {item.isStale && (
                         <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                           <AlertTriangle className="h-3 w-3" />
-                          <span>পরিবর্তিত (Stale)</span>
+                          <span>{t('monthlyOutcome.staleDataWarning')}</span>
                         </span>
                       )}
                     </div>
@@ -294,19 +291,19 @@ export const SupervisorDashboardPage: React.FC = () => {
                     <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        মাস: <strong className="font-semibold text-slate-700 dark:text-slate-300">{item.monthKey}</strong>
+                        {t('common.date')}: <strong className="font-semibold text-slate-700 dark:text-slate-300">{item.monthKey}</strong>
                       </span>
                       {item.submittedAt && (
                         <span>
-                          জমা: {new Date(item.submittedAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' })}
+                          {t('supervisor.submittedAtHeader')}: {formatDate(item.submittedAt, { day: 'numeric', month: 'short' })}
                         </span>
                       )}
-                      <span>রিভিশন: #{item.revision}</span>
+                      <span>rev.#{formatNumber(item.revision)}</span>
                     </div>
 
                     {item.isStale && item.staleReason && (
                       <p className="text-[11px] text-amber-700 dark:text-amber-400/90 pt-0.5">
-                        ⚠️ সতর্কতা: {item.staleReason}
+                        ⚠️ {item.staleReason}
                       </p>
                     )}
                   </div>
@@ -315,8 +312,8 @@ export const SupervisorDashboardPage: React.FC = () => {
                     to={`/supervisor/reports/${item.id}`}
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white transition-colors shadow-sm shadow-brand-500/20 shrink-0"
                   >
-                    <span>রিপোর্ট ও মূল্যায়ন</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span>{t('supervisor.reviewReportBtn')}</span>
+                    <ArrowRight className={`h-3.5 w-3.5 ${isRTL ? 'rtl-flip' : ''}`} />
                   </Link>
                 </div>
               );
@@ -330,13 +327,13 @@ export const SupervisorDashboardPage: React.FC = () => {
         <div className="space-y-4">
           {isStudentsLoading && (
             <div className="p-12 text-center text-slate-500 text-sm">
-              শিক্ষার্থী তালিকা লোড হচ্ছে...
+              {t('common.loading')}
             </div>
           )}
 
           {!isStudentsLoading && students.length === 0 && (
             <div className="p-12 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 text-slate-500 text-sm">
-              আপনাকে এখনও কোনো শিক্ষার্থী অ্যাসাইন করা হয়নি।
+              {t('supervisor.noAssignedStudents')}
             </div>
           )}
 
@@ -357,9 +354,9 @@ export const SupervisorDashboardPage: React.FC = () => {
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                       {student.email}
                     </p>
-                    {student.profile?.educationInstitution && (
+                    {student.profile?.institution && (
                       <p className="text-[11px] text-slate-400 truncate">
-                        {student.profile.educationInstitution}
+                        {student.profile.institution}
                       </p>
                     )}
                   </div>
@@ -368,14 +365,14 @@ export const SupervisorDashboardPage: React.FC = () => {
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                     <UserCheck className="h-3 w-3" />
-                    সক্রিয় শিক্ষার্থী
+                    {t('profile.studentRole')}
                   </span>
                   <Link
                     to={`/supervisor/students/${student.id}/reports`}
                     className="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
                   >
-                    <span>রিপোর্টসমূহ</span>
-                    <ArrowRight className="h-3 w-3" />
+                    <span>{t('nav.monthlyOutcome')}</span>
+                    <ArrowRight className={`h-3 w-3 ${isRTL ? 'rtl-flip' : ''}`} />
                   </Link>
                 </div>
               </div>

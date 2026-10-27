@@ -18,8 +18,10 @@ import {
   X,
 } from 'lucide-react';
 import { api } from '../services/api.js';
+import { useTranslation } from '../context/LanguageContext.js';
 
 export const AuditLogPage: React.FC = () => {
+  const { t, formatDate, formatNumber } = useTranslation();
   const [from, setFrom] = useState<string>('');
   const [to, setTo] = useState<string>('');
   const [action, setAction] = useState<string>('');
@@ -100,23 +102,6 @@ export const AuditLogPage: React.FC = () => {
     }
   };
 
-  const formatDate = (isoStr?: string) => {
-    if (!isoStr) return '—';
-    try {
-      const d = new Date(isoStr);
-      return d.toLocaleString('bn-BD', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-    } catch {
-      return isoStr;
-    }
-  };
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -128,10 +113,10 @@ export const AuditLogPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-                অডিট ও নিরীক্ষা লগ (Audit Trail)
+                {t('audit.title')}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                সংস্থার সব সংবেদনশীল কার্যক্রম, সদস্যপদ পরিবর্তন ও রিপোর্ট মূল্যায়নের অপরিবর্তনশীল ইতিহাস
+                {t('audit.subtitle')}
               </p>
             </div>
           </div>
@@ -143,7 +128,7 @@ export const AuditLogPage: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors w-fit cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          <span>রিফ্রেশ</span>
+          <span>{t('audit.refreshBtn')}</span>
         </button>
       </div>
 
@@ -151,7 +136,7 @@ export const AuditLogPage: React.FC = () => {
       <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-800">
           <Filter className="h-4 w-4 text-brand-600" />
-          <span>ফিল্টার ও অনুসন্ধান</span>
+          <span>{t('audit.filterTitle')}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -159,7 +144,7 @@ export const AuditLogPage: React.FC = () => {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>শুরুর তারিখ (From)</span>
+              <span>{t('audit.fromDateLabel')}</span>
             </label>
             <input
               type="date"
@@ -176,7 +161,7 @@ export const AuditLogPage: React.FC = () => {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>শেষের তারিখ (To)</span>
+              <span>{t('audit.toDateLabel')}</span>
             </label>
             <input
               type="date"
@@ -191,7 +176,9 @@ export const AuditLogPage: React.FC = () => {
 
           {/* Action Filter */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">কার্যক্রম (Action)</label>
+            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {t('audit.actionHeader')}
+            </label>
             <select
               value={action}
               onChange={(e) => {
@@ -200,7 +187,7 @@ export const AuditLogPage: React.FC = () => {
               }}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
             >
-              <option value="">সকল কার্যক্রম (All)</option>
+              <option value="">{t('audit.allActions')}</option>
               <option value="review.acknowledged">review.acknowledged</option>
               <option value="review.returned">review.returned</option>
               <option value="report.submitted">report.submitted</option>
@@ -216,7 +203,9 @@ export const AuditLogPage: React.FC = () => {
 
           {/* Entity Type Filter */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">বিষয়বস্তু (Entity)</label>
+            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {t('audit.targetHeader')}
+            </label>
             <select
               value={entityType}
               onChange={(e) => {
@@ -225,7 +214,7 @@ export const AuditLogPage: React.FC = () => {
               }}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
             >
-              <option value="">সকল ধরন (All)</option>
+              <option value="">{t('audit.allEntities')}</option>
               <option value="monthlyOutcome">monthlyOutcome</option>
               <option value="monthlyPlan">monthlyPlan</option>
               <option value="supervisorAssignment">supervisorAssignment</option>
@@ -238,11 +227,11 @@ export const AuditLogPage: React.FC = () => {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
               <Search className="h-3 w-3" />
-              <span>ব্যবহারকারী আইডি (Actor ID)</span>
+              <span>{t('audit.actorIdLabel')}</span>
             </label>
             <input
               type="text"
-              placeholder="Actor ID দিয়ে খুঁজুন..."
+              placeholder={t('audit.actorIdPlaceholder')}
               value={actorId}
               onChange={(e) => {
                 setActorId(e.target.value);
@@ -259,37 +248,41 @@ export const AuditLogPage: React.FC = () => {
         {isLoading ? (
           <div className="p-8 text-center space-y-3">
             <div className="h-8 w-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs text-slate-500">অডিট রেকর্ড লোড হচ্ছে...</p>
+            <p className="text-xs text-slate-500">{t('audit.loadingRecords')}</p>
           </div>
         ) : isError ? (
           <div className="p-8 text-center space-y-3">
             <AlertTriangle className="h-8 w-8 text-rose-500 mx-auto" />
             <p className="text-xs text-rose-600 font-semibold">
-              {(error as any)?.message || 'অডিট ডাটা লোড করতে সমস্যা হয়েছে।'}
+              {(error as any)?.message || t('common.error')}
             </p>
             <button
               onClick={() => refetch()}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold cursor-pointer"
             >
-              পুনরায় চেষ্টা করুন
+              {t('common.retry')}
             </button>
           </div>
         ) : !data?.events || data.events.length === 0 ? (
           <div className="p-12 text-center space-y-2">
             <ShieldAlert className="h-10 w-10 text-slate-300 dark:text-slate-700 mx-auto" />
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">কোনো অডিট রেকর্ড পাওয়া যায়নি</p>
-            <p className="text-xs text-slate-400">ফিল্টার পরিবর্তন করে আবার চেষ্টা করতে পারেন।</p>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {t('audit.noEventsFound')}
+            </p>
+            <p className="text-xs text-slate-400">
+              {t('audit.noRecordsDesc')}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-start border-collapse text-xs">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
-                  <th className="py-3 px-4">সময় (Time)</th>
-                  <th className="py-3 px-4">কার্যক্রম (Action)</th>
-                  <th className="py-3 px-4">ব্যবহারকারী ও ভূমিকা (Actor)</th>
-                  <th className="py-3 px-4">বিষয়বস্তু (Entity)</th>
-                  <th className="py-3 px-4 text-right">মেটাডাটা</th>
+                  <th className="py-3 px-4 text-start">{t('audit.timestampHeader')}</th>
+                  <th className="py-3 px-4 text-start">{t('audit.actionHeader')}</th>
+                  <th className="py-3 px-4 text-start">{t('audit.actorHeader')}</th>
+                  <th className="py-3 px-4 text-start">{t('audit.targetHeader')}</th>
+                  <th className="py-3 px-4 text-end">{t('audit.metadataHeader')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -298,11 +291,11 @@ export const AuditLogPage: React.FC = () => {
                     key={ev.id || ev._id}
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                   >
-                    <td className="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                    <td className="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px] text-start">
                       {formatDate(ev.time)}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">{getActionBadge(ev.action)}</td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3 px-4 whitespace-nowrap text-start">{getActionBadge(ev.action)}</td>
+                    <td className="py-3 px-4 whitespace-nowrap text-start">
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[130px]" title={ev.actorId}>
                           {ev.actorId}
@@ -314,7 +307,7 @@ export const AuditLogPage: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3 px-4 whitespace-nowrap text-start">
                       <div className="space-y-0.5">
                         <span className="text-slate-900 dark:text-slate-100 font-medium">{ev.entityType}</span>
                         <div className="text-[11px] font-mono text-slate-400 truncate max-w-[150px]" title={ev.entityId}>
@@ -322,13 +315,13 @@ export const AuditLogPage: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                    <td className="py-3 px-4 text-end whitespace-nowrap">
                       <button
                         onClick={() => setSelectedEvent(ev)}
                         className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                       >
                         <Info className="h-3 w-3" />
-                        <span>বিস্তারিত</span>
+                        <span>{t('audit.detailsBtn')}</span>
                       </button>
                     </td>
                   </tr>
@@ -342,8 +335,11 @@ export const AuditLogPage: React.FC = () => {
         {total > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
             <div>
-              মোট <strong className="text-slate-800 dark:text-slate-200">{total}</strong> টির মধ্যে{' '}
-              {offset + 1}–{Math.min(offset + limit, total)} টি রেকর্ড দেখানো হচ্ছে
+              {t('audit.paginationTotal', {
+                from: formatNumber(offset + 1),
+                to: formatNumber(Math.min(offset + limit, total)),
+                total: formatNumber(total),
+              })}
             </div>
 
             <div className="flex items-center gap-2">
@@ -352,12 +348,12 @@ export const AuditLogPage: React.FC = () => {
                 disabled={page <= 1}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                <span>পূর্ববর্তী</span>
+                <ChevronLeft className="h-3.5 w-3.5 rtl-flip" />
+                <span>{t('audit.prevBtn')}</span>
               </button>
 
               <span className="px-2 font-bold text-slate-700 dark:text-slate-300">
-                {page} / {totalPages}
+                {formatNumber(page)} / {formatNumber(totalPages)}
               </span>
 
               <button
@@ -365,8 +361,8 @@ export const AuditLogPage: React.FC = () => {
                 disabled={page >= totalPages}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                <span>পরবর্তী</span>
-                <ChevronRight className="h-3.5 w-3.5" />
+                <span>{t('audit.nextBtn')}</span>
+                <ChevronRight className="h-3.5 w-3.5 rtl-flip" />
               </button>
             </div>
           </div>
@@ -381,7 +377,7 @@ export const AuditLogPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-indigo-600" />
                 <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                  অডিট ইভেন্ট বিবরণ
+                  {t('audit.modalTitle')}
                 </h3>
               </div>
               <button
@@ -436,7 +432,7 @@ export const AuditLogPage: React.FC = () => {
 
               <div className="space-y-1">
                 <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                  নিরাপদ মেটাডাটা (Sanitized Metadata):
+                  {t('audit.metadataTitle')}
                 </span>
                 <pre className="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto max-h-56">
                   {JSON.stringify(selectedEvent.metadata || {}, null, 2)}
@@ -449,7 +445,7 @@ export const AuditLogPage: React.FC = () => {
                 onClick={() => setSelectedEvent(null)}
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold cursor-pointer"
               >
-                বন্ধ করুন
+                {t('audit.closeBtn')}
               </button>
             </div>
           </div>

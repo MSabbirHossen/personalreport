@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api.js';
-import { DEFAULT_METRIC_GROUPS } from '@reportbd/shared';
+import {
+  DEFAULT_METRIC_GROUPS,
+  getGroupTitle,
+  getMetricLabel,
+  getMetricUnit,
+} from '@reportbd/shared';
+import { useTranslation } from '../context/LanguageContext.js';
 import {
   ArrowLeft,
   Calendar,
@@ -22,6 +28,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
   const { outcomeId } = useParams<{ outcomeId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t, locale, direction, formatDate, formatNumber, formatMonthKey } = useTranslation();
 
   const [reviewAction, setReviewAction] = useState<'acknowledge' | 'return'>('acknowledge');
   const [feedback, setFeedback] = useState<string>('');
@@ -48,16 +55,16 @@ export const SupervisorReportReviewPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['supervisor-report-detail', outcomeId] });
       queryClient.invalidateQueries({ queryKey: ['supervisor-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['supervisor-queue'] });
-      alert(res.message || 'রিভিউ সম্পন্ন হয়েছে।');
+      alert(res.message || t('supervisor.reviewSubmittedSuccess'));
     },
     onError: (err: any) => {
       if (err.status === 409 || err.code === 'ALREADY_REVIEWED' || err.code === 'CONFLICT') {
         setConflictError({
-          message: err.message || 'এই রিপোর্টটি ইতিমধ্যেই অন্য সেশনে পর্যালোচনা বা পরিবর্তন করা হয়েছে।',
+          message: err.message || t('supervisor.conflictErrorTitle'),
           code: err.code,
         });
       } else {
-        alert(err.message || 'পর্যালোচনা সংরক্ষণ ব্যর্থ হয়েছে।');
+        alert(err.message || t('common.error'));
       }
     },
   });
@@ -72,14 +79,14 @@ export const SupervisorReportReviewPage: React.FC = () => {
       refetch();
     },
     onError: (err: any) => {
-      alert(err.message || 'উত্তর পাঠাতে সমস্যা হয়েছে।');
+      alert(err.message || t('common.error'));
     },
   });
 
   if (isLoading) {
     return (
       <div className="max-w-5xl mx-auto p-12 text-center text-slate-500 text-sm">
-        রিপোর্ট ও ডাটা লোড হচ্ছে...
+        {t('common.loading')}
       </div>
     );
   }
@@ -91,10 +98,10 @@ export const SupervisorReportReviewPage: React.FC = () => {
           to="/supervisor/dashboard"
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800"
         >
-          <ArrowLeft className="h-4 w-4" /> ড্যাশবোর্ডে ফিরুন
+          <ArrowLeft className="h-4 w-4 rtl-flip" /> {t('supervisor.backToQueue')}
         </Link>
         <div className="p-5 rounded-2xl bg-red-50 text-red-700 text-sm border border-red-200">
-          রিপোর্ট লোড করা যায়নি বা আপনার এটি দেখার অনুমতি নেই।
+          {t('supervisor.reportNotFound')}
         </div>
       </div>
     );
@@ -114,8 +121,8 @@ export const SupervisorReportReviewPage: React.FC = () => {
           to="/supervisor/dashboard"
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>পর্যবেক্ষক কিউ-তে ফিরুন</span>
+          <ArrowLeft className="h-4 w-4 rtl-flip" />
+          <span>{t('supervisor.backToQueue')}</span>
         </Link>
       </div>
 
@@ -140,24 +147,29 @@ export const SupervisorReportReviewPage: React.FC = () => {
                 }`}
               >
                 {outcome.status === 'submitted'
-                  ? 'পর্যালোচনার জন্য জমা'
+                  ? t('monthlyOutcome.statusSubmitted')
                   : outcome.status === 'acknowledged'
-                  ? 'অনুমোদিত'
-                  : 'সংশোধনে ফেরত'}
+                  ? t('monthlyOutcome.statusApproved')
+                  : t('monthlyOutcome.statusReturned')}
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {student?.email} • {student?.profile?.educationInstitution || 'শিক্ষার্থী'}
+              {student?.email} • {student?.profile?.educationInstitution || t('profile.studentRole')}
             </p>
-            <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
+            <div className="flex items-center gap-4 text-xs text-slate-400 pt-1 flex-wrap">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                রিপোর্ট মাস: <strong className="text-slate-700 dark:text-slate-300">{outcome.monthKey}</strong>
+                {t('supervisor.reportMonthLabel')}{' '}
+                <strong className="text-slate-700 dark:text-slate-300">
+                  {formatMonthKey(outcome.monthKey)}
+                </strong>
               </span>
-              <span>রিভিশন: #{outcome.revision}</span>
+              <span>
+                {t('supervisor.revisionCount')}: #{formatNumber(outcome.revision || 1)}
+              </span>
               {outcome.submittedAt && (
                 <span>
-                  জমার তারিখ: {new Date(outcome.submittedAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {t('supervisor.submittedDateLabel')} {formatDate(outcome.submittedAt)}
                 </span>
               )}
             </div>
@@ -166,9 +178,11 @@ export const SupervisorReportReviewPage: React.FC = () => {
 
         {outcome.reviewedAt && (
           <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
-            <span className="text-slate-400 block font-medium">পর্যালোচনা সম্পন্ন</span>
+            <span className="text-slate-400 block font-medium">
+              {t('supervisor.reviewCompletedLabel')}
+            </span>
             <span className="text-slate-700 dark:text-slate-300 font-semibold">
-              {new Date(outcome.reviewedAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' })}
+              {formatDate(outcome.reviewedAt)}
             </span>
           </div>
         )}
@@ -179,9 +193,11 @@ export const SupervisorReportReviewPage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 text-xs space-y-1 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-bold text-sm block">সতর্কতা: রিপোর্ট পরবর্তীতে পরিবর্তিত হয়েছে (Stale Data)</span>
+            <span className="font-bold text-sm block">{t('supervisor.staleWarningTitle')}</span>
             <p>
-              শিক্ষার্থী রিপোর্ট জমা দেওয়ার পর দৈনিক এন্ট্রিতে পরিবর্তন করেছেন ({outcome.staleReason || 'দৈনিক ডাটা আপডেট হয়েছে'})। তবে পর্যালোচনার সুবিধার জন্য জমা দেওয়ার সময়ের ফ্রোজেন স্ন্যাপশটটি নিচে অপরিবর্তিত রাখা হয়েছে।
+              {t('supervisor.staleWarningDesc', {
+                reason: outcome.staleReason || t('monthlyOutcome.staleDataWarning'),
+              })}
             </p>
           </div>
         </div>
@@ -191,10 +207,10 @@ export const SupervisorReportReviewPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            পরিকল্পনা বনাম অর্জিত ফলাফল
+            {t('supervisor.planVsActualTitle')}
           </h2>
           <span className="text-xs text-slate-500">
-            ফ্রোজেন স্ন্যাপশট ভিত্তিক হিসাব
+            {t('supervisor.frozenSnapshotSubtitle')}
           </span>
         </div>
 
@@ -206,18 +222,26 @@ export const SupervisorReportReviewPage: React.FC = () => {
             >
               <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  {group.titleBn}
+                  {getGroupTitle(group, locale)}
                 </h3>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-start text-xs">
                   <thead className="bg-slate-50/40 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800/60 text-slate-500">
                     <tr>
-                      <th className="py-2.5 px-4 font-semibold">কার্যক্রম / ক্ষেত্র</th>
-                      <th className="py-2.5 px-4 font-semibold text-center">পরিকল্পিত লক্ষ্য (Target)</th>
-                      <th className="py-2.5 px-4 font-semibold text-center">অর্জিত পরিমাণ (Actual)</th>
-                      <th className="py-2.5 px-4 font-semibold text-center">একক</th>
+                      <th className="py-2.5 px-4 font-semibold text-start">
+                        {t('supervisor.activityHeader')}
+                      </th>
+                      <th className="py-2.5 px-4 font-semibold text-center">
+                        {t('supervisor.targetHeader')}
+                      </th>
+                      <th className="py-2.5 px-4 font-semibold text-center">
+                        {t('supervisor.actualHeader')}
+                      </th>
+                      <th className="py-2.5 px-4 font-semibold text-center">
+                        {t('supervisor.unitHeader')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40 text-slate-700 dark:text-slate-300">
@@ -229,17 +253,17 @@ export const SupervisorReportReviewPage: React.FC = () => {
 
                       return (
                         <tr key={metric.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                          <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-slate-100">
-                            {metric.labelBn}
+                          <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-slate-100 text-start">
+                            {getMetricLabel(metric, locale)}
                           </td>
                           <td className="py-2.5 px-4 text-center font-semibold text-slate-600 dark:text-slate-400">
-                            {hasTarget ? targetVal : '—'}
+                            {hasTarget ? formatNumber(targetVal) : '—'}
                           </td>
                           <td className="py-2.5 px-4 text-center font-bold text-brand-600 dark:text-brand-400">
-                            {hasActual ? actualVal : '০'}
+                            {hasActual ? formatNumber(actualVal) : formatNumber(0)}
                           </td>
                           <td className="py-2.5 px-4 text-center text-slate-400 text-[11px]">
-                            {metric.unitBn}
+                            {getMetricUnit(metric, locale)}
                           </td>
                         </tr>
                       );
@@ -256,33 +280,33 @@ export const SupervisorReportReviewPage: React.FC = () => {
       {outcome.reflections && (
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            শিক্ষার্থীর আত্মমূল্যায়ন ও প্রতিফলন
+            {t('supervisor.reflectionsTitle')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">
-                মূল অর্জনসমূহ (Achievements)
+                {t('supervisor.achievementsTitle')}
               </span>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {outcome.reflections.achievements || 'কোনো মন্তব্য নেই'}
+                {outcome.reflections.achievements || t('supervisor.noComments')}
               </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
               <span className="text-xs font-bold text-rose-600 dark:text-rose-400 block">
-                বাধা বা চ্যালেঞ্জ (Challenges)
+                {t('supervisor.challengesTitle')}
               </span>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {outcome.reflections.challenges || 'কোনো মন্তব্য নেই'}
+                {outcome.reflections.challenges || t('supervisor.noComments')}
               </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
               <span className="text-xs font-bold text-brand-600 dark:text-brand-400 block">
-                আগামী মাসের অগ্রাধিকার (Next Month)
+                {t('supervisor.nextMonthTitle')}
               </span>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {outcome.reflections.nextMonthPriorities || 'কোনো মন্তব্য নেই'}
+                {outcome.reflections.nextMonthPriorities || t('supervisor.noComments')}
               </p>
             </div>
           </div>
@@ -293,14 +317,14 @@ export const SupervisorReportReviewPage: React.FC = () => {
       <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border-2 border-brand-200 dark:border-brand-900 shadow-md space-y-5">
         <div className="flex items-center gap-2 text-brand-700 dark:text-brand-300 font-bold text-base">
           <ShieldCheck className="h-5 w-5" />
-          <span>পর্যবেক্ষকের সিদ্ধান্ত ও মূল্যায়ন প্রদান</span>
+          <span>{t('supervisor.supervisorDecisionTitle')}</span>
         </div>
 
         {conflictError && (
           <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs space-y-2">
             <div className="flex items-center gap-2 font-bold text-sm">
               <AlertCircle className="h-4 w-4" />
-              <span>কনকারেন্সি বিরোধ (Conflict Error):</span>
+              <span>{t('supervisor.conflictErrorTitle')}</span>
             </div>
             <p>{conflictError.message}</p>
             <button
@@ -308,10 +332,10 @@ export const SupervisorReportReviewPage: React.FC = () => {
                 setConflictError(null);
                 refetch();
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white font-semibold text-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white font-semibold text-xs cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>সর্বশেষ ডাটা রিলোড করুন</span>
+              <span>{t('supervisor.conflictErrorReload')}</span>
             </button>
           </div>
         )}
@@ -333,9 +357,9 @@ export const SupervisorReportReviewPage: React.FC = () => {
               className="text-emerald-600 focus:ring-emerald-500"
             />
             <div>
-              <span className="text-sm block">অনুমোদন ও সন্তোষ প্রকাশ (Acknowledge)</span>
+              <span className="text-sm block">{t('supervisor.acknowledgeOption')}</span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
-                রিপোর্টটি গ্রহণযোগ্য এবং পরবর্তী মাসের অগ্রগতি অব্যাহত থাকবে।
+                {t('supervisor.acknowledgeDesc')}
               </span>
             </div>
           </label>
@@ -355,9 +379,9 @@ export const SupervisorReportReviewPage: React.FC = () => {
               className="text-rose-600 focus:ring-rose-500"
             />
             <div>
-              <span className="text-sm block">সংশোধনের জন্য ফেরত (Return)</span>
+              <span className="text-sm block">{t('supervisor.returnOption')}</span>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
-                শিক্ষার্থী প্রয়োজনীয় সংশোধন সম্পন্ন করে পুনরায় জমা দিতে পারবেন।
+                {t('supervisor.returnDesc')}
               </span>
             </div>
           </label>
@@ -366,13 +390,13 @@ export const SupervisorReportReviewPage: React.FC = () => {
         {/* Written Feedback input */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-            শিক্ষার্থীর প্রতি দিকনির্দেশনামূলক পরামর্শ / মন্তব্য
+            {t('supervisor.feedbackLabel')}
           </label>
           <textarea
             rows={4}
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
-            placeholder="শিক্ষার্থীর অগ্রগতি, ঘাটতি বা আগামী মাসের করণীয় সম্পর্কে পরামর্শ লিখুন..."
+            placeholder={t('supervisor.feedbackPlaceholder')}
             className="w-full text-xs p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-800 dark:text-slate-200"
           />
         </div>
@@ -382,17 +406,17 @@ export const SupervisorReportReviewPage: React.FC = () => {
           <button
             onClick={() => reviewMutation.mutate()}
             disabled={reviewMutation.isPending}
-            className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-md ${
+            className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
               reviewAction === 'acknowledge'
                 ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
                 : 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
             } disabled:opacity-50`}
           >
             {reviewMutation.isPending
-              ? 'সংরক্ষণ হচ্ছে...'
+              ? t('common.loading')
               : reviewAction === 'acknowledge'
-              ? 'অনুমোদন নিশ্চিত করুন'
-              : 'সংশোধনে ফেরত পাঠান'}
+              ? t('supervisor.confirmApprovalBtn')
+              : t('supervisor.confirmReturnBtn')}
           </button>
         </div>
       </div>
@@ -401,12 +425,14 @@ export const SupervisorReportReviewPage: React.FC = () => {
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-brand-600" />
-          <span>পরামর্শ ও প্রশ্নোত্তর ইতিহাস ({adviceHistory.length})</span>
+          <span>
+            {t('supervisor.adviceHistoryTitle')} ({formatNumber(adviceHistory.length)})
+          </span>
         </h2>
 
         {adviceHistory.length === 0 ? (
           <div className="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/40 text-slate-400 text-xs">
-            এই মাসের রিপোর্টে এখনও কোনো পরামর্শ রেকর্ড করা হয়নি।
+            {t('supervisor.noAdviceHistory')}
           </div>
         ) : (
           <div className="space-y-3">
@@ -419,7 +445,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
                   <span className="font-bold text-slate-900 dark:text-slate-100">
                     {item.authorName} ({item.authorRole})
                   </span>
-                  <span>{new Date(item.createdAt).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short' })}</span>
+                  <span>{formatDate(item.createdAt)}</span>
                 </div>
                 <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                   {item.body}
@@ -427,7 +453,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
 
                 {/* Replies list */}
                 {item.replies && item.replies.length > 0 && (
-                  <div className="space-y-2 pl-4 border-l-2 border-brand-200 dark:border-brand-900 pt-2">
+                  <div className="space-y-2 ps-4 border-s-2 border-brand-200 dark:border-brand-900 pt-2">
                     {item.replies.map((reply: any, rIdx: number) => (
                       <div key={rIdx} className="text-xs space-y-0.5">
                         <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
@@ -448,7 +474,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
                         rows={2}
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="মন্তব্যের প্রত্যুত্তর লিখুন..."
+                        placeholder={t('advice.replyPlaceholder')}
                         className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus:outline-none"
                       />
                       <div className="flex items-center justify-end gap-2">
@@ -457,27 +483,27 @@ export const SupervisorReportReviewPage: React.FC = () => {
                             setSelectedAdviceId(null);
                             setReplyText('');
                           }}
-                          className="px-3 py-1.5 text-xs text-slate-500"
+                          className="px-3 py-1.5 text-xs text-slate-500 cursor-pointer"
                         >
-                          বাতিল
+                          {t('common.cancel')}
                         </button>
                         <button
                           onClick={() =>
                             replyMutation.mutate({ adviceId: item.id, body: replyText })
                           }
                           disabled={!replyText.trim() || replyMutation.isPending}
-                          className="px-4 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold disabled:opacity-50"
+                          className="px-4 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
                         >
-                          উত্তর পাঠান
+                          {replyMutation.isPending ? t('common.loading') : t('advice.sendReplyBtn')}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <button
                       onClick={() => setSelectedAdviceId(item.id)}
-                      className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline"
+                      className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline cursor-pointer"
                     >
-                      উত্তর দিন
+                      {t('supervisor.replyBtn')}
                     </button>
                   )}
                 </div>

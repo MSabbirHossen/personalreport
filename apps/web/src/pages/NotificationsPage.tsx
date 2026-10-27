@@ -2,10 +2,12 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import { Bell, CheckCircle2, Clock, ArrowRight, CheckCheck, AlertCircle } from 'lucide-react';
 
 export const NotificationsPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { t, isRTL, formatDate, formatNumber } = useLanguage();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['notifications'],
@@ -37,16 +39,16 @@ export const NotificationsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              বিজ্ঞপ্তি ও আপডেট
+              {t('notifications.title')}
             </h1>
             {unreadCount > 0 && (
               <span className="px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-300 text-xs font-semibold">
-                {unreadCount}টি অপঠিত
+                {formatNumber(unreadCount)} {t('notifications.filterUnread')}
               </span>
             )}
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            রিপোর্ট জমা, পর্যালোচনা এবং পরামর্শ সংক্রান্ত নোটিফিকেশন।
+            {t('notifications.subtitle')}
           </p>
         </div>
 
@@ -54,10 +56,10 @@ export const NotificationsPage: React.FC = () => {
           <button
             onClick={() => markAllReadMutation.mutate()}
             disabled={markAllReadMutation.isPending}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition-colors self-start sm:self-auto"
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition-colors self-start sm:self-auto cursor-pointer"
           >
             <CheckCheck className="h-4 w-4 text-brand-600" />
-            <span>সবগুলো পঠিত হিসেবে চিহ্নিত করুন</span>
+            <span>{t('notifications.markAllReadBtn')}</span>
           </button>
         )}
       </div>
@@ -65,7 +67,7 @@ export const NotificationsPage: React.FC = () => {
       {/* Loading state */}
       {isLoading && (
         <div className="p-12 text-center text-slate-500 text-sm">
-          বিজ্ঞপ্তি লোড হচ্ছে...
+          {t('common.loading')}
         </div>
       )}
 
@@ -74,10 +76,10 @@ export const NotificationsPage: React.FC = () => {
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
-            <span>বিজ্ঞপ্তি লোড করতে সমস্যা হয়েছে।</span>
+            <span>{t('common.error')}</span>
           </div>
           <button onClick={() => refetch()} className="font-semibold underline">
-            পুনরায় চেষ্টা করুন
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -89,10 +91,10 @@ export const NotificationsPage: React.FC = () => {
             <Bell className="h-6 w-6" />
           </div>
           <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
-            কোনো নতুন বিজ্ঞপ্তি নেই
+            {t('notifications.emptyTitle')}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            আপনার রিপোর্ট জমা দেওয়া হলে বা পর্যবেক্ষকের কাছ থেকে মতামত এলে এখানে দেখতে পাবেন।
+            {t('notifications.emptyDesc')}
           </p>
         </div>
       )}
@@ -139,14 +141,14 @@ export const NotificationsPage: React.FC = () => {
                     <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(item.createdAt).toLocaleDateString('bn-BD', {
+                        {formatDate(item.createdAt, {
                           day: 'numeric',
                           month: 'short',
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
                       </span>
-                      {item.actorName && <span>প্রেরক: {item.actorName}</span>}
+                      {item.actorName && <span>{item.actorName}</span>}
                     </div>
                   </div>
                 </div>
@@ -160,14 +162,15 @@ export const NotificationsPage: React.FC = () => {
                       }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/60 transition-colors"
                     >
-                      <span>দেখুন</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <span>{t('common.edit')}</span>
+                      <ArrowRight className={`h-3.5 w-3.5 ${isRTL ? 'rtl-flip' : ''}`} />
                     </Link>
                   )}
                   {isUnread && (
                     <button
                       onClick={() => markReadMutation.mutate(item.id)}
-                      title="পঠিত চিহ্নিত করুন"
+                      title={t('common.confirm')}
+                      aria-label={t('common.confirm')}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                       <CheckCircle2 className="h-4 w-4" />
