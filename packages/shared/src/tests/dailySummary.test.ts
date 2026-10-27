@@ -191,4 +191,39 @@ describe('Daily Summary & Input Validation Unit Tests', () => {
     });
     assert.equal(invalid.success, false);
   });
+
+  test('SaveDailyReportInputSchema rejects attended classes exceeding total classes held', () => {
+    const invalid = SaveDailyReportInputSchema.safeParse({
+      dateKey: '2026-10-27',
+      values: {
+        class_total_count: 3,
+        class_attended_count: 5,
+      },
+    });
+    assert.equal(invalid.success, false);
+    if (!invalid.success) {
+      assert.ok(
+        invalid.error.issues.some((i) =>
+          i.message.includes('উপস্থিত ক্লাসের সংখ্যা মোট ক্লাসের সংখ্যার চেয়ে বেশি হতে পারে না')
+        )
+      );
+    }
+  });
+
+  test('SaveDailyReportInputSchema accepts attended classes less than or equal to total classes', () => {
+    const valid = SaveDailyReportInputSchema.safeParse({
+      dateKey: '2026-10-27',
+      values: {
+        class_total_count: 4,
+        class_attended_count: 4,
+        hadith_explanation: 'হাদিস থেকে গুরুত্বপূর্ণ তাকওয়া ও ইখলাসের শিক্ষা',
+        contact_ulama_count: 2,
+        contact_family_meeting: true,
+        dist_online_dawah_count: 10,
+        social_work_count: 1,
+        routine_report_confirmed: true,
+      },
+    });
+    assert.equal(valid.success, true);
+  });
 });

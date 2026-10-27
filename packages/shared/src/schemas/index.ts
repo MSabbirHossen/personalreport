@@ -58,6 +58,23 @@ export const SaveDailyReportInputSchema = z
         }
       }
     }
+
+    // Card 5: Attended classes cannot exceed total classes held
+    const totalClasses = data.values['class_total_count'];
+    const attendedClasses = data.values['class_attended_count'];
+    if (
+      typeof totalClasses === 'number' &&
+      typeof attendedClasses === 'number' &&
+      !isNaN(totalClasses) &&
+      !isNaN(attendedClasses) &&
+      attendedClasses > totalClasses
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'উপস্থিত ক্লাসের সংখ্যা মোট ক্লাসের সংখ্যার চেয়ে বেশি হতে পারে না',
+        path: ['values', 'class_attended_count'],
+      });
+    }
   });
 
 // ==================== Monthly Plan ====================
