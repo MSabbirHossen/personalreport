@@ -16,6 +16,19 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:4000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (_err, _req, res: any) => {
+            if (res && !res.headersSent) {
+              res.writeHead(503, { 'Content-Type': 'application/json' });
+              res.end(
+                JSON.stringify({
+                  code: 'BACKEND_OFFLINE',
+                  message: 'The backend API service (http://localhost:4000) is unreachable. Please ensure the API server is started.',
+                })
+              );
+            }
+          });
+        },
       },
     },
   },
