@@ -40,10 +40,11 @@ export interface DailySummaryComparison {
 
 /**
  * Format total minutes into hours and minutes
- * e.g., 90 -> "1h 30m" (en) or "১ঘ ৩০মি" (bn)
+ * e.g., 90 -> "1h 30m" (en), "১ঘ ৩০মি" (bn), or "١ س ٣٠ د" (ar)
  */
-export function formatMinutes(minutes: number | null | undefined, lang: 'bn' | 'en' = 'bn'): string {
+export function formatMinutes(minutes: number | null | undefined, lang: 'bn' | 'en' | 'ar' = 'bn'): string {
   if (minutes === null || minutes === undefined || isNaN(minutes)) {
+    if (lang === 'ar') return 'لا توجد بيانات';
     return lang === 'bn' ? 'তথ্য নেই' : 'No data';
   }
 
@@ -53,6 +54,16 @@ export function formatMinutes(minutes: number | null | undefined, lang: 'bn' | '
 
   const toBn = (num: number) =>
     String(num).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+
+  const toAr = (num: number) =>
+    String(num).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
+
+  if (lang === 'ar') {
+    if (hours === 0 && remainingMins === 0) return '٠ د';
+    if (hours === 0) return `${toAr(remainingMins)} د`;
+    if (remainingMins === 0) return `${toAr(hours)} س`;
+    return `${toAr(hours)} س ${toAr(remainingMins)} د`;
+  }
 
   if (lang === 'bn') {
     if (hours === 0 && remainingMins === 0) return '০মি';
@@ -69,16 +80,24 @@ export function formatMinutes(minutes: number | null | undefined, lang: 'bn' | '
 
 /**
  * Format page count
- * e.g., 25 -> "25 pages" or "২৫ পৃষ্ঠা"
+ * e.g., 25 -> "25 pages", "২৫ পৃষ্ঠা", or "٢٥ صفحة"
  */
-export function formatPages(pages: number | null | undefined, lang: 'bn' | 'en' = 'bn'): string {
+export function formatPages(pages: number | null | undefined, lang: 'bn' | 'en' | 'ar' = 'bn'): string {
   if (pages === null || pages === undefined || isNaN(pages)) {
+    if (lang === 'ar') return 'لا توجد بيانات';
     return lang === 'bn' ? 'তথ্য নেই' : 'No data';
   }
 
   const rounded = Math.round(pages);
   const toBn = (num: number) =>
     String(num).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+
+  const toAr = (num: number) =>
+    String(num).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
+
+  if (lang === 'ar') {
+    return `${toAr(rounded)} صفحة`;
+  }
 
   if (lang === 'bn') {
     return `${toBn(rounded)} পৃষ্ঠা`;
@@ -151,12 +170,15 @@ export function compareDailySummaries(
   today: DailySummaryTotals,
   yesterday: DailySummaryTotals | null,
   yesterdayDateKey: string | null,
-  lang: 'bn' | 'en' = 'bn'
+  lang: 'bn' | 'en' | 'ar' = 'bn'
 ): DailySummaryComparison {
   const hasYesterdayData = yesterday !== null;
 
   const toBn = (num: number) =>
     String(num).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+
+  const toAr = (num: number) =>
+    String(num).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
 
   const buildDurationComparison = (
     id: string,
@@ -167,9 +189,13 @@ export function compareDailySummaries(
     const todayFormatted = formatMinutes(todayVal, lang);
     const yesterdayFormatted = hasYesterdayData
       ? formatMinutes(yesterdayVal, lang)
+      : lang === 'ar'
+      ? 'لا يوجد تقرير'
       : lang === 'bn'
       ? 'রিপোর্ট নেই'
       : 'No report';
+
+    const unit = lang === 'ar' ? 'دقيقة' : lang === 'bn' ? 'মিনিট' : 'min';
 
     if (!hasYesterdayData || todayVal === null || yesterdayVal === null) {
       return {
@@ -182,7 +208,7 @@ export function compareDailySummaries(
         diffValue: null,
         diffFormatted: '-',
         status: 'no_comparison',
-        unit: lang === 'bn' ? 'মিনিট' : 'min',
+        unit,
       };
     }
 
@@ -194,7 +220,15 @@ export function compareDailySummaries(
     const absDiff = Math.abs(diff);
     const formattedAbs = formatMinutes(absDiff, lang);
     const diffFormatted =
-      diff > 0 ? `+${formattedAbs}` : diff < 0 ? `-${formattedAbs}` : lang === 'bn' ? '০মি' : '0m';
+      diff > 0
+        ? `+${formattedAbs}`
+        : diff < 0
+        ? `-${formattedAbs}`
+        : lang === 'ar'
+        ? '٠ د'
+        : lang === 'bn'
+        ? '০মি'
+        : '0m';
 
     return {
       id,
@@ -206,7 +240,7 @@ export function compareDailySummaries(
       diffValue: diff,
       diffFormatted,
       status,
-      unit: lang === 'bn' ? 'মিনিট' : 'min',
+      unit,
     };
   };
 
@@ -219,9 +253,13 @@ export function compareDailySummaries(
     const todayFormatted = formatPages(todayVal, lang);
     const yesterdayFormatted = hasYesterdayData
       ? formatPages(yesterdayVal, lang)
+      : lang === 'ar'
+      ? 'لا يوجد تقرير'
       : lang === 'bn'
       ? 'রিপোর্ট নেই'
       : 'No report';
+
+    const unit = lang === 'ar' ? 'صفحة' : lang === 'bn' ? 'পৃষ্ঠা' : 'pages';
 
     if (!hasYesterdayData || todayVal === null || yesterdayVal === null) {
       return {
@@ -234,7 +272,7 @@ export function compareDailySummaries(
         diffValue: null,
         diffFormatted: '-',
         status: 'no_comparison',
-        unit: lang === 'bn' ? 'পৃষ্ঠা' : 'pages',
+        unit,
       };
     }
 
@@ -244,11 +282,14 @@ export function compareDailySummaries(
     else if (diff < 0) status = 'decrease';
 
     const absDiff = Math.abs(diff);
+    const formattedNum = lang === 'ar' ? toAr(absDiff) : lang === 'bn' ? toBn(absDiff) : absDiff;
     const diffFormatted =
       diff > 0
-        ? `+${lang === 'bn' ? toBn(absDiff) : absDiff} ${lang === 'bn' ? 'পৃষ্ঠা' : 'pages'}`
+        ? `+${formattedNum} ${unit}`
         : diff < 0
-        ? `-${lang === 'bn' ? toBn(absDiff) : absDiff} ${lang === 'bn' ? 'পৃষ্ঠা' : 'pages'}`
+        ? `-${formattedNum} ${unit}`
+        : lang === 'ar'
+        ? '٠ صفحة'
         : lang === 'bn'
         ? '০ পৃষ্ঠা'
         : '0 pages';
@@ -263,38 +304,58 @@ export function compareDailySummaries(
       diffValue: diff,
       diffFormatted,
       status,
-      unit: lang === 'bn' ? 'পৃষ্ঠা' : 'pages',
+      unit,
     };
   };
 
   const categories: MetricComparisonItem[] = [
     buildDurationComparison(
       'academic',
-      lang === 'bn' ? 'প্রাতিষ্ঠানিক ও পাঠ্যবই অধ্যয়ন' : 'Academic Education',
+      lang === 'ar'
+        ? 'الدراسة الأكاديمية والمنهجية'
+        : lang === 'bn'
+        ? 'প্রাতিষ্ঠানিক ও পাঠ্যবই অধ্যয়ন'
+        : 'Academic Education',
       today.academicStudyMinutes,
       yesterday ? yesterday.academicStudyMinutes : null
     ),
     buildPagesComparison(
       'reading',
-      lang === 'bn' ? 'বই পাঠ (ইসলামী ও সাহিত্য)' : 'Book Pages Read',
+      lang === 'ar'
+        ? 'قراءة الكتب (إسلامية وأدبية)'
+        : lang === 'bn'
+        ? 'বই পাঠ (ইসলামী ও সাহিত্য)'
+        : 'Book Pages Read',
       today.bookPages,
       yesterday ? yesterday.bookPages : null
     ),
     buildDurationComparison(
       'organizational',
-      lang === 'bn' ? 'সাংগঠনিক দায়িত্ব ও সময়' : 'Organizational Activities',
+      lang === 'ar'
+        ? 'الأنشطة والمسؤوليات الدعوية'
+        : lang === 'bn'
+        ? 'সাংগঠনিক দায়িত্ব ও সময়'
+        : 'Organizational Activities',
       today.organizationalMinutes,
       yesterday ? yesterday.organizationalMinutes : null
     ),
     buildDurationComparison(
       'rest',
-      lang === 'bn' ? 'শরীরচর্চা ও বিশ্রাম' : 'Rest & Recreation',
+      lang === 'ar'
+        ? 'الرياضة والراحة'
+        : lang === 'bn'
+        ? 'শরীরচর্চা ও বিশ্রাম'
+        : 'Rest & Recreation',
       today.restMinutes,
       yesterday ? yesterday.restMinutes : null
     ),
     buildDurationComparison(
       'sleep',
-      lang === 'bn' ? 'ঘুম (দৈনন্দিন নিদ্রা)' : 'Sleep Time',
+      lang === 'ar'
+        ? 'وقت النوم'
+        : lang === 'bn'
+        ? 'ঘুম (দৈনন্দিন নিদ্রা)'
+        : 'Sleep Time',
       today.sleepMinutes,
       yesterday ? yesterday.sleepMinutes : null
     ),
