@@ -1,11 +1,11 @@
 export type MetricType = 'count' | 'duration_minutes' | 'boolean' | 'text';
 
-export type AggregationType = 
-  | 'sum' 
-  | 'count_active_days' 
-  | 'avg_answered_days' 
-  | 'avg_calendar_days' 
-  | 'last_value' 
+export type AggregationType =
+  | 'sum'
+  | 'count_active_days'
+  | 'avg_answered_days'
+  | 'avg_calendar_days'
+  | 'last_value'
   | 'none';
 
 export interface MetricDefinition {
@@ -109,6 +109,14 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
         max: 50,
         aggregation: 'sum',
       },
+      {
+        id: 'hadith_explanation',
+        groupId: 'hadith',
+        labelBn: 'হাদিসের ব্যাখ্যা',
+        labelEn: 'Hadith Explanation',
+        type: 'text',
+        aggregation: 'none',
+      },
     ],
   },
   {
@@ -205,15 +213,27 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
         aggregation: 'sum',
       },
       {
-        id: 'class_attended_count',
+        id: 'class_total_count',
         groupId: 'academic',
-        labelBn: 'ক্লাস উপস্থিতি (সংখ্যা)',
-        labelEn: 'Classes Attended',
+        labelBn: 'মোট ক্লাস (আজ)',
+        labelEn: 'Total Classes (Today)',
         type: 'count',
         unitBn: 'টি',
         unitEn: 'classes',
         min: 0,
-        max: 10,
+        max: 20,
+        aggregation: 'sum',
+      },
+      {
+        id: 'class_attended_count',
+        groupId: 'academic',
+        labelBn: 'উপস্থিত ক্লাস (আজ)',
+        labelEn: 'Classes Attended (Today)',
+        type: 'count',
+        unitBn: 'টি',
+        unitEn: 'classes',
+        min: 0,
+        max: 20,
         aggregation: 'sum',
       },
     ],
@@ -228,7 +248,7 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
       {
         id: 'contact_general_students',
         groupId: 'contacts',
-        labelBn: 'সাধারণ ছাত্র যোগাযোগ',
+        labelBn: 'সাধারণ ছাত্র / সাধারণ দাওয়াত',
         labelEn: 'General Students Contacted',
         type: 'count',
         unitBn: 'জন',
@@ -240,8 +260,8 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
       {
         id: 'contact_supporters',
         groupId: 'contacts',
-        labelBn: 'সমর্থক যোগাযোগ',
-        labelEn: 'Supporters Contacted',
+        labelBn: 'কর্মী টার্গেট / সমর্থক',
+        labelEn: 'Supporters',
         type: 'count',
         unitBn: 'জন',
         unitEn: 'persons',
@@ -252,8 +272,8 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
       {
         id: 'contact_workers',
         groupId: 'contacts',
-        labelBn: 'কর্মী যোগাযোগ',
-        labelEn: 'Workers Contacted',
+        labelBn: 'সদস্য টার্গেট / কর্মী',
+        labelEn: 'Workers',
         type: 'count',
         unitBn: 'জন',
         unitEn: 'persons',
@@ -264,8 +284,8 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
       {
         id: 'contact_sathi',
         groupId: 'contacts',
-        labelBn: 'সাথী যোগাযোগ',
-        labelEn: 'Sathi Contacted',
+        labelBn: 'সদস্য',
+        labelEn: 'Member',
         type: 'count',
         unitBn: 'জন',
         unitEn: 'persons',
@@ -276,14 +296,34 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
       {
         id: 'contact_talented_students',
         groupId: 'contacts',
-        labelBn: 'মেধাবী ছাত্র যোগাযোগ',
-        labelEn: 'Talented Students Contacted',
+        labelBn: 'সুধী / পেশাজীবি',
+        labelEn: 'Professionals / Influentials',
         type: 'count',
         unitBn: 'জন',
         unitEn: 'persons',
         min: 0,
         max: 50,
         aggregation: 'sum',
+      },
+      {
+        id: 'contact_ulama_count',
+        groupId: 'contacts',
+        labelBn: 'ওলামা/ দ্বায়ী',
+        labelEn: 'Ulama / Daee',
+        type: 'count',
+        unitBn: 'জন',
+        unitEn: 'persons',
+        min: 0,
+        max: 50,
+        aggregation: 'sum',
+      },
+      {
+        id: 'contact_family_meeting',
+        groupId: 'contacts',
+        labelBn: 'পারিবারিক বৈঠক',
+        labelEn: 'Family Meeting',
+        type: 'boolean',
+        aggregation: 'count_active_days',
       },
     ],
   },
@@ -328,6 +368,30 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
         unitEn: 'items',
         min: 0,
         max: 100,
+        aggregation: 'sum',
+      },
+      {
+        id: 'dist_online_dawah_count',
+        groupId: 'distribution',
+        labelBn: 'অনলাইন দাওয়াতি উপকরণ',
+        labelEn: 'Online Dawah Materials',
+        type: 'count',
+        unitBn: 'টি',
+        unitEn: 'items',
+        min: 0,
+        max: 200,
+        aggregation: 'sum',
+      },
+      {
+        id: 'social_work_count',
+        groupId: 'distribution',
+        labelBn: 'সামাজিক কাজ',
+        labelEn: 'Social Work',
+        type: 'count',
+        unitBn: 'টি',
+        unitEn: 'activities',
+        min: 0,
+        max: 50,
         aggregation: 'sum',
       },
     ],
@@ -425,6 +489,14 @@ export const DEFAULT_METRIC_GROUPS: MetricGroup[] = [
         groupId: 'routine',
         labelBn: 'আত্মসমালোচনা / মুহাসাবা',
         labelEn: 'Self Reflection / Muhasaba',
+        type: 'boolean',
+        aggregation: 'count_active_days',
+      },
+      {
+        id: 'routine_report_confirmed',
+        groupId: 'routine',
+        labelBn: 'রিপোর্ট সংরক্ষণ',
+        labelEn: 'Report Saved Confirmation',
         type: 'boolean',
         aggregation: 'count_active_days',
       },
