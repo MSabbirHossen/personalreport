@@ -40,13 +40,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const syncBackendUser = async (token: string) => {
+  const syncBackendUser = async (token: string, fallbackFirebaseUser?: FirebaseUser | null) => {
     localStorage.setItem('auth_token', token);
     try {
       const res = await api.getMe();
       setUser(res.user);
     } catch (err) {
       console.warn('Backend sync failed:', err);
+      if (fallbackFirebaseUser) {
+        setUser({
+          id: fallbackFirebaseUser.uid,
+          name: fallbackFirebaseUser.displayName || fallbackFirebaseUser.email?.split('@')[0] || 'User',
+          email: fallbackFirebaseUser.email || '',
+          photoUrl: fallbackFirebaseUser.photoURL || undefined,
+          roles: ['student'],
+          orgId: 'org_default',
+        });
+      }
     }
   };
 
@@ -82,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         try {
           const idToken = await firebaseUser.getIdToken();
-          await syncBackendUser(idToken);
+          await syncBackendUser(idToken, firebaseUser);
         } catch (err) {
           console.error('Error getting Firebase token:', err);
           setUser(null);
@@ -111,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth) throw new Error('Firebase Auth is not configured yet.');
     const result = await signInWithEmailAndPassword(auth, email, pass);
     const token = await result.user.getIdToken();
-    await syncBackendUser(token);
+    await syncBackendUser(token, result.user);
   };
 
   const registerWithEmail = async (email: string, pass: string, name?: string) => {
@@ -138,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     const token = await result.user.getIdToken(true);
-    await syncBackendUser(token);
+    await syncBackendUser(token, result.user);
   };
 
   const resetPassword = async (email: string) => {
@@ -156,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth || !googleProvider) throw new Error('Firebase Google Auth is not configured yet.');
     const result = await signInWithPopup(auth, googleProvider);
     const token = await result.user.getIdToken();
-    await syncBackendUser(token);
+    await syncBackendUser(token, result.user);
   };
 
   const loginDemo = async () => {

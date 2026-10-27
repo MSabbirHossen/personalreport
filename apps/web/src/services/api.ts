@@ -51,7 +51,20 @@ export async function fetchWithAuth<T>(
     }
   }
 
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  let data: any;
+
+  if (contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    const text = await response.text();
+    const error: any = new Error(
+      `API returned non-JSON response (${response.status}): The backend API server may be offline or unreachable.`
+    );
+    error.status = response.status;
+    error.rawResponse = text.slice(0, 200);
+    throw error;
+  }
 
   if (!response.ok) {
     const error: any = new Error(data.message || 'API request failed');
