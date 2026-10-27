@@ -5,6 +5,8 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut,
   Auth,
 } from 'firebase/auth';
@@ -43,6 +45,8 @@ export {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut,
 };
 

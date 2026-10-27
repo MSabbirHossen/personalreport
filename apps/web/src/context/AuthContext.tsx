@@ -5,6 +5,9 @@ import {
   googleProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut,
 } from '../config/firebase.js';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -23,6 +26,8 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
+  registerWithEmail: (email: string, pass: string, name?: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginDemo: () => Promise<void>;
   logout: () => Promise<void>;
@@ -109,6 +114,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await syncBackendUser(token);
   };
 
+  const registerWithEmail = async (email: string, pass: string, name?: string) => {
+    if (!auth) {
+      if (import.meta.env.DEV) {
+        localStorage.setItem('auth_token', 'mock-token');
+        setUser({
+          id: 'mock_user_' + Date.now(),
+          name: name || 'নতুন শিক্ষার্থী',
+          email,
+          roles: ['student'],
+          orgId: 'org_default',
+        });
+        return;
+      }
+      throw new Error('Firebase Auth is not configured yet.');
+    }
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    if (name && result.user) {
+      try {
+        await updateProfile(result.user, { displayName: name });
+      } catch (profileErr) {
+        console.warn('Failed to update user profile display name:', profileErr);
+      }
+    }
+    const token = await result.user.getIdToken(true);
+    await syncBackendUser(token);
+  };
+
+  const resetPassword = async (email: string) => {
+    if (!auth) {
+      if (import.meta.env.DEV) {
+        console.log(`[DEV Mode] Password reset email simulated for: ${email}`);
+        return;
+      }
+      throw new Error('Firebase Auth is not configured yet.');
+    }
+    await sendPasswordResetEmail(auth, email);
+  };
+
   const loginWithGoogle = async () => {
     if (!auth || !googleProvider) throw new Error('Firebase Google Auth is not configured yet.');
     const result = await signInWithPopup(auth, googleProvider);
@@ -158,6 +201,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         loginWithEmail,
+        registerWithEmail,
+        resetPassword,
         loginWithGoogle,
         loginDemo,
         logout,
