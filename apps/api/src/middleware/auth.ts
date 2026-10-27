@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
+import { ObjectId } from 'mongodb';
 import { config } from '../config/index.js';
 import { getDb } from '../db/mongo.js';
 import { UserAuthContext, SystemRole } from '@reportbd/shared';
@@ -164,10 +165,24 @@ export async function requireAuth(
 
     // Resolve active membership & roles (No silent grant of student or org_default)
     const userId = userRecord._id.toString();
-    const membership = await db.collection('memberships').findOne({
+    let membership = await db.collection('memberships').findOne({
       userId,
       status: 'active',
     });
+
+    if (!membership && token === 'mock-token' && config.allowDevMockAuth) {
+      const mockMembership = {
+        _id: new ObjectId(),
+        userId,
+        orgId: 'org_default',
+        roles: ['student'] as SystemRole[],
+        status: 'active',
+        createdAt: now,
+        updatedAt: now,
+      };
+      await db.collection('memberships').insertOne(mockMembership);
+      membership = mockMembership;
+    }
 
     const roles: SystemRole[] = membership && Array.isArray(membership.roles) ? membership.roles : [];
     const orgId = membership?.orgId || undefined;
