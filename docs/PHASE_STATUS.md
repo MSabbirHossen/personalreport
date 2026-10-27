@@ -1,4 +1,4 @@
-# Report-BPS — Phase Status Ledger
+# BPS_Report — Phase Status Ledger
 
 ## Phase 1: Authentication and Security Foundation
 **Target Milestone:** Hardening Foundation for V1 Pilot  
@@ -112,7 +112,7 @@
 ## Phase 6: Production Readiness, CI/CD & Security Hardening
 **Target Milestone:** Beta Deployment Preparation, Automated CI, Security & Runbooks
 **Status:** Completed (Implemented & Tested)
-**Objective:** Prepare Report-BPS for controlled beta deployment with automated GitHub Actions CI, multi-layered security hardening, runtime resilience, deployment specifications, and persona acceptance protocols.
+**Objective:** Prepare BPS_Report for controlled beta deployment with automated GitHub Actions CI, multi-layered security hardening, runtime resilience, deployment specifications, and persona acceptance protocols.
 
 ### Scope Checklist & Acceptance Criteria
 | Item | Requirement | Status | Evidence / Verification |
@@ -134,7 +134,7 @@
 ## Phase 7: Beta Validation, Deployment Rehearsal & Release Gate
 **Target Milestone:** Beta Readiness Sign-Off & Operational Release Gate
 **Status:** Implementation Verified; Beta Validation Pending
-**Objective:** Confirm Report-BPS technical readiness for a controlled beta deployment through rigorous defect remediation, memory bounds verification, safe integration testing, CI validation, and persona UAT specifications.
+**Objective:** Confirm BPS_Report technical readiness for a controlled beta deployment through rigorous defect remediation, memory bounds verification, safe integration testing, CI validation, and persona UAT specifications.
 
 ### Scope Checklist & Acceptance Criteria
 | Item | Requirement | Status | Evidence / Verification |
@@ -242,7 +242,7 @@
 ### Scope Checklist & Acceptance Criteria
 | Item | Requirement | Status | Evidence / Verification |
 |---|---|---|---|
-| **M1** | Establish baseline & commit chain | Confirmed Implemented & Verified | Audited starting commit `e0d7ef8` (superseding `6cced0b` via commits `a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8` aligning platform branding and docs to `Report-BPS`). Working tree audited as clean. |
+| **M1** | Establish baseline & commit chain | Confirmed Implemented & Verified | Audited starting commit `e0d7ef8` (superseding `6cced0b` via commits `a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8` aligning platform branding and docs to `BPS_Report`). Working tree audited as clean. |
 | **M2** | Live connected database test verification | Confirmed Implemented & Tested | Executed full test suites with live MongoDB connection on 127.0.0.1:27017: `packages/shared` passed 5/5 tests (100%); `apps/api` passed 78/78 tests across 11 suites (100% pass rate, 0 failed, 0 skipped), including all 5 real MongoDB integration tests (`RealMongo-0` through `RealMongo-4`). Monorepo unique total: **83 unique tests passing**. |
 | **M3** | Test count reconciliation & discrepancy resolution | Confirmed Implemented & Verified | Explicitly documented and reconciled test execution differences: offline MongoDB results in 74 mock/unit tests passed and 4 real MongoDB tests skipped; online MongoDB results in 78 tests passed and 0 skipped. Isolated integration command (`npm run test:integration -w apps/api`) reruns the 5 integration tests (already part of the 78 API tests). |
 | **M4** | Target safety guard audit | Confirmed Implemented & Tested | Inspected `assertSafeIntegrationTarget` in `realMongoIntegration.test.ts`. Confirmed strict rejection of `NODE_ENV=production`, non-mongo schemes, remote SRV clusters (`mongodb+srv://`), unapproved hosts (only `127.0.0.1`, `localhost`, `mongo`), and unapproved database names. Confirmed credential sanitization (`***:***`) in logs. |

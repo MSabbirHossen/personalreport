@@ -1,4 +1,4 @@
-# Report-BPS — Project Status
+# BPS_Report — Project Status
 
 **Inspected Commit:** `30233e7ffd1b6d5e45693c2b583e716739800108`  
 **Current Branch:** `main`  
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-Report-BPS is a Bangla-first, mobile-friendly personal reporting platform designed for students, supervisors, and organization administrators. The platform architecture is organized as an npm workspace monorepo comprising:
+BPS_Report is a Bangla-first, mobile-friendly personal reporting platform designed for students, supervisors, and organization administrators. The platform architecture is organized as an npm workspace monorepo comprising:
 - `packages/shared`: Shared TypeScript domain models, Zod validation schemas, role definitions, and calculation logic.
 - `apps/api`: Express 4 backend with MongoDB Atlas driver, Firebase Admin authentication, and REST API v1 endpoints.
 - `apps/web`: React 19 + Vite SPA with Tailwind CSS, React Router v7, TanStack Query v5, and Firebase Client SDK.
@@ -171,7 +171,7 @@ Workspaces had individual `node_modules` and `package-lock.json` instances withi
 
 12. **Phase 12 (Test Evidence Reconciliation & Pre-Push Readiness) — Beta Deployment Candidate:**
     - **Release Status:** **Beta deployment candidate** (All 83 unique tests passing with real database connection verified in current session, fail-fast outage rejection demonstrated, workspace builds and typechecks clean, and release documentation reconciled; standing at the Authorization Gate awaiting explicit authorization to push or trigger staging deployment).
-    - **Baseline & Commit Chain:** Established baseline at commit `e0d7ef8`, which succeeded `6cced0b` with branding and specification alignment to `Report-BPS` (`a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8`). Working tree audited and clean.
+    - **Baseline & Commit Chain:** Established baseline at commit `e0d7ef8`, which succeeded `6cced0b` with branding and specification alignment to `BPS_Report` (`a47d61f`, `578e01c`, `b9aadb3`, `e0d7ef8`). Working tree audited and clean.
     - **Live Connected Database Test Evidence (83 Unique Tests Passing):** In the current session, local MongoDB instance on 127.0.0.1:27017 was actively reached and verified:
       - `packages/shared`: 5 tests executed, 5 passed, 0 failed, 0 skipped.
       - `apps/api`: 78 tests executed across 11 test suites, 78 passed, 0 failed, 0 skipped (including all 5 real MongoDB integration tests `RealMongo-0` through `RealMongo-4`).

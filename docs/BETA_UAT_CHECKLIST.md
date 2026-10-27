@@ -1,4 +1,4 @@
-# Report-BPS — Beta User Acceptance Testing (UAT) Checklist
+# BPS_Report — Beta User Acceptance Testing (UAT) Checklist
 
 **Version:** 1.0.0-beta
 **Verification Policy:** Scenarios validated by automated tests are marked **Automated Passed**. Manual user interface, browser printing, and cross-browser visual checks require human execution and are marked **Pending Human Verification**.

@@ -1,4 +1,4 @@
-# Report-BPS — Security Findings & Remediation Log
+# BPS_Report — Security Findings & Remediation Log
 
 **Audit Date:** 2026-10-24  
 **Audit Scope:** Full codebase audit covering `apps/api`, `apps/web`, `packages/shared`, configuration, and Firebase rules.  
