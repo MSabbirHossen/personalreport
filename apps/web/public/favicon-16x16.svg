@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- Optimized for 16x16 pixel grid -->
+  <!-- Left: Bangladesh Green -->
+  <path d="M8 1 L1.8 4.2 V10.8 L8 15 Z" fill="#006A4E" />
+  <!-- Right: Saudi Green -->
+  <path d="M8 1 L14.2 4.2 V10.8 L8 15 Z" fill="#0B6B3A" />
+  <!-- Central White Divider -->
+  <line x1="8" y1="1.5" x2="8" y2="14.5" stroke="#FFFFFF" stroke-width="0.9" />
+  <!-- Bangladesh Red Disc -->
+  <circle cx="5" cy="8" r="2.2" fill="#E63946" stroke="#FFFFFF" stroke-width="0.35" />
+  <!-- Saudi Arabia White Sword Motif -->
+  <path d="M12.4 6.8 V9.2 M12.8 8 H13.5 M12 7.7 L10.6 7.7 C9.6 7.7 9.1 7.4 8.7 7 C9 7.9 9.8 8.4 10.8 8.4 L12 8.2 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0.3" stroke-linecap="round" />
+</svg>
