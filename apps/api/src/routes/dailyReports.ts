@@ -38,6 +38,8 @@ dailyReportsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => 
         status: r.status || 'saved',
         templateVersionId: r.templateVersionId,
         lastSavedAt: r.lastSavedAt,
+        createdAt: r.createdAt || r.lastSavedAt,
+        updatedAt: r.updatedAt || r.lastSavedAt,
       };
     }
 
@@ -82,6 +84,8 @@ dailyReportsRouter.get('/:date', async (req: AuthenticatedRequest, res: Response
       status: report.status,
       templateVersionId: report.templateVersionId,
       lastSavedAt: report.lastSavedAt,
+      createdAt: report.createdAt || report.lastSavedAt,
+      updatedAt: report.updatedAt || report.lastSavedAt,
     });
   } catch (err: any) {
     res.status(500).json({ code: 'FETCH_FAILED', message: err.message });
@@ -226,9 +230,21 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
 
     res.json({
       success: true,
-      report: reportDoc,
+      report: {
+        ...reportDoc,
+        createdAt: existing?.createdAt || now,
+        updatedAt: now,
+      },
     });
   } catch (err: any) {
+    if (err.name === 'ZodError' || err.issues) {
+      res.status(400).json({
+        code: 'VALIDATION_ERROR',
+        message: err.errors?.[0]?.message || err.message || 'Validation error',
+        errors: err.errors || err.issues,
+      });
+      return;
+    }
     res.status(400).json({ code: 'SAVE_FAILED', message: err.message });
   }
 });

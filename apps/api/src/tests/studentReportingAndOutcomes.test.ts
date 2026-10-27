@@ -324,6 +324,28 @@ describe('Student Reporting, Monthly Outcomes & Snapshot Integrity (Phase 3)', (
     assert.equal(getJson.dateKey, '2026-09-01');
     assert.equal(getJson.revision, 1);
     assert.equal(getJson.values.quran_study_ayat, 20);
+    assert.ok(getJson.createdAt, 'Report must contain authoritative createdAt timestamp');
+    assert.ok(getJson.updatedAt, 'Report must contain authoritative updatedAt timestamp');
+  });
+
+  test('Daily-1B: Server validation strictly rejects negative numeric values', async () => {
+    const putRes = await fetch(`${baseUrl}/api/v1/daily-reports/2026-09-02`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer token-student-1',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: {
+          quran_study_ayat: -10,
+        },
+      }),
+    });
+
+    assert.equal(putRes.status, 400);
+    const putJson = await putRes.json();
+    assert.equal(putJson.code, 'VALIDATION_ERROR');
+    assert.ok(putJson.message.includes('Negative values are not permitted'));
   });
 
   test('Daily-2: Update existing daily report increments revision and creates revision audit log', async () => {
