@@ -36,7 +36,11 @@ if (!configValidation.valid) {
 }
 
 // Global Security Middlewares
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  })
+);
 
 // Strict CORS Policy
 const corsOptions: cors.CorsOptions = {
