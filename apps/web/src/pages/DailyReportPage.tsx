@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Clock,
   RotateCcw,
+  Printer,
 } from 'lucide-react';
 import { DurationInput } from '../components/daily/DurationInput.js';
 import { DailySummaryCard } from '../components/daily/DailySummaryCard.js';
@@ -47,6 +48,23 @@ export const DailyReportPage: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isConflict, setIsConflict] = useState(false);
+
+  // Current calendar date in reporting timezone (Asia/Dhaka)
+  const todayDateKey = useMemo(() => {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Dhaka',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      return formatter.format(new Date());
+    } catch {
+      return new Date().toISOString().substring(0, 10);
+    }
+  }, []);
+
+  const isToday = selectedDate === todayDateKey;
 
   // Collapsible card state: only the clicked card is open, rest of cards remain closed
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
@@ -145,9 +163,10 @@ export const DailyReportPage: React.FC = () => {
     return compareDailySummaries(todayTotals, yesterdayTotals, yesterdayDateKey, 'bn');
   }, [todayTotals, yesterdayTotals, yesterdayDateKey]);
 
-  // Client-side validation: detect any invalid or negative values
+  // Client-side validation: detect any invalid or negative values, and enforce business rules
   const validationErrors = useMemo(() => {
     const errors: Record<string, string> = {};
+
     for (const metric of allMetrics) {
       const val = currentDayValues[metric.id];
       if (val === undefined || val === null || val === '') continue;
@@ -161,14 +180,30 @@ export const DailyReportPage: React.FC = () => {
           errors[metric.id] = 'পূর্ণসংখ্যা প্রয়োজন';
         }
       } else if (typeof val === 'string') {
-        const num = Number(val);
-        if (isNaN(num)) {
-          errors[metric.id] = 'অকার্যকর সংখ্যা';
-        } else if (num < 0) {
-          errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+        if (metric.type === 'count' || metric.type === 'duration_minutes') {
+          const num = Number(val);
+          if (isNaN(num)) {
+            errors[metric.id] = 'অকার্যকর সংখ্যা';
+          } else if (num < 0) {
+            errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+          }
         }
       }
     }
+
+    // Card 5 Validation: classes attended must not exceed total classes held
+    const totalClasses = currentDayValues['class_total_count'];
+    const attendedClasses = currentDayValues['class_attended_count'];
+    if (
+      typeof totalClasses === 'number' &&
+      typeof attendedClasses === 'number' &&
+      !isNaN(totalClasses) &&
+      !isNaN(attendedClasses) &&
+      attendedClasses > totalClasses
+    ) {
+      errors['class_attended_count'] = 'উপস্থিত ক্লাসের সংখ্যা মোট ক্লাসের সংখ্যার চেয়ে বেশি হতে পারে না';
+    }
+
     return errors;
   }, [currentDayValues, allMetrics]);
 
@@ -183,7 +218,7 @@ export const DailyReportPage: React.FC = () => {
 
   const handleSave = async () => {
     if (hasValidationErrors) {
-      setErrorMsg('ফর্মটিতে কিছু ভুল বা নেতিবাচক মান রয়েছে। অনুগ্রহ করে সংশোধন করে পুনরায় সংরক্ষণ করুন।');
+      setErrorMsg('ফর্মটিতে কিছু ভুল বা অসঙ্গতি রয়েছে। ত্রুটিযুক্ত ফিল্ডগুলো সংশোধন করে পুনরায় সংরক্ষণ করুন।');
       return;
     }
 
@@ -323,11 +358,10 @@ export const DailyReportPage: React.FC = () => {
     return (
       <div
         key={group.id}
-        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${
-          isExpanded
+        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${isExpanded
             ? 'border-brand-300 dark:border-brand-800/80 ring-1 ring-brand-500/10'
             : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-        }`}
+          }`}
       >
         {/* Phase 2: Default Collapsed Card Header */}
         <div
@@ -381,7 +415,7 @@ export const DailyReportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Phase 2: Expanded Content - Hidden by default */}
+        {/* Expanded Content - Hidden by default */}
         {isExpanded && (
           <div
             id={`group-fields-${group.id}`}
@@ -391,7 +425,48 @@ export const DailyReportPage: React.FC = () => {
               const value = currentDayValues[metric.id];
               const fieldError = validationErrors[metric.id];
 
-              // Boolean Field
+              // Card 9 Date-Restricted Checkbox: 'রিপোর্ট সংরক্ষণ'
+              if (metric.id === 'routine_report_confirmed') {
+                return (
+                  <div
+                    key={metric.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${!isToday
+                        ? 'bg-slate-100/70 dark:bg-slate-800/40 border-dashed border-slate-200 dark:border-slate-700/60'
+                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-100 dark:border-slate-800/80'
+                      }`}
+                    title={!isToday ? 'Only editable on current date' : undefined}
+                  >
+                    <div className="space-y-0.5 pr-2">
+                      <label
+                        htmlFor={`field-${metric.id}`}
+                        className={`text-xs font-medium cursor-pointer ${!isToday
+                            ? 'text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                            : 'text-slate-700 dark:text-slate-300'
+                          }`}
+                      >
+                        {metric.labelBn}
+                      </label>
+                      {!isToday && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-wide">
+                          Only editable on current date
+                        </p>
+                      )}
+                    </div>
+                    <input
+                      id={`field-${metric.id}`}
+                      type="checkbox"
+                      disabled={!isToday}
+                      title={!isToday ? 'Only editable on current date' : undefined}
+                      aria-label={`${metric.labelBn} ${!isToday ? '(Only editable on current date)' : ''}`}
+                      checked={!!value}
+                      onChange={(e) => handleValueChange(metric.id, e.target.checked)}
+                      className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                );
+              }
+
+              // Boolean Field (e.g. পারিবারিক বৈঠক, তাহাজ্জুদ, মুহাসাবা)
               if (metric.type === 'boolean') {
                 return (
                   <div
@@ -410,6 +485,30 @@ export const DailyReportPage: React.FC = () => {
                       checked={!!value}
                       onChange={(e) => handleValueChange(metric.id, e.target.checked)}
                       className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
+                    />
+                  </div>
+                );
+              }
+
+              // Text Field (Card 2: হাদিসের ব্যাখ্যা)
+              if (metric.type === 'text') {
+                return (
+                  <div key={metric.id} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <label
+                        htmlFor={`field-${metric.id}`}
+                        className="font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        {metric.labelBn}
+                      </label>
+                    </div>
+                    <textarea
+                      id={`field-${metric.id}`}
+                      rows={2}
+                      value={value ?? ''}
+                      placeholder="হাদিসের ব্যাখ্যা বা শিক্ষা লিপিবদ্ধ করুন..."
+                      onChange={(e) => handleValueChange(metric.id, e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y min-h-[58px]"
                     />
                   </div>
                 );
@@ -496,11 +595,10 @@ export const DailyReportPage: React.FC = () => {
                         const parsed = Number(raw);
                         handleValueChange(metric.id, parsed);
                       }}
-                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
-                        fieldError
+                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${fieldError
                           ? 'border-red-400 dark:border-red-700 focus:ring-red-400/20'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/20 focus:border-brand-500'
-                      }`}
+                        }`}
                     />
                   </div>
                   {fieldError && (
@@ -520,7 +618,7 @@ export const DailyReportPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
       {/* Top Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -531,33 +629,44 @@ export const DailyReportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* View mode toggle & Month selector */}
+        {/* View mode toggle, Print Button & Month selector */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* View Mode Toggle */}
-          <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setViewMode('single')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                viewMode === 'single'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${viewMode === 'single'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
+                }`}
             >
               <FileEdit className="h-3.5 w-3.5" />
               <span>একক দিন</span>
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                viewMode === 'grid'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-              }`}
+                }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
               <span>মাসিক গ্রিড</span>
             </button>
           </div>
+
+          {/* Print button when in Monthly Grid mode */}
+          {viewMode === 'grid' && (
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer"
+              title="A4 ল্যান্ডস্কেপ ফরম্যাটে মাসিক গ্রিড প্রিন্ট করুন"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              <span>প্রিন্ট করুন</span>
+            </button>
+          )}
 
           {/* Month input */}
           <input
@@ -575,7 +684,7 @@ export const DailyReportPage: React.FC = () => {
 
       {/* Date Carousel Navigation (for Single Day Mode) */}
       {viewMode === 'single' && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl">
+        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl">
           <div className="flex items-center justify-between sm:justify-start gap-2">
             <button
               onClick={() => navigateDate('prev')}
@@ -750,97 +859,175 @@ export const DailyReportPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* DENSE MATRIX GRID VIEW WITH TIMESTAMPS */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto max-h-[70vh]">
-            <table className="w-full text-left text-xs report-grid border-collapse">
-              <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[120px]">
-                    তারিখ ও সংরক্ষণ সময়
-                  </th>
-                  {allMetrics.map((m: MetricDefinition) => (
-                    <th
-                      key={m.id}
-                      className="p-2.5 font-semibold min-w-[110px] text-center border-r border-slate-200/60 dark:border-slate-700/60"
-                      title={m.labelBn}
-                    >
-                      <div className="truncate">{m.labelBn}</div>
-                      {m.unitBn && (
-                        <div className="text-[10px] text-slate-400 font-normal">
-                          ({m.unitBn})
-                        </div>
-                      )}
-                    </th>
-                  ))}
-                  <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold text-center min-w-[140px]">
-                    সর্বশেষ সংরক্ষণ
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {daysArray.map((dateStr) => {
-                  const dayNum = dateStr.split('-')[2];
-                  const dayReport = monthReports[dateStr];
-                  const dayData = dayReport?.values || {};
-                  const isCurrentDay = dateStr === selectedDate;
-                  const dayTimestamp = formatReportTimestamp(
-                    dayReport?.updatedAt || dayReport?.lastSavedAt || dayReport?.createdAt,
-                    'bn'
-                  );
+        /* DENSE MATRIX GRID VIEW WITH PRINT SUPPORT */
+        <div className="space-y-4">
+          {/* Print-only Document Header */}
+          <div className="hidden print:block mb-3 border-b-2 border-slate-800 pb-2 text-slate-900">
+            <div className="flex justify-between items-end">
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">ব্যক্তিগত মাসিক রিপোর্ট গ্রিড</h1>
+                <p className="text-xs text-slate-700 mt-0.5">
+                  মাস: <strong className="font-bold">{selectedMonth}</strong> (মোট {totalDays} দিন)
+                </p>
+              </div>
+              <div className="text-right text-[10px] text-slate-600">
+                মুদ্রণ সময়: {formatReportTimestamp(new Date().toISOString(), 'bn')}
+              </div>
+            </div>
+          </div>
 
-                  return (
-                    <tr
-                      key={dateStr}
-                      onClick={() => setSelectedDate(dateStr)}
-                      className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${
-                        isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
-                      }`}
-                    >
-                      <td className="p-3 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200">
-                        <div>{dayNum} তারিখ</div>
-                        <div className="text-[10px] text-slate-400 font-normal mt-0.5">
-                          {dayTimestamp ? 'সংরক্ষিত' : 'খালি'}
-                        </div>
-                      </td>
-                      {allMetrics.map((m: MetricDefinition) => {
-                        const val = dayData[m.id];
-                        return (
-                          <td
-                            key={m.id}
-                            className="p-2 text-center border-r border-slate-100 dark:border-slate-800/60 text-slate-600 dark:text-slate-300"
-                          >
-                            {m.type === 'boolean' ? (
-                              val ? '✓' : '-'
-                            ) : val !== undefined && val !== null ? (
-                              m.type === 'duration_minutes' && typeof val === 'number' ? (
-                                `${Math.floor(val / 60)}ঘ ${val % 60}মি`
-                              ) : (
-                                val
-                              )
-                            ) : (
-                              <span className="text-slate-300 dark:text-slate-600">-</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      <td className="p-2 text-center text-[11px] text-slate-500 dark:text-slate-400">
-                        {dayTimestamp ? (
-                          <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                            {dayTimestamp}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-600">সংরক্ষিত নয়</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden report-grid-container">
+            <div className="overflow-x-auto max-h-[72vh] print:max-h-none print:overflow-visible">
+              <table className="w-full text-left text-xs report-grid border-collapse">
+                <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 print:bg-slate-100 print:text-black">
+                  <tr>
+                    <th className="p-2.5 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[100px] sticky left-0 z-10 print:static">
+                      তারিখ
+                    </th>
+                    {allMetrics.map((m: MetricDefinition) => (
+                      <th
+                        key={m.id}
+                        className="p-2 font-semibold min-w-[115px] text-center border-r border-slate-200/60 dark:border-slate-700/60 text-[11px]"
+                        title={m.labelBn}
+                      >
+                        <div className="line-clamp-2">{m.labelBn}</div>
+                        {m.unitBn && (
+                          <div className="text-[10px] text-slate-400 font-normal">
+                            ({m.unitBn})
+                          </div>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </th>
+                    ))}
+                    <th className="p-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-center min-w-[130px] no-print">
+                      সর্বশেষ সংরক্ষণ
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 print:divide-slate-300">
+                  {daysArray.map((dateStr) => {
+                    const dayNum = dateStr.split('-')[2];
+                    const dayReport = monthReports[dateStr];
+                    const dayData = dayReport?.values || {};
+                    const isCurrentDay = dateStr === selectedDate;
+                    const dayTimestamp = formatReportTimestamp(
+                      dayReport?.updatedAt || dayReport?.lastSavedAt || dayReport?.createdAt,
+                      'bn'
+                    );
+
+                    return (
+                      <tr
+                        key={dateStr}
+                        onClick={() => setSelectedDate(dateStr)}
+                        className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
+                          }`}
+                      >
+                        <td className="p-2.5 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 sticky left-0 z-10 print:static print:bg-white print:text-black">
+                          <div>{dayNum} তারিখ</div>
+                          <div className="text-[10px] text-slate-400 font-normal mt-0.5 no-print">
+                            {dayTimestamp ? 'সংরক্ষিত' : 'খালি'}
+                          </div>
+                        </td>
+                        {allMetrics.map((m: MetricDefinition) => {
+                          const val = dayData[m.id];
+                          return (
+                            <td
+                              key={m.id}
+                              className="p-1.5 text-center border-r border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 text-xs print:text-black"
+                            >
+                              {m.type === 'boolean' ? (
+                                val === true ? (
+                                  <span className="text-emerald-700 dark:text-emerald-400 font-bold print:text-black">
+                                    হ্যাঁ
+                                  </span>
+                                ) : val === false ? (
+                                  <span className="text-slate-400 dark:text-slate-500 print:text-slate-600">
+                                    না
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300 dark:text-slate-600">-</span>
+                                )
+                              ) : val !== undefined && val !== null ? (
+                                m.type === 'duration_minutes' && typeof val === 'number' ? (
+                                  `${Math.floor(val / 60)}ঘ ${val % 60}মি`
+                                ) : (
+                                  <span title={String(val)} className="truncate block max-w-[120px] mx-auto">
+                                    {val}
+                                  </span>
+                                )
+                              ) : (
+                                <span className="text-slate-300 dark:text-slate-600">-</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td className="p-2 text-center text-[11px] text-slate-500 dark:text-slate-400 no-print">
+                          {dayTimestamp ? (
+                            <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                              {dayTimestamp}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-600">সংরক্ষিত নয়</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Embedded Print Styles for A4 Landscape Output */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 8mm 6mm;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+            font-size: 8px !important;
+          }
+          .no-print,
+          nav,
+          header,
+          aside {
+            display: none !important;
+          }
+          .report-grid-container {
+            overflow: visible !important;
+            max-height: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+          }
+          table.report-grid {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 7.5px !important;
+          }
+          table.report-grid th,
+          table.report-grid td {
+            border: 0.5pt solid #94a3b8 !important;
+            padding: 2px 2.5px !important;
+            color: #000000 !important;
+            background: #ffffff !important;
+          }
+          table.report-grid thead {
+            display: table-header-group !important;
+          }
+          table.report-grid thead th {
+            background: #f1f5f9 !important;
+            font-weight: bold !important;
+          }
+          table.report-grid tr {
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
