@@ -1,14 +1,30 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  Locale,
+  Direction,
+  translations,
+  getNestedTranslation,
+  interpolate,
+  formatNumber as formatNumberUtil,
+  formatDate as formatDateUtil,
+  formatTime as formatTimeUtil,
+  formatDuration as formatDurationUtil,
+  formatMonthKey as formatMonthKeyUtil,
+} from '../i18n/index.js';
 
-export type Locale = 'bn' | 'en' | 'ar';
-export type Direction = 'ltr' | 'rtl';
+export type { Locale, Direction };
 
-interface LanguageContextValue {
+export interface LanguageContextValue {
   locale: Locale;
   direction: Direction;
   setLocale: (locale: Locale) => void;
   isRTL: boolean;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+  formatNumber: (value: number | string | null | undefined, options?: Intl.NumberFormatOptions) => string;
+  formatDate: (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) => string;
+  formatTime: (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) => string;
+  formatDuration: (minutes: number | null | undefined) => string;
+  formatMonthKey: (monthKey: string) => string;
 }
 
 export const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -23,80 +39,13 @@ function getStoredLocale(defaultLocale: Locale): Locale {
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY) || window.localStorage.getItem(LEGACY_STORAGE_KEY);
     if (stored === 'bn' || stored === 'en' || stored === 'ar') {
-      return stored;
+      return stored as Locale;
     }
   } catch {
     // Storage may be unavailable
   }
   return defaultLocale;
 }
-
-// Common UI micro-copy dictionary for navigation and shell elements
-const translations: Record<Locale, Record<string, string>> = {
-  bn: {
-    appTitle: 'BPS Report',
-    tagline: 'Better Data · Brighter Future',
-    dashboard: 'ড্যাশবোর্ড',
-    dailyReport: 'দৈনিক রিপোর্ট',
-    monthlyPlan: 'মাসিক পরিকল্পনা',
-    monthlyOutcome: 'মাসিক ফলাফল',
-    advice: 'পরামর্শ ও মন্তব্য',
-    notifications: 'বিজ্ঞপ্তি',
-    profile: 'প্রোফাইল',
-    supervisorQueue: 'রিপোর্ট পর্যালোচনা কিউ',
-    auditLog: 'অডিট ও নিরাপত্তা লগ',
-    loading: 'আপনার রিপোর্ট প্রস্তুত করা হচ্ছে…',
-    save: 'সংরক্ষণ করুন',
-    saving: 'সংরক্ষণ হচ্ছে...',
-    saved: 'সফলভাবে সংরক্ষিত',
-    themeLight: 'লাইট মোড',
-    themeDark: 'ডার্ক মোড',
-    themeSystem: 'সিস্টেম মোড',
-    logout: 'লগআউট',
-  },
-  en: {
-    appTitle: 'BPS Report',
-    tagline: 'Better Data · Brighter Future',
-    dashboard: 'Dashboard',
-    dailyReport: 'Daily Report',
-    monthlyPlan: 'Monthly Plan',
-    monthlyOutcome: 'Monthly Outcome',
-    advice: 'Advice & Feedback',
-    notifications: 'Notifications',
-    profile: 'Profile',
-    supervisorQueue: 'Supervisor Review Queue',
-    auditLog: 'Audit & Security Logs',
-    loading: 'Preparing your reports…',
-    save: 'Save',
-    saving: 'Saving...',
-    saved: 'Saved successfully',
-    themeLight: 'Light Mode',
-    themeDark: 'Dark Mode',
-    themeSystem: 'System Default',
-    logout: 'Logout',
-  },
-  ar: {
-    appTitle: 'تقرير BPS',
-    tagline: 'بيانات أفضل · مستقبل أكثر إشراقاً',
-    dashboard: 'لوحة التحكم',
-    dailyReport: 'التقرير اليومي',
-    monthlyPlan: 'الخطة الشهرية',
-    monthlyOutcome: 'النتائج الشهرية',
-    advice: 'النصائح والملاحظات',
-    notifications: 'الإشعارات',
-    profile: 'الملف الشخصي',
-    supervisorQueue: 'قائمة مراجعة المشرف',
-    auditLog: 'سجل التدقيق والأمان',
-    loading: 'جارٍ تجهيز تقاريرك…',
-    save: 'حفظ',
-    saving: 'جارٍ الحفظ...',
-    saved: 'تم الحفظ بنجاح',
-    themeLight: 'الوضع الفاتح',
-    themeDark: 'الوضع الداكن',
-    themeSystem: 'تفضيل النظام',
-    logout: 'تسجيل الخروج',
-  },
-};
 
 export const LanguageProvider: React.FC<React.PropsWithChildren<{ defaultLocale?: Locale }>> = ({
   children,
@@ -120,19 +69,69 @@ export const LanguageProvider: React.FC<React.PropsWithChildren<{ defaultLocale?
     setLocaleState(nextLocale);
   };
 
-  const t = (key: string): string => {
-    return translations[locale]?.[key] || translations['bn']?.[key] || key;
-  };
+  const t = useMemo(() => {
+    return (key: string, params?: Record<string, string | number>): string => {
+      const activeDict = translations[locale] || translations.bn;
+      const fallbackDict = translations.en;
 
-  const value = useMemo(
+      // 1. Try direct nested key path (e.g. 'dailyReport.title' or 'common.save')
+      let result = getNestedTranslation(activeDict, key, fallbackDict);
+
+      // 2. If returned keyPath, try legacy flat key prefixes: 'common.', 'nav.', 'auth.', etc.
+      if (result === key && !key.includes('.')) {
+        const candidatePrefixes = ['common', 'nav', 'auth', 'dashboard', 'dailyReport', 'profile'];
+        for (const prefix of candidatePrefixes) {
+          const candidate = getNestedTranslation(activeDict, `${prefix}.${key}`, fallbackDict);
+          if (candidate !== `${prefix}.${key}`) {
+            result = candidate;
+            break;
+          }
+        }
+      }
+
+      return interpolate(result, params);
+    };
+  }, [locale]);
+
+  const formatNumber = useMemo(() => {
+    return (value: number | string | null | undefined, options?: Intl.NumberFormatOptions) =>
+      formatNumberUtil(value, locale, options);
+  }, [locale]);
+
+  const formatDate = useMemo(() => {
+    return (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) =>
+      formatDateUtil(date, locale, options);
+  }, [locale]);
+
+  const formatTime = useMemo(() => {
+    return (date: string | Date | null | undefined, options?: Intl.DateTimeFormatOptions) =>
+      formatTimeUtil(date, locale, options);
+  }, [locale]);
+
+  const formatDuration = useMemo(() => {
+    return (minutes: number | null | undefined) =>
+      formatDurationUtil(minutes, locale);
+  }, [locale]);
+
+  const formatMonthKey = useMemo(() => {
+    return (monthKey: string) =>
+      formatMonthKeyUtil(monthKey, locale);
+  }, [locale]);
+
+  const value = useMemo<LanguageContextValue>(
     () => ({
       locale,
       direction,
       setLocale,
       isRTL: direction === 'rtl',
       t,
+      formatNumber,
+      formatDate,
+      formatTime,
+      formatDuration,
+      formatMonthKey,
     }),
-    [locale, direction]
+    [locale, direction, t, formatNumber, formatDate, formatTime, formatDuration, formatMonthKey]
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
@@ -144,4 +143,11 @@ export function useLanguage(): LanguageContextValue {
     throw new Error('useLanguage must be used within LanguageProvider');
   }
   return context;
+}
+
+/**
+ * Standard hook alias for modern i18n usage across components.
+ */
+export function useTranslation() {
+  return useLanguage();
 }
