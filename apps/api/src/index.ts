@@ -33,7 +33,7 @@ async function gracefulShutdown(signal: string) {
     console.log('✅ MongoDB connection pool closed cleanly.');
 
     clearTimeout(forceExitTimeout);
-    console.log('👋 Report-BPS API shutdown complete.');
+    console.log('👋 BPS_Report API shutdown complete.');
     process.exit(0);
   } catch (error) {
     console.error('❌ Error during graceful shutdown:', error);
@@ -67,7 +67,7 @@ async function startServer() {
     }
 
     server = app.listen(config.port, () => {
-      console.log(`🚀 Report-BPS API server running on http://localhost:${config.port}`);
+      console.log(`🚀 BPS_Report API server running on http://localhost:${config.port}`);
       console.log(`📡 Health endpoint: http://localhost:${config.port}/health`);
       console.log(`📡 Readiness endpoint: http://localhost:${config.port}/health/ready`);
     });

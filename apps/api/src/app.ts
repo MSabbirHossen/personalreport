@@ -74,7 +74,7 @@ app.use(express.json({ limit: '1mb' }));
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    service: 'report-bps-api',
+    service: 'bps-report-api',
     environment: config.nodeEnv,
     timestamp: new Date().toISOString(),
   });
