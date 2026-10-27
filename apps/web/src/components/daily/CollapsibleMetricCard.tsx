@@ -1,7 +1,8 @@
 import React from 'react';
-import { MetricDefinition } from '@reportbd/shared';
+import { MetricDefinition, getMetricLabel, getMetricUnit } from '@reportbd/shared';
 import { DurationInput } from './DurationInput.js';
 import { AlertCircle } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 interface CollapsibleMetricCardProps {
   metric: MetricDefinition;
@@ -20,14 +21,15 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
   onChange,
   disabled = false,
 }) => {
+  const { t, locale } = useLanguage();
   const isBoolean = metric.type === 'boolean';
   const isDuration = metric.type === 'duration_minutes';
   const isNegative = typeof value === 'number' && (isNaN(value) || value < 0);
 
+  const label = getMetricLabel(metric, locale);
+  const unit = getMetricUnit(metric, locale);
+
   // 1. BOOLEAN METRIC:
-  // Restores the original compact row layout (p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60)
-  // Collapsed: Metric Title [ ]
-  // Checked: Metric Title [✓]
   if (isBoolean) {
     const isChecked = isExpanded && !!value;
     return (
@@ -36,7 +38,7 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
           htmlFor={`metric-check-${metric.id}`}
           className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1 select-none"
         >
-          {metric.labelBn}
+          {label}
         </label>
         <input
           id={`metric-check-${metric.id}`}
@@ -55,8 +57,6 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
   }
 
   // 2. NUMERIC / COUNT / DURATION METRICS:
-  // Collapsed: Metric Title [ ]
-  // Expanded: Metric Title ({unit}) [✓] followed by the original input fields
   return (
     <div className="space-y-1">
       {/* Title & Checkbox row */}
@@ -65,12 +65,12 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
           htmlFor={`metric-check-${metric.id}`}
           className="font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1 select-none"
         >
-          {metric.labelBn}
+          {label}
         </label>
         <div className="flex items-center gap-2">
-          {isExpanded && metric.unitBn && !isDuration && (
+          {isExpanded && unit && !isDuration && (
             <span className="text-[11px] text-slate-400 font-normal">
-              ({metric.unitBn})
+              ({unit})
             </span>
           )}
           <input
@@ -84,15 +84,9 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
         </div>
       </div>
 
-      {/* Expanded State: original input fields & controls */}
+      {/* Expanded State: input fields & controls */}
       {isExpanded && (
         <div className="pt-0.5 space-y-1">
-          {metric.descriptionBn && (
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              {metric.descriptionBn}
-            </p>
-          )}
-
           {isDuration ? (
             <DurationInput
               id={`duration-${metric.id}`}
@@ -128,7 +122,7 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
           {isNegative && (
             <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              <span>নেতিবাচক মান গ্রহণযোগ্য নয় (সর্বনিম্ন ০ হতে হবে)</span>
+              <span>{t('validation.negativeNumberNotAllowed')}</span>
             </div>
           )}
         </div>

@@ -1,10 +1,11 @@
 /**
  * Authoritative Report Timestamp Formatting Utilities
  */
+import { Locale } from '../../i18n/types.js';
 
 export function formatReportTimestamp(
   timestamp: string | null | undefined,
-  lang: 'bn' | 'en' = 'bn'
+  lang: Locale = 'bn'
 ): string | null {
   if (!timestamp) return null;
 
@@ -12,10 +13,21 @@ export function formatReportTimestamp(
     const date = new Date(timestamp);
     if (isNaN(date.getTime())) return null;
 
-    const toBn = (str: string | number) =>
-      String(str).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+    if (lang === 'ar') {
+      return date.toLocaleString('ar-SA', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    }
 
     if (lang === 'bn') {
+      const toBn = (str: string | number) =>
+        String(str).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[parseInt(d, 10)]);
+
       const monthsBn = [
         'জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
         'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'
@@ -48,19 +60,25 @@ export function formatReportTimestamp(
 
 export function getReportSaveInfo(
   report: any,
-  lang: 'bn' | 'en' = 'bn'
+  lang: Locale = 'bn'
 ): {
   isSaved: boolean;
   label: string;
   formattedTime: string | null;
   full: string;
 } {
+  const notSavedMap: Record<Locale, string> = {
+    bn: 'এখনও সংরক্ষণ করা হয়নি',
+    en: 'Not saved yet',
+    ar: 'لم يتم الحفظ بعد',
+  };
+
   if (!report || report.status === 'empty' || (!report.lastSavedAt && !report.updatedAt && !report.createdAt)) {
     return {
       isSaved: false,
-      label: lang === 'bn' ? 'সংরক্ষিত নয়' : 'Not saved yet',
+      label: notSavedMap[lang] || notSavedMap.en,
       formattedTime: null,
-      full: lang === 'bn' ? 'এখনও সংরক্ষণ করা হয়নি' : 'Not saved yet',
+      full: notSavedMap[lang] || notSavedMap.en,
     };
   }
 
@@ -68,9 +86,14 @@ export function getReportSaveInfo(
   const formattedTime = formatReportTimestamp(rawTime, lang);
 
   const isCorrection = report.status === 'corrected' || (report.revision && report.revision > 1);
-  const actionText = isCorrection
-    ? lang === 'bn' ? 'সর্বশেষ আপডেট' : 'Last updated'
-    : lang === 'bn' ? 'সংরক্ষিত' : 'Saved at';
+  let actionText = '';
+  if (lang === 'ar') {
+    actionText = isCorrection ? 'آخر تحديث' : 'تم الحفظ في';
+  } else if (lang === 'bn') {
+    actionText = isCorrection ? 'সর্বশেষ আপডেট' : 'সংরক্ষিত';
+  } else {
+    actionText = isCorrection ? 'Last updated' : 'Saved at';
+  }
 
   return {
     isSaved: true,

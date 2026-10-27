@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Calendar,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 interface DailySummaryCardProps {
   comparison: DailySummaryComparison;
@@ -18,6 +19,7 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
   comparison,
   selectedDate,
 }) => {
+  const { t, formatDate } = useLanguage();
   const { categories, yesterdayDateKey, hasYesterdayData } = comparison;
 
   return (
@@ -30,10 +32,10 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
           </div>
           <div>
             <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200">
-              দৈনিক সারাংশ ও গতকালের সাথে তুলনা
+              {t('dailyReport.summaryTitle')}
             </h2>
             <p className="text-[11px] text-slate-400 dark:text-slate-500">
-              ৫টি মূল সূচকের বর্তমান অর্জন এবং পূর্ববর্তী দিনের সাথে তুলনামূলক অগ্রগতি
+              {t('dailyReport.summarySubtitle')}
             </p>
           </div>
         </div>
@@ -41,20 +43,21 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
         <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1 rounded-xl">
           <Calendar className="h-3.5 w-3.5 text-slate-400" />
           <span>
-            গতকাল: <strong>{yesterdayDateKey || 'প্রযোজ্য নয়'}</strong>
+            {t('dailyReport.previousDay')}:{' '}
+            <strong>{yesterdayDateKey ? formatDate(yesterdayDateKey) : t('common.unrecorded')}</strong>
           </span>
         </div>
       </div>
 
       {/* Comparison Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full text-start text-xs border-collapse">
           <thead>
             <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400">
-              <th className="py-2.5 px-3 font-semibold">মূল সূচক (Metric)</th>
-              <th className="py-2.5 px-3 font-semibold text-right">আজকের অর্জন (Today)</th>
-              <th className="py-2.5 px-3 font-semibold text-right">গতকালের অর্জন (Yesterday)</th>
-              <th className="py-2.5 px-3 font-semibold text-right">পার্থক্য (Difference)</th>
+              <th className="py-2.5 px-3 font-semibold text-start">{t('common.status')}</th>
+              <th className="py-2.5 px-3 font-semibold text-end">{t('dailyReport.todayBadge')}</th>
+              <th className="py-2.5 px-3 font-semibold text-end">{t('dailyReport.previousDay')}</th>
+              <th className="py-2.5 px-3 font-semibold text-end">{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -70,26 +73,26 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
                   className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                 >
                   {/* Category Title */}
-                  <td className="py-3 px-3 text-slate-800 dark:text-slate-200 font-semibold">
+                  <td className="py-3 px-3 text-slate-800 dark:text-slate-200 font-semibold text-start">
                     {cat.label}
                   </td>
 
                   {/* Today Value */}
-                  <td className="py-3 px-3 text-right text-slate-900 dark:text-slate-100 font-bold">
+                  <td className="py-3 px-3 text-end text-slate-900 dark:text-slate-100 font-bold">
                     {cat.todayFormatted}
                   </td>
 
                   {/* Yesterday Value */}
-                  <td className="py-3 px-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="py-3 px-3 text-end text-slate-600 dark:text-slate-300">
                     {cat.yesterdayFormatted}
                   </td>
 
                   {/* Difference Badge */}
-                  <td className="py-3 px-3 text-right whitespace-nowrap">
+                  <td className="py-3 px-3 text-end whitespace-nowrap">
                     {noComp ? (
                       <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 font-normal">
                         <HelpCircle className="h-3 w-3" />
-                        <span>তথ্য নেই</span>
+                        <span>{t('common.noData')}</span>
                       </span>
                     ) : (
                       <span
@@ -116,8 +119,8 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
       </div>
 
       {!hasYesterdayData && (
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-1 text-center sm:text-left">
-          * গতকালের ({yesterdayDateKey}) কোনো সংরক্ষিত রিপোর্ট পাওয়া যায়নি। তুলনামূলক পার্থক্য উপলব্ধ নয়।
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-1 text-center sm:text-start">
+          * {t('dailyReport.comparisonNoYesterday')}
         </p>
       )}
     </div>
