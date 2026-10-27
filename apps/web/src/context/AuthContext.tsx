@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser({
                 id: 'mock_user_123',
                 name: 'মো. সাব্বির হোসেন',
-                email: 'sabbir@report-bps.org',
+                email: 'sabbir@bps-report.org',
                 roles: ['student'],
                 orgId: 'org_default',
               });
@@ -172,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser({
         id: 'mock_user_123',
         name: 'মো. সাব্বির হোসেন',
-        email: 'student@report-bps.org',
+        email: 'student@bps-report.org',
         roles: ['student'],
         orgId: 'org_default',
       });
