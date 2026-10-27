@@ -121,6 +121,31 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
       return;
     }
 
+    // Date-restriction check for 'routine_report_confirmed' (রিপোর্ট সংরক্ষণ)
+    // Editable only when selected date matches current date in reporting timezone (Asia/Dhaka)
+    const orgDoc = user.orgId ? await db.collection('organizations').findOne({ id: user.orgId }) : null;
+    const reportingTimezone = (orgDoc as any)?.timezone || (orgDoc as any)?.settings?.timezone || 'Asia/Dhaka';
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: reportingTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const todayDateKey = formatter.format(new Date());
+
+    const newConfirmed = body.values['routine_report_confirmed'];
+    const existingConfirmed = existing?.values?.['routine_report_confirmed'];
+
+    if (date !== todayDateKey) {
+      if (newConfirmed !== undefined && newConfirmed !== existingConfirmed) {
+        res.status(400).json({
+          code: 'DATE_RESTRICTED',
+          message: `'রিপোর্ট সংরক্ষণ' শুধুমাত্র বর্তমান তারিখে সম্পাদনাযোগ্য (only editable on current date)`,
+        });
+        return;
+      }
+    }
+
     const reportDoc = {
       orgId: user.orgId!,
       studentId: user.userId,

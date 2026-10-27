@@ -348,6 +348,48 @@ describe('Student Reporting, Monthly Outcomes & Snapshot Integrity (Phase 3)', (
     assert.ok(putJson.message.includes('Negative values are not permitted'));
   });
 
+  test('Daily-1C: Server validation strictly rejects attended classes exceeding total classes held', async () => {
+    const putRes = await fetch(`${baseUrl}/api/v1/daily-reports/2026-09-02`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer token-student-1',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: {
+          class_total_count: 2,
+          class_attended_count: 4,
+        },
+      }),
+    });
+
+    assert.equal(putRes.status, 400);
+    const putJson = await putRes.json();
+    assert.equal(putJson.code, 'VALIDATION_ERROR');
+    assert.ok(putJson.message.includes('উপস্থিত ক্লাসের সংখ্যা মোট ক্লাসের সংখ্যার চেয়ে বেশি হতে পারে না'));
+  });
+
+  test('Daily-1D: Server rejects routine_report_confirmed edit on past/future dates', async () => {
+    // Attempting to set routine_report_confirmed on past date 2026-09-02
+    const putRes = await fetch(`${baseUrl}/api/v1/daily-reports/2026-09-02`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer token-student-1',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: {
+          routine_report_confirmed: true,
+        },
+      }),
+    });
+
+    assert.equal(putRes.status, 400);
+    const putJson = await putRes.json();
+    assert.equal(putJson.code, 'DATE_RESTRICTED');
+    assert.ok(putJson.message.includes('only editable on current date'));
+  });
+
   test('Daily-2: Update existing daily report increments revision and creates revision audit log', async () => {
     // Initial save (revision 1)
     await fetch(`${baseUrl}/api/v1/daily-reports/2026-09-01`, {
