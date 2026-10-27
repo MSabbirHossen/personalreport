@@ -10,6 +10,8 @@ import { MonthlyOutcomePage } from './pages/MonthlyOutcomePage.js';
 import { AdvicePage } from './pages/AdvicePage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { LoginPage } from './pages/LoginPage.js';
+import { RegisterPage } from './pages/RegisterPage.js';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { InvitePage } from './pages/InvitePage.js';
 import { NotificationsPage } from './pages/NotificationsPage.js';
 import { SupervisorDashboardPage } from './pages/SupervisorDashboardPage.js';
@@ -50,6 +52,8 @@ export const App: React.FC = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
 
             {/* Protected App Routes */}
