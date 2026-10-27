@@ -1,14 +1,219 @@
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
   body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  :lang(bn), [lang="bn"] {
+    font-family: var(--font-bangla);
+  }
+
+  :lang(ar), [lang="ar"], [dir="rtl"] {
+    font-family: var(--font-arabic);
+  }
+
+  :lang(en), [lang="en"] {
+    font-family: var(--font-latin);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    color: var(--primary-contrast);
+    background: var(--primary);
+  }
+
+  button, input, textarea, select {
+    font-family: inherit;
   }
 }
+
+/* RTL and Logical Support */
+[dir="rtl"] {
+  text-align: start;
+}
+
+[dir="rtl"] .rtl-flip,
+[dir="rtl"] .rb-directional-icon {
+  transform: scaleX(-1);
+}
+
+/* Islamic Geometric Pattern Treatments (Restrained, low-contrast 8-point stars) */
+.rb-pattern,
+.islamic-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.08' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .rb-pattern,
+[data-theme="dark"] .islamic-pattern,
+.dark .rb-pattern,
+.dark .islamic-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23a9ddc8' stroke-opacity='.07' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Shimmer Skeleton */
+.rb-skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--border) 50%, var(--surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: rb-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes rb-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+/* Design System Core Component Classes */
+.rb-card {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+.rb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.rb-button:hover {
+  background: var(--primary-hover);
+}
+
+.rb-button:active {
+  transform: translateY(1px);
+}
+
+.rb-button--outline {
+  color: var(--primary);
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+.rb-button--danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.rb-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+}
+
+.rb-input:focus {
+  outline: 2px solid var(--focus-ring);
+  border-color: var(--primary);
+}
+
+.rb-input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.rb-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  padding: 4px 9px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.rb-badge--success {
+  color: var(--success);
+  background: var(--surface-muted);
+}
+
+.rb-badge--warning {
+  color: var(--warning);
+  background: var(--surface-muted);
+}
+
+.rb-badge--danger {
+  color: var(--danger);
+  background: var(--accent-soft);
+}
+
+/* Institutional Heritage Theme Synchronizer */
+.dark .bg-slate-950,
+[data-theme="dark"] .bg-slate-950 {
+  background-color: var(--bg) !important;
+}
+
+.dark .bg-slate-900,
+[data-theme="dark"] .bg-slate-900 {
+  background-color: var(--surface) !important;
+}
+
+.dark .bg-slate-800,
+[data-theme="dark"] .bg-slate-800 {
+  background-color: var(--surface-muted) !important;
+}
+
+.dark .border-slate-800,
+.dark .border-slate-700,
+[data-theme="dark"] .border-slate-800 {
+  border-color: var(--border) !important;
+}
+
+.dark .text-slate-100,
+.dark .text-slate-200,
+[data-theme="dark"] .text-slate-100 {
+  color: var(--text) !important;
+}
+
+.dark .text-slate-400,
+.dark .text-slate-500,
+[data-theme="dark"] .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -36,8 +241,9 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-.dark .glass-panel {
-  background: rgba(15, 23, 42, 0.85);
+.dark .glass-panel,
+[data-theme="dark"] .glass-panel {
+  background: rgba(16, 41, 35, 0.85);
 }
 
 /* Table sticky headers and styling */
@@ -102,7 +308,6 @@
     padding: 0 !important;
   }
 
-  /* Container full width without shadows or screen margins */
   .print-container {
     max-width: 100% !important;
     width: 100% !important;
@@ -112,7 +317,6 @@
     border: none !important;
   }
 
-  /* Prevent card / row page-break splitting */
   .print-avoid-break {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
@@ -128,7 +332,6 @@
     background: #ffffff !important;
   }
 
-  /* Tables in print */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
@@ -150,12 +353,21 @@
     color: #0f172a !important;
   }
 
-  /* Signatures block anchored at bottom without breaking */
   .print-signatures {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     margin-top: 24px !important;
     padding-top: 16px !important;
     border-top: 1px solid #94a3b8 !important;
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
