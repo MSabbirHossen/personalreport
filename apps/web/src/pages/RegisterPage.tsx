@@ -97,7 +97,7 @@ export const RegisterPage: React.FC = () => {
             <BPSReportLogo size={52} wordmark={false} />
           </div>
           <h1 className="text-2xl font-extrabold text-theme-text tracking-tight font-latin">
-            BPS<span className="text-[var(--primary)]">_Report</span>
+            BPS <span className="text-[var(--primary)]">Report</span>
           </h1>
           <p className="text-xs text-theme-text-muted">
             নতুন অ্যাকাউন্ট তৈরি করে ব্যক্তিগত আমল ও পাঠ্যক্রম ট্র্যাকিং শুরু করুন

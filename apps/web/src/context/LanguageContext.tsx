@@ -11,7 +11,7 @@ interface LanguageContextValue {
   t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+export const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 const STORAGE_KEY = 'bps-report-locale';
 const LEGACY_STORAGE_KEY = 'report-bd-locale';

@@ -83,7 +83,7 @@ export const LoginPage: React.FC = () => {
             <BPSReportLogo size={52} wordmark={false} />
           </div>
           <h1 className="text-2xl font-extrabold text-theme-text tracking-tight font-latin">
-            BPS<span className="text-[var(--primary)]">_Report</span>
+            BPS <span className="text-[var(--primary)]">Report</span>
           </h1>
           <p className="text-xs text-theme-text-muted font-medium">
             {locale === 'ar'
