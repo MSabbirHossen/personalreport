@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import { Mail, ArrowRight, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { BPSReportLogo } from '../components/common/BPSReportLogo.js';
 import { ThemeSelector } from '../components/common/ThemeSelector.js';
@@ -8,6 +9,7 @@ import { LanguageSelector } from '../components/common/LanguageSelector.js';
 
 export const ForgotPasswordPage: React.FC = () => {
   const { resetPassword } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -23,19 +25,13 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       await resetPassword(email.trim());
-      setSuccessMessage(
-        'পাসওয়ার্ড রিসেট লিংকটি সফলভাবে পাঠানো হয়েছে! অনুগ্রহ করে আপনার ইমেইল ইনবক্স (বা স্প্যাম ফোল্ডার) চেক করুন।'
-      );
+      setSuccessMessage(t('auth.resetEmailSent'));
     } catch (err: any) {
       console.error('Password reset error:', err);
       setErrorMessage(
-        err.message?.includes('auth/user-not-found')
-          ? 'এই ইমেইল অ্যাড্রেস দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি।'
-          : err.message?.includes('auth/invalid-email')
-          ? 'অনুগ্রহ করে একটি সঠিক ইমেইল অ্যাড্রেস প্রদান করুন।'
-          : err.message?.includes('auth/too-many-requests')
-          ? 'অতিরিক্ত অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।'
-          : err.message || 'পাসওয়ার্ড রিসেট লিংক পাঠাতে ব্যর্থ হয়েছে।'
+        err.message?.includes('auth/invalid-email')
+          ? t('validation.invalidEmail')
+          : err.message || t('common.error')
       );
     } finally {
       setLoading(false);
@@ -57,10 +53,10 @@ export const ForgotPasswordPage: React.FC = () => {
             <BPSReportLogo size={52} wordmark={false} />
           </div>
           <h1 className="text-2xl font-extrabold text-theme-text tracking-tight font-latin">
-            পাসওয়ার্ড ভুলে গেছেন?
+            {t('auth.forgotPasswordTitle')}
           </h1>
           <p className="text-xs text-theme-text-muted">
-            আপনার অ্যাকাউন্টের নিবন্ধিত ইমেইল দিলে আমরা পাসওয়ার্ড রিসেটের লিংক পাঠিয়ে দেব
+            {t('auth.forgotPasswordSubtitle')}
           </p>
         </div>
 
@@ -68,7 +64,12 @@ export const ForgotPasswordPage: React.FC = () => {
         {successMessage && (
           <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold flex items-start gap-2.5">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-            <span>{successMessage}</span>
+            <div>
+              <p>{successMessage}</p>
+              <p className="mt-1 text-emerald-700/80 dark:text-emerald-300/80 font-normal">
+                {t('auth.resetEmailCheckSpam')}
+              </p>
+            </div>
           </div>
         )}
 
@@ -86,12 +87,12 @@ export const ForgotPasswordPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>নিবন্ধিত ইমেইল অ্যাড্রেস</span>
+                <span>{t('auth.emailLabel')}</span>
               </label>
               <input
                 type="email"
                 required
-                placeholder="student@bps-report.org"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -100,11 +101,11 @@ export const ForgotPasswordPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={loading || !!successMessage}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
-              <span>{loading ? 'লিংক পাঠানো হচ্ছে...' : 'রিসেট লিংক পাঠান'}</span>
-              <ArrowRight className="h-4 w-4" />
+              <span>{loading ? t('auth.resetting') : t('auth.resetButton')}</span>
+              <ArrowRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
             </button>
           </form>
 
@@ -112,17 +113,17 @@ export const ForgotPasswordPage: React.FC = () => {
           <div className="text-center pt-2 border-t border-theme-border">
             <Link
               to="/login"
-              className="text-xs font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-theme-text-muted hover:text-[var(--primary)] transition-colors"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>লগইন পেজে ফিরে যান</span>
+              <ArrowLeft className={`h-3.5 w-3.5 ${isRTL ? 'rtl-flip' : ''}`} />
+              <span>{t('auth.backToLogin')}</span>
             </Link>
           </div>
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-theme-text-muted">
-          BPS Report · Better Data · Brighter Future
+        <p className="text-center text-[11px] text-theme-text-muted font-medium">
+          {t('common.appTitle')} · {t('common.tagline')}
         </p>
       </div>
     </div>

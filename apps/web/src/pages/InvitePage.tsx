@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
-import { CheckCircle2, AlertTriangle, Building2, UserCheck, Clock, ArrowRight, LogIn } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext.js';
+import { CheckCircle2, AlertTriangle, UserCheck, Clock, ArrowRight, LogIn } from 'lucide-react';
 import { BPSReportLoader } from '../components/common/BPSReportLoader.js';
 import { BPSReportLogo } from '../components/common/BPSReportLogo.js';
 import { ThemeSelector } from '../components/common/ThemeSelector.js';
@@ -12,6 +13,7 @@ export const InvitePage: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, loginWithGoogle, refreshUser } = useAuth();
+  const { t, isRTL, formatDate } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [invitationData, setInvitationData] = useState<any>(null);
@@ -21,7 +23,7 @@ export const InvitePage: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setError('আমন্ত্রণ লিঙ্কটি অকার্যকর বা অপূর্ণ।');
+      setError(t('auth.inviteInactive'));
       setLoading(false);
       return;
     }
@@ -32,10 +34,10 @@ export const InvitePage: React.FC = () => {
         setInvitationData(res);
       })
       .catch((err) => {
-        setError(err.message || 'আমন্ত্রণ লিঙ্কটির মেয়াদ শেষ হয়েছে অথবা লিংকটি অকার্যকর।');
+        setError(err.message || t('auth.inviteInactive'));
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, t]);
 
   const handleAccept = async () => {
     if (!token) return;
@@ -49,7 +51,7 @@ export const InvitePage: React.FC = () => {
         navigate('/app/home');
       }, 1500);
     } catch (err: any) {
-      setError(err.message || 'আমন্ত্রণ গ্রহণ করতে ব্যর্থ হয়েছে।');
+      setError(err.message || t('common.error'));
       setAccepting(false);
     }
   };
@@ -57,17 +59,16 @@ export const InvitePage: React.FC = () => {
   const handleGoogleLoginAndAccept = async () => {
     try {
       await loginWithGoogle();
-      // Once logged in, trigger accept
       if (token) {
         handleAccept();
       }
     } catch (err: any) {
-      setError(err.message || 'গুগল লগইন সম্পন্ন করা সম্ভব হয়নি।');
+      setError(err.message || t('common.error'));
     }
   };
 
   if (loading) {
-    return <BPSReportLoader fullScreen={true} label="আমন্ত্রণ যাচাই করা হচ্ছে..." />;
+    return <BPSReportLoader fullScreen={true} label={t('common.loading')} />;
   }
 
   return (
@@ -85,7 +86,7 @@ export const InvitePage: React.FC = () => {
               <AlertTriangle className="h-7 w-7" />
             </div>
             <h1 className="text-xl font-bold text-theme-text">
-              আমন্ত্রণ লিংকটি সক্রিয় নয়
+              {t('auth.inviteInactive')}
             </h1>
             <p className="text-sm text-theme-text-muted">
               {error}
@@ -95,7 +96,7 @@ export const InvitePage: React.FC = () => {
                 onClick={() => navigate('/login')}
                 className="w-full py-2.5 px-4 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold text-sm transition-all cursor-pointer shadow-md"
               >
-                লগইন পাতায় ফিরে যান
+                {t('auth.backToLogin')}
               </button>
             </div>
           </div>
@@ -105,10 +106,10 @@ export const InvitePage: React.FC = () => {
               <CheckCircle2 className="h-7 w-7" />
             </div>
             <h1 className="text-xl font-bold text-theme-text">
-              স্বাগতম! আমন্ত্রণ গৃহীত হয়েছে
+              {t('auth.inviteAccepted')}
             </h1>
             <p className="text-sm text-theme-text-muted">
-              আপনার সদস্যপদ সফলভাবে সক্রিয় করা হয়েছে। আপনাকে ড্যাশবোর্ডে নিয়ে যাওয়া হচ্ছে...
+              {t('auth.inviteAcceptedDesc')}
             </p>
           </div>
         ) : (
@@ -120,10 +121,10 @@ export const InvitePage: React.FC = () => {
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-theme-surface-muted text-[var(--primary)] border border-theme-border mb-2">
                 <UserCheck className="h-3.5 w-3.5" />
-                <span>প্রাতিষ্ঠানিক আমন্ত্রণ পত্র</span>
+                <span>{t('auth.inviteTitle')}</span>
               </span>
               <h1 className="text-2xl font-bold text-theme-text">
-                {invitationData?.organization?.nameBn || 'BPS Report প্ল্যাটফর্ম'}
+                {invitationData?.organization?.nameBn || t('common.appTitle')}
               </h1>
               <p className="text-xs text-theme-text-muted mt-1 font-latin">
                 {invitationData?.organization?.nameEn}
@@ -132,28 +133,26 @@ export const InvitePage: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-theme-surface-muted border border-theme-border text-start space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-theme-text-muted">আমন্ত্রিত ইমেইল:</span>
+                <span className="text-theme-text-muted">{t('auth.emailLabel')}:</span>
                 <span className="font-semibold text-theme-text">
                   {invitationData?.invitation?.email}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-theme-text-muted">নির্ধারিত দায়িত্ব / রোল:</span>
+                <span className="text-theme-text-muted">{t('auth.inviteRole')}</span>
                 <span className="font-semibold text-[var(--primary)] capitalize">
-                  {invitationData?.invitation?.role === 'student' ? 'ছাত্র / রিপোর্টকারী' : 'পর্যবেক্ষক / দায়িত্বশীল'}
+                  {invitationData?.invitation?.role === 'student'
+                    ? t('profile.studentRole')
+                    : t('profile.supervisorRole')}
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs pt-1 border-t border-theme-border">
                 <span className="text-theme-text-muted flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span>মেয়াদ শেষ:</span>
+                  <span>{t('auth.inviteExpires')}</span>
                 </span>
                 <span className="text-theme-text-muted text-[11px]">
-                  {new Date(invitationData?.invitation?.expiresAt).toLocaleDateString('bn-BD', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
+                  {invitationData?.invitation?.expiresAt ? formatDate(invitationData.invitation.expiresAt) : '-'}
                 </span>
               </div>
             </div>
@@ -161,21 +160,21 @@ export const InvitePage: React.FC = () => {
             {user ? (
               <div className="space-y-3 pt-2">
                 <p className="text-xs text-theme-text-muted">
-                  আপনি <strong className="text-theme-text">{user.email}</strong> হিসেবে লগইন আছেন।
+                  {t('auth.inviteLoggedInAs')} <strong className="text-theme-text">{user.email}</strong>
                 </p>
                 <button
                   onClick={handleAccept}
                   disabled={accepting}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer"
                 >
-                  <span>{accepting ? 'যুক্ত করা হচ্ছে...' : 'আমন্ত্রণ গ্রহণ করে যুক্ত হোন'}</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <span>{accepting ? t('auth.inviteAccepting') : t('auth.inviteAcceptButton')}</span>
+                  <ArrowRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
                 </button>
               </div>
             ) : (
               <div className="space-y-3 pt-2">
                 <p className="text-xs text-theme-text-muted">
-                  আমন্ত্রণ গ্রহণ করতে দয়া করে লগইন বা সাইন আপ করুন:
+                  {t('auth.inviteLoginPrompt')}
                 </p>
                 <button
                   type="button"
@@ -183,14 +182,14 @@ export const InvitePage: React.FC = () => {
                   className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-theme-border bg-theme-surface text-theme-text hover:bg-theme-surface-muted font-medium text-xs transition-colors cursor-pointer"
                 >
                   <LogIn className="h-4 w-4" />
-                  <span>Google দিয়ে প্রবেশ করে গ্রহণ করুন</span>
+                  <span>{t('auth.googleLogin')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/login?redirect=/invite/${token}`)}
                   className="w-full py-2.5 px-4 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold text-xs transition-all cursor-pointer shadow-sm"
                 >
-                  ইমেইল ও পাসওয়ার্ড দিয়ে লগইন
+                  {t('auth.loginButton')}
                 </button>
               </div>
             )}

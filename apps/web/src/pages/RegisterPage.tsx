@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import { Lock, Mail, User, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { BPSReportLogo } from '../components/common/BPSReportLogo.js';
 import { ThemeSelector } from '../components/common/ThemeSelector.js';
@@ -9,6 +10,7 @@ import { LanguageSelector } from '../components/common/LanguageSelector.js';
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { registerWithEmail, loginWithGoogle, loginDemo } = useAuth();
+  const { t, isRTL } = useLanguage();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,12 +27,12 @@ export const RegisterPage: React.FC = () => {
 
     // Validation
     if (password.length < 6) {
-      setErrorMessage('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+      setErrorMessage(t('validation.passwordTooShort'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('পাসওয়ার্ড দুটি মিলছে না। অনুগ্রহ করে একই পাসওয়ার্ড প্রদান করুন।');
+      setErrorMessage(t('validation.passwordsDoNotMatch'));
       return;
     }
 
@@ -42,10 +44,10 @@ export const RegisterPage: React.FC = () => {
       console.error('Registration error:', err);
       setErrorMessage(
         err.message?.includes('auth/email-already-in-use')
-          ? 'এই ইমেইলটি ইতিমধ্যে ব্যবহার করা হয়েছে। অনুগ্রহ করে লগইন করুন।'
-          : err.message?.includes('Firebase Auth is not configured')
-          ? 'ফায়ারবেজ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'নিবন্ধন ব্যর্থ হয়েছে।'
+          ? t('auth.emailAlreadyInUse', undefined) !== 'auth.emailAlreadyInUse'
+            ? t('auth.emailAlreadyInUse')
+            : t('validation.invalidEmail')
+          : err.message || t('common.error')
       );
     } finally {
       setLoading(false);
@@ -60,11 +62,7 @@ export const RegisterPage: React.FC = () => {
       navigate('/app/home');
     } catch (err: any) {
       console.error('Google Sign Up error:', err);
-      setErrorMessage(
-        err.message?.includes('Firebase Google Auth is not configured')
-          ? 'গুগল অথ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'গুগল নিবন্ধন ব্যর্থ হয়েছে।'
-      );
+      setErrorMessage(err.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +74,7 @@ export const RegisterPage: React.FC = () => {
       await loginDemo();
       navigate('/app/home');
     } catch (err: any) {
-      setErrorMessage(err.message || 'ডেমো লগইন ব্যর্থ হয়েছে।');
+      setErrorMessage(err.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -100,7 +98,7 @@ export const RegisterPage: React.FC = () => {
             BPS <span className="text-[var(--primary)]">Report</span>
           </h1>
           <p className="text-xs text-theme-text-muted">
-            নতুন অ্যাকাউন্ট তৈরি করে ব্যক্তিগত আমল ও পাঠ্যক্রম ট্র্যাকিং শুরু করুন
+            {t('auth.registerSubtitle')}
           </p>
         </div>
 
@@ -139,27 +137,27 @@ export const RegisterPage: React.FC = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Google অ্যাকাউন্ট দিয়ে সরাসরি নিবন্ধন করুন</span>
+            <span>{t('auth.googleLogin')}</span>
           </button>
 
           <div className="relative flex items-center justify-center">
             <div className="border-t border-theme-border w-full" />
             <span className="bg-theme-surface px-3 text-[11px] text-theme-text-muted uppercase font-medium absolute">
-              অথবা ইমেইল দিয়ে
+              {t('auth.orWithEmail')}
             </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+          <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
             {/* Full Name */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>আপনার পূর্ণ নাম</span>
+                <span>{t('auth.fullNameLabel')}</span>
               </label>
               <input
                 type="text"
                 required
-                placeholder="মো. সাব্বির হোসেন"
+                placeholder={t('auth.fullNamePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -170,12 +168,12 @@ export const RegisterPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>ইমেইল অ্যাড্রেস</span>
+                <span>{t('auth.emailLabel')}</span>
               </label>
               <input
                 type="email"
                 required
-                placeholder="student@bps-report.org"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -186,30 +184,24 @@ export const RegisterPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</span>
+                <span>{t('auth.passwordLabel')}</span>
               </label>
               <div className="relative flex items-center">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
-                  aria-label={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
-                  title={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
+                  className="absolute right-3 rtl:right-auto rtl:left-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
+                  aria-label={t('common.actions')}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -218,76 +210,68 @@ export const RegisterPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>পাসওয়ার্ড নিশ্চিত করুন</span>
+                <span>{t('auth.confirmPasswordLabel')}</span>
               </label>
               <div className="relative flex items-center">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
-                  aria-label={showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
-                  title={showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
+                  className="absolute right-3 rtl:right-auto rtl:left-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
+                  aria-label={t('common.actions')}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] mt-2 focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+              className="w-full flex items-center justify-center gap-2 py-2.5 mt-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
-              <span>{loading ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'নিবন্ধন সম্পন্ন করুন'}</span>
-              <ArrowRight className="h-4 w-4" />
+              <span>{loading ? t('auth.registering') : t('auth.registerButton')}</span>
+              <ArrowRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
             </button>
           </form>
 
           {/* Already have an account link */}
           <div className="text-center pt-2 border-t border-theme-border">
             <p className="text-xs text-theme-text-muted">
-              ইতিমধ্যে একটি অ্যাকাউন্ট আছে?{' '}
+              {t('auth.haveAccount')}{' '}
               <Link
                 to="/login"
                 className="font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
               >
-                লগইন করুন
+                {t('auth.loginLink')}
               </Link>
             </p>
           </div>
 
-          {/* Development Demo Button */}
           {import.meta.env.DEV && (
-            <div className="relative flex items-center justify-center border-t border-theme-border pt-3">
+            <div className="relative flex items-center justify-center border-t border-theme-border pt-4">
               <button
                 type="button"
                 onClick={handleDemoSignUp}
                 className="w-full py-2.5 px-4 rounded-xl border border-brand-200 dark:border-brand-900/60 bg-brand-50/60 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold hover:bg-brand-100/70 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShieldCheck className="h-4 w-4" />
-                <span>ডেমো অ্যাকাউন্ট দিয়ে দ্রুত প্রবেশ করুন (Development Only)</span>
+                <span>{t('auth.demoStudent')} (Development Only)</span>
               </button>
             </div>
           )}
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-theme-text-muted">
-          BPS Report · Better Data · Brighter Future
+        <p className="text-center text-[11px] text-theme-text-muted font-medium">
+          {t('common.appTitle')} · {t('common.tagline')}
         </p>
       </div>
     </div>

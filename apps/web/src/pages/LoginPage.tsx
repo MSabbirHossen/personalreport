@@ -10,7 +10,7 @@ import { useLanguage } from '../context/LanguageContext.js';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { loginWithEmail, loginWithGoogle, loginDemo } = useAuth();
-  const { locale, isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,10 +28,10 @@ export const LoginPage: React.FC = () => {
       console.error('Login error:', err);
       setErrorMessage(
         err.message?.includes('auth/invalid-credential')
-          ? 'ভুল ইমেইল বা পাসওয়ার্ড প্রদান করা হয়েছে।'
-          : err.message?.includes('Firebase Auth is not configured')
-          ? 'ফায়ারবেজ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'লগইন ব্যর্থ হয়েছে।'
+          ? t('auth.invalidCredential', undefined) !== 'auth.invalidCredential'
+            ? t('auth.invalidCredential')
+            : t('validation.invalidEmail')
+          : err.message || t('common.error')
       );
     } finally {
       setLoading(false);
@@ -46,11 +46,7 @@ export const LoginPage: React.FC = () => {
       navigate('/app/home');
     } catch (err: any) {
       console.error('Google Sign In error:', err);
-      setErrorMessage(
-        err.message?.includes('Firebase Google Auth is not configured')
-          ? 'গুগল অথ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'গুগল লগইন ব্যর্থ হয়েছে।'
-      );
+      setErrorMessage(err.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -62,7 +58,7 @@ export const LoginPage: React.FC = () => {
       await loginDemo();
       navigate('/app/home');
     } catch (err: any) {
-      setErrorMessage(err.message || 'ডেমো লগইন ব্যর্থ হয়েছে।');
+      setErrorMessage(err.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -86,11 +82,7 @@ export const LoginPage: React.FC = () => {
             BPS <span className="text-[var(--primary)]">Report</span>
           </h1>
           <p className="text-xs text-theme-text-muted font-medium">
-            {locale === 'ar'
-              ? 'بيانات أفضل · مستقبل أكثر إشراقاً · منصة التقارير المؤسسية'
-              : locale === 'en'
-              ? 'Better Data · Brighter Future · Institutional Reporting Portal'
-              : 'ব্যক্তিগত রিপোর্ট ও সামগ্রিক মূল্যায়ন প্ল্যাটফর্ম'}
+            {t('auth.loginSubtitle')}
           </p>
         </div>
 
@@ -129,19 +121,13 @@ export const LoginPage: React.FC = () => {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>
-              {locale === 'ar'
-                ? 'الدخول بحساب Google'
-                : locale === 'en'
-                ? 'Sign in with Google'
-                : 'Google অ্যাকাউন্ট দিয়ে প্রবেশ করুন'}
-            </span>
+            <span>{t('auth.googleLogin')}</span>
           </button>
 
           <div className="relative flex items-center justify-center">
             <div className="border-t border-theme-border w-full" />
             <span className="bg-theme-surface px-3 text-[11px] text-theme-text-muted uppercase font-medium absolute">
-              {locale === 'ar' ? 'أو عبر البريد الإلكتروني' : locale === 'en' ? 'Or with email' : 'অথবা ইমেইল দিয়ে'}
+              {t('auth.orWithEmail')}
             </span>
           </div>
 
@@ -149,14 +135,12 @@ export const LoginPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
-                <span>
-                  {locale === 'ar' ? 'عنوان البريد الإلكتروني' : locale === 'en' ? 'Email Address' : 'ইমেইল অ্যাড্রেস'}
-                </span>
+                <span>{t('auth.emailLabel')}</span>
               </label>
               <input
                 type="email"
                 required
-                placeholder="user@bps-report.org"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
@@ -167,13 +151,13 @@ export const LoginPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
                   <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
-                  <span>{locale === 'ar' ? 'كلمة المرور' : locale === 'en' ? 'Password' : 'পাসওয়ার্ড'}</span>
+                  <span>{t('auth.passwordLabel')}</span>
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-[11px] font-medium text-[var(--primary)] hover:underline cursor-pointer"
                 >
-                  {locale === 'ar' ? 'نسيت كلمة المرور؟' : locale === 'en' ? 'Forgot password?' : 'পাসওয়ার্ড ভুলে গেছেন?'}
+                  {t('auth.forgotPasswordLink')}
                 </Link>
               </div>
               <div className="relative flex items-center">
@@ -189,8 +173,7 @@ export const LoginPage: React.FC = () => {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 rtl:right-auto rtl:left-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
-                  aria-label={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
-                  title={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
+                  aria-label={t('common.actions')}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -206,11 +189,7 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
-              <span>
-                {loading
-                  ? locale === 'ar' ? 'جارٍ تسجيل الدخول...' : locale === 'en' ? 'Signing in...' : 'লগইন হচ্ছে...'
-                  : locale === 'ar' ? 'تسجيل الدخول' : locale === 'en' ? 'Sign In' : 'লগইন করুন'}
-              </span>
+              <span>{loading ? t('auth.loggingIn') : t('auth.loginButton')}</span>
               <ArrowRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
             </button>
           </form>
@@ -218,12 +197,12 @@ export const LoginPage: React.FC = () => {
           {/* Create an account link */}
           <div className="text-center pt-2 border-t border-theme-border">
             <p className="text-xs text-theme-text-muted">
-              {locale === 'ar' ? 'ليس لديك حساب؟ ' : locale === 'en' ? 'Don’t have an account? ' : 'কোনো অ্যাকাউন্ট নেই? '}
+              {t('auth.noAccount')}{' '}
               <Link
                 to="/register"
                 className="font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
               >
-                {locale === 'ar' ? 'إنشاء حساب جديد' : locale === 'en' ? 'Register now' : 'নিবন্ধন করুন'}
+                {t('auth.registerLink')}
               </Link>
             </p>
           </div>
@@ -236,7 +215,7 @@ export const LoginPage: React.FC = () => {
                 className="w-full py-2.5 px-4 rounded-xl border border-brand-200 dark:border-brand-900/60 bg-brand-50/60 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 text-xs font-semibold hover:bg-brand-100/70 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShieldCheck className="h-4 w-4" />
-                <span>ডেমো অ্যাকাউন্ট দিয়ে দ্রুত প্রবেশ করুন (Development Only)</span>
+                <span>{t('auth.demoStudent')} (Development Only)</span>
               </button>
             </div>
           )}
@@ -244,7 +223,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Footer info */}
         <p className="text-center text-[11px] text-theme-text-muted font-medium">
-          BPS Report · Better Data · Brighter Future
+          {t('common.appTitle')} · {t('common.tagline')}
         </p>
       </div>
     </div>
