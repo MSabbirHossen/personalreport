@@ -10,32 +10,32 @@ import {
 import { useLanguage } from '../../context/LanguageContext.js';
 
 export const MobileNav: React.FC = () => {
-  const { locale } = useLanguage();
+  const { t } = useLanguage();
 
   const navItems = [
     {
       to: '/app/home',
-      label: locale === 'ar' ? 'الرئيسية' : locale === 'en' ? 'Home' : 'হোম',
+      label: t('nav.dashboard'),
       icon: LayoutDashboard,
     },
     {
       to: '/app/reports/daily',
-      label: locale === 'ar' ? 'اليومي' : locale === 'en' ? 'Daily' : 'দৈনিক',
+      label: t('nav.dailyReport'),
       icon: CalendarCheck,
     },
     {
       to: '/app/reports/monthly-plan',
-      label: locale === 'ar' ? 'الخطة' : locale === 'en' ? 'Plan' : 'পরিকল্পনা',
+      label: t('nav.monthlyPlan'),
       icon: Target,
     },
     {
       to: '/app/reports/monthly-outcome',
-      label: locale === 'ar' ? 'النتائج' : locale === 'en' ? 'Outcome' : 'ফলাফল',
+      label: t('nav.monthlyOutcome'),
       icon: FileSpreadsheet,
     },
     {
       to: '/app/profile',
-      label: locale === 'ar' ? 'الملف' : locale === 'en' ? 'Profile' : 'প্রোফাইল',
+      label: t('nav.profile'),
       icon: User,
     },
   ];
@@ -63,7 +63,7 @@ export const MobileNav: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                  <span className="text-[11px] mt-0.5">{item.label}</span>
+                  <span className="text-[11px] mt-0.5 truncate max-w-[65px]">{item.label}</span>
                 </>
               )}
             </NavLink>

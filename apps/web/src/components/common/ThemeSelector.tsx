@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sun, Moon, Monitor, ChevronDown } from 'lucide-react';
 import { useTheme, Theme } from '../../context/ThemeContext.js';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -17,10 +19,10 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const options: { value: Theme; label: string; icon: React.ElementType }[] = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'system', label: 'System', icon: Monitor },
+  const options: { value: Theme; labelKey: string; icon: React.ElementType }[] = [
+    { value: 'light', labelKey: 'common.themeLight', icon: Sun },
+    { value: 'dark', labelKey: 'common.themeDark', icon: Moon },
+    { value: 'system', labelKey: 'common.themeSystem', icon: Monitor },
   ];
 
   const currentOption = options.find((opt) => opt.value === theme) || options[0];
@@ -32,8 +34,8 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
         type="button"
         onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         className="flex h-9 w-9 items-center justify-center rounded-xl text-theme-text-muted hover:bg-theme-surface-muted hover:text-theme-text transition-colors border border-transparent hover:border-theme-border"
-        title={`Theme: ${currentOption.label}`}
-        aria-label="Toggle theme"
+        title={`${t('common.theme')}: ${t(currentOption.labelKey)}`}
+        aria-label={t('common.theme')}
       >
         <CurrentIcon className="h-4 w-4 transition-transform duration-200" />
       </button>
@@ -47,11 +49,11 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        aria-label="Select color theme"
+        aria-label={t('common.theme')}
         className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl text-xs font-medium text-theme-text-muted hover:text-theme-text bg-theme-surface hover:bg-theme-surface-muted border border-theme-border transition-colors shadow-xs"
       >
         <CurrentIcon className="h-4 w-4 text-[var(--primary)]" />
-        <span className="hidden sm:inline capitalize">{theme}</span>
+        <span className="hidden sm:inline">{t(currentOption.labelKey)}</span>
         <ChevronDown className="h-3 w-3 opacity-60" />
       </button>
 
@@ -80,7 +82,7 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
                 }`}
               >
                 <Icon className={`h-4 w-4 ${isSelected ? 'text-[var(--primary)]' : 'opacity-70'}`} />
-                <span>{opt.label}</span>
+                <span>{t(opt.labelKey)}</span>
               </button>
             );
           })}

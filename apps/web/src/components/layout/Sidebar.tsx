@@ -16,40 +16,31 @@ import { useLanguage } from '../../context/LanguageContext.js';
 
 interface NavItem {
   to: string;
-  key: string;
-  labelBn: string;
-  labelEn: string;
-  labelAr: string;
+  translationKey: string;
   icon: React.ElementType;
 }
 
 export const Sidebar: React.FC = () => {
   const { user } = useAuth();
-  const { locale, isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const isSupervisor = user?.roles?.some((r) => ['supervisor', 'org_admin'].includes(r));
 
   const navItems: NavItem[] = [
-    { to: '/app/home', key: 'dashboard', labelBn: 'ড্যাশবোর্ড', labelEn: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutDashboard },
-    { to: '/app/reports/daily', key: 'dailyReport', labelBn: 'দৈনিক রিপোর্ট', labelEn: 'Daily Entry', labelAr: 'التقرير اليومي', icon: CalendarCheck },
-    { to: '/app/reports/monthly-plan', key: 'monthlyPlan', labelBn: 'মাসিক পরিকল্পনা', labelEn: 'Monthly Plan', labelAr: 'الخطة الشهرية', icon: Target },
-    { to: '/app/reports/monthly-outcome', key: 'monthlyOutcome', labelBn: 'মাসিক ফলাফল', labelEn: 'Monthly Report', labelAr: 'النتائج الشهرية', icon: FileSpreadsheet },
-    { to: '/app/advice', key: 'advice', labelBn: 'পরামর্শ ও মন্তব্য', labelEn: 'Advice', labelAr: 'النصائح والملاحظات', icon: MessageSquareQuote },
-    { to: '/app/notifications', key: 'notifications', labelBn: 'বিজ্ঞপ্তি', labelEn: 'Notifications', labelAr: 'الإشعارات', icon: Bell },
-    { to: '/app/profile', key: 'profile', labelBn: 'প্রোফাইল', labelEn: 'Profile', labelAr: 'الملف الشخصي', icon: User },
+    { to: '/app/home', translationKey: 'nav.dashboard', icon: LayoutDashboard },
+    { to: '/app/reports/daily', translationKey: 'nav.dailyReport', icon: CalendarCheck },
+    { to: '/app/reports/monthly-plan', translationKey: 'nav.monthlyPlan', icon: Target },
+    { to: '/app/reports/monthly-outcome', translationKey: 'nav.monthlyOutcome', icon: FileSpreadsheet },
+    { to: '/app/advice', translationKey: 'nav.advice', icon: MessageSquareQuote },
+    { to: '/app/notifications', translationKey: 'nav.notifications', icon: Bell },
+    { to: '/app/profile', translationKey: 'nav.profile', icon: User },
   ];
-
-  const getLabel = (item: NavItem) => {
-    if (locale === 'ar') return item.labelAr;
-    if (locale === 'en') return item.labelEn;
-    return item.labelBn;
-  };
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r rtl:border-r-0 rtl:border-l border-theme-border bg-theme-surface p-4 space-y-6 shrink-0 min-h-[calc(100vh-4rem)] transition-colors duration-200">
       {/* Navigation Groups */}
       <div className="space-y-1">
         <p className="px-3 text-[11px] font-bold tracking-wider text-theme-text-muted uppercase">
-          {locale === 'ar' ? 'القائمة الرئيسية' : locale === 'en' ? 'Main Menu' : 'মূল মেনু'}
+          {t('nav.mainMenu')}
         </p>
         <div className="space-y-1 pt-2">
           {navItems.map((item) => {
@@ -69,7 +60,7 @@ export const Sidebar: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-[var(--primary)]' : 'opacity-70'} ${isRTL ? 'rtl-flip' : ''}`} />
-                    <span className="truncate">{getLabel(item)}</span>
+                    <span className="truncate">{t(item.translationKey)}</span>
                   </>
                 )}
               </NavLink>
@@ -82,7 +73,7 @@ export const Sidebar: React.FC = () => {
       {(isSupervisor || user?.roles?.some((r) => ['org_admin', 'platform_admin'].includes(r))) && (
         <div className="space-y-1 pt-4 border-t border-theme-border">
           <p className="px-3 text-[11px] font-bold tracking-wider text-theme-text-muted uppercase">
-            {locale === 'ar' ? 'المشرف والإدارة' : locale === 'en' ? 'Administration' : 'দায়িত্বশীল ও প্রশাসন'}
+            {t('nav.supervisorMenu')}
           </p>
           <div className="space-y-1 pt-2">
             {isSupervisor && (
@@ -98,7 +89,7 @@ export const Sidebar: React.FC = () => {
               >
                 <ClipboardCheck className="h-4 w-4 text-[var(--primary)] shrink-0" />
                 <span className="truncate">
-                  {locale === 'ar' ? 'قائمة مراجعة التقارير' : locale === 'en' ? 'Review Queue' : 'রিপোর্ট পর্যালোচনা কিউ'}
+                  {t('nav.supervisorQueue')}
                 </span>
               </NavLink>
             )}
@@ -116,7 +107,7 @@ export const Sidebar: React.FC = () => {
               >
                 <ShieldAlert className="h-4 w-4 text-[var(--info)] shrink-0" />
                 <span className="truncate">
-                  {locale === 'ar' ? 'سجل التدقيق والأمان' : locale === 'en' ? 'Audit & Security Logs' : 'অডিট ও নিরাপত্তা লগ'}
+                  {t('nav.auditLog')}
                 </span>
               </NavLink>
             )}
@@ -127,19 +118,13 @@ export const Sidebar: React.FC = () => {
       {/* Quick Summary card with Islamic geometric pattern */}
       <div className="mt-auto p-3.5 rounded-2xl bg-theme-surface-muted border border-theme-border text-xs text-theme-text-muted space-y-2 relative overflow-hidden islamic-pattern">
         <div className="flex items-center justify-between font-semibold text-theme-text relative z-10">
-          <span>
-            {locale === 'ar' ? 'موعد التقرير اليومي' : locale === 'en' ? 'Daily Report Window' : 'দৈনিক রিপোর্ট সময়'}
-          </span>
+          <span>{t('dashboard.reportReminderTitle')}</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-surface border border-theme-border font-bold text-[var(--primary)]">
-            {locale === 'ar' ? 'اليوم' : locale === 'en' ? 'Today' : 'আজ'}
+            {t('dailyReport.todayBadge')}
           </span>
         </div>
         <p className="text-[11px] leading-relaxed text-theme-text-muted relative z-10">
-          {locale === 'ar'
-            ? 'سجّل تقريرك اليومي في وقته لبناء عادات إيجابية مستمرة.'
-            : locale === 'en'
-            ? 'Keep your daily report updated on time to foster continuous positive habits.'
-            : 'প্রতিদিনের রিপোর্ট যথাসময়ে সংরক্ষণ করুন এবং ইতিবাচক অভ্যাস গড়ে তুলুন।'}
+          {t('dashboard.reportReminderDesc')}
         </p>
       </div>
     </aside>
