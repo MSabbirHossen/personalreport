@@ -1,21 +1,21 @@
-# Report BD Design System
+# BPS_Report Design System
 
 Heritage-inspired UI system drawing on Bangladesh and Saudi Arabia flag colors and restrained Islamic geometric motifs.
 
 ## Contents
 - `src/styles/tokens.css` — semantic design tokens and light/dark themes
 - `src/styles/global.css` — resets, typography, RTL helpers, accessibility and patterns
-- `src/components/ReportBDLogo.tsx` — inline SVG logo mark and wordmark
-- `src/components/ReportBDLoader.tsx` — animated branded loading screen
+- `src/components/BPSReportLogo.tsx` — inline SVG logo mark and wordmark
+- `src/components/BPSReportLoader.tsx` — animated branded loading screen
 - `src/components/ThemeProvider.tsx` — theme context, persistence, system preference
 - `src/components/LanguageProvider.tsx` — locale + document direction helper
-- `src/components/ReportBDExample.tsx` — sample responsive dashboard composition
+- `src/components/BPSReportExample.tsx` — sample responsive dashboard composition
 
 ## Install / integrate
 1. Copy `src/` into your React + TypeScript app.
 2. Import `./styles/tokens.css` and `./styles/global.css` once in your app entry point.
 3. Wrap the app with `<ThemeProvider>` and `<LanguageProvider>`.
-4. Use `<ReportBDLogo />`, `<ReportBDLoader />`, and the CSS classes as examples.
+4. Use `<BPSReportLogo />`, `<BPSReportLoader />`, and the CSS classes as examples.
 5. If your app already has a theme or locale system, merge the tokens and reuse its state instead of adding a second provider.
 
 No UI framework is required. The CSS works with ordinary React components and can be adapted to Tailwind.

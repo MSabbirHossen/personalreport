@@ -4,7 +4,8 @@ export type Theme = "light" | "dark" | "system";
 type ThemeContextValue = { theme: Theme; resolvedTheme: "light" | "dark"; setTheme: (theme: Theme) => void; toggleTheme: () => void };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-const STORAGE_KEY = "report-bd-theme";
+const STORAGE_KEY = "bps-report-theme";
+const LEGACY_STORAGE_KEY = "report-bd-theme";
 
 function systemTheme(): "light" | "dark" {
   return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -13,7 +14,13 @@ function systemTheme(): "light" | "dark" {
 export function ThemeProvider({ children, defaultTheme = "system" }: React.PropsWithChildren<{ defaultTheme?: Theme }>) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === "undefined") return defaultTheme;
-    try { return (window.localStorage.getItem(STORAGE_KEY) as Theme) || defaultTheme; } catch { return defaultTheme; }
+    try {
+      return (window.localStorage.getItem(STORAGE_KEY) as Theme) ||
+        (window.localStorage.getItem(LEGACY_STORAGE_KEY) as Theme) ||
+        defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
   });
   const [system, setSystem] = useState<"light" | "dark">(systemTheme);
 
@@ -26,9 +33,19 @@ export function ThemeProvider({ children, defaultTheme = "system" }: React.Props
   }, []);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = resolvedTheme;
-    document.documentElement.style.colorScheme = resolvedTheme;
-    try { window.localStorage.setItem(STORAGE_KEY, theme); } catch { /* Storage may be blocked. */ }
+    const root = document.documentElement;
+    root.dataset.theme = resolvedTheme;
+    root.style.colorScheme = resolvedTheme;
+    if (resolvedTheme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      /* Storage may be blocked. */
+    }
   }, [theme, resolvedTheme]);
 
   const setTheme = useCallback((next: Theme) => setThemeState(next), []);

@@ -1,4 +1,4 @@
-# Report BD — Design Specification
+# BPS_Report — Design Specification
 
 ## Brand idea
 **Better Data · Brighter Future** — a calm, reliable reporting platform with an identity that acknowledges Bangladesh and Saudi Arabia without copying official state emblems.
