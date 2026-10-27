@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { DEFAULT_METRIC_GROUPS, MetricDefinition, MetricGroup } from '@reportbd/shared';
+import {
+  DEFAULT_METRIC_GROUPS,
+  MetricDefinition,
+  MetricGroup,
+  calculateDailySummary,
+  compareDailySummaries,
+  getPreviousDateKey,
+} from '@reportbd/shared';
 import { api } from '../services/api.js';
 import {
   Save,
@@ -8,11 +15,18 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUp,
   LayoutGrid,
   FileEdit,
   AlertCircle,
+  Clock,
+  RotateCcw,
 } from 'lucide-react';
+import { DurationInput } from '../components/daily/DurationInput.js';
+import { DailySummaryCard } from '../components/daily/DailySummaryCard.js';
+import { formatReportTimestamp, getReportSaveInfo } from '../components/daily/timestampUtils.js';
 
 export const DailyReportPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,12 +37,23 @@ export const DailyReportPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(currentDateParam);
   const [viewMode, setViewMode] = useState<'single' | 'grid'>('single');
 
-  // Month's daily records: { "YYYY-MM-DD": { values: { metricId: val } } }
+  // Month's daily records: { "YYYY-MM-DD": { values: { metricId: val }, lastSavedAt, updatedAt, revision, status } }
   const [monthReports, setMonthReports] = useState<Record<string, any>>({});
+  // Cache for yesterday reports that cross month boundaries (e.g. 1st of month)
+  const [crossMonthReports, setCrossMonthReports] = useState<Record<string, any>>({});
+
   const [currentDayValues, setCurrentDayValues] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isConflict, setIsConflict] = useState(false);
+
+  // Collapsible card state: only the clicked card is open, rest of cards remain closed
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroupId((prev) => (prev === groupId ? null : groupId));
+  };
 
   // Calculate days in the selected month
   const getDaysInMonth = (yearMonth: string) => {
@@ -67,6 +92,88 @@ export const DailyReportPage: React.FC = () => {
     setErrorMsg(null);
   }, [selectedDate, monthReports]);
 
+  // All metrics list
+  const allMetrics = useMemo(
+    () => DEFAULT_METRIC_GROUPS.flatMap((g: MetricGroup) => g.metrics),
+    []
+  );
+
+  // Fetch yesterday's report across month boundary if needed
+  const yesterdayDateKey = useMemo(() => getPreviousDateKey(selectedDate), [selectedDate]);
+
+  useEffect(() => {
+    if (!yesterdayDateKey) return;
+    if (monthReports[yesterdayDateKey]) return;
+    const yesterdayMonth = yesterdayDateKey.substring(0, 7);
+    if (yesterdayMonth === selectedMonth) return;
+    if (crossMonthReports[yesterdayDateKey]) return;
+
+    let cancelled = false;
+    api
+      .getDailyReportForDate(yesterdayDateKey)
+      .then((res) => {
+        if (!cancelled && res) {
+          setCrossMonthReports((prev) => ({
+            ...prev,
+            [yesterdayDateKey]: res,
+          }));
+        }
+      })
+      .catch(() => {
+        // Ignore missing previous report
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [yesterdayDateKey, monthReports, selectedMonth, crossMonthReports]);
+
+  // Live Daily Summary calculations
+  const todayTotals = useMemo(() => {
+    return calculateDailySummary(currentDayValues);
+  }, [currentDayValues]);
+
+  const yesterdayReport = monthReports[yesterdayDateKey] || crossMonthReports[yesterdayDateKey];
+  const yesterdayTotals = useMemo(() => {
+    if (!yesterdayReport || yesterdayReport.status === 'empty' || !yesterdayReport.values) {
+      return null;
+    }
+    return calculateDailySummary(yesterdayReport.values);
+  }, [yesterdayReport]);
+
+  const summaryComparison = useMemo(() => {
+    return compareDailySummaries(todayTotals, yesterdayTotals, yesterdayDateKey, 'bn');
+  }, [todayTotals, yesterdayTotals, yesterdayDateKey]);
+
+  // Client-side validation: detect any invalid or negative values
+  const validationErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+    for (const metric of allMetrics) {
+      const val = currentDayValues[metric.id];
+      if (val === undefined || val === null || val === '') continue;
+
+      if (typeof val === 'number') {
+        if (isNaN(val)) {
+          errors[metric.id] = 'অকার্যকর সংখ্যা';
+        } else if (val < 0) {
+          errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+        } else if (metric.type === 'count' && metric.id !== 'routine_sleep_hours' && !Number.isInteger(val)) {
+          errors[metric.id] = 'পূর্ণসংখ্যা প্রয়োজন';
+        }
+      } else if (typeof val === 'string') {
+        const num = Number(val);
+        if (isNaN(num)) {
+          errors[metric.id] = 'অকার্যকর সংখ্যা';
+        } else if (num < 0) {
+          errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+        }
+      }
+    }
+    return errors;
+  }, [currentDayValues, allMetrics]);
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
   const handleValueChange = (metricId: string, val: any) => {
     setCurrentDayValues((prev) => ({
       ...prev,
@@ -74,9 +181,12 @@ export const DailyReportPage: React.FC = () => {
     }));
   };
 
-  const [isConflict, setIsConflict] = useState(false);
-
   const handleSave = async () => {
+    if (hasValidationErrors) {
+      setErrorMsg('ফর্মটিতে কিছু ভুল বা নেতিবাচক মান রয়েছে। অনুগ্রহ করে সংশোধন করে পুনরায় সংরক্ষণ করুন।');
+      return;
+    }
+
     setSaving(true);
     setErrorMsg(null);
     setIsConflict(false);
@@ -87,7 +197,7 @@ export const DailyReportPage: React.FC = () => {
         revision: typeof currentRev === 'number' ? currentRev : undefined,
       });
 
-      // Update local month state with authoritative server record
+      // Update local month state with authoritative server record including timestamps
       setMonthReports((prev) => ({
         ...prev,
         [selectedDate]: {
@@ -96,11 +206,13 @@ export const DailyReportPage: React.FC = () => {
           revision: res.report.revision,
           status: res.report.status,
           lastSavedAt: res.report.lastSavedAt,
+          updatedAt: res.report.updatedAt,
+          createdAt: res.report.createdAt,
         },
       }));
 
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      setTimeout(() => setSaveSuccess(false), 3500);
     } catch (err: any) {
       if (err.status === 409 || err.code === 'CONFLICT') {
         setIsConflict(true);
@@ -126,6 +238,8 @@ export const DailyReportPage: React.FC = () => {
           revision: res.revision,
           status: res.status,
           lastSavedAt: res.lastSavedAt,
+          updatedAt: res.updatedAt,
+          createdAt: res.createdAt,
         },
       }));
       setIsConflict(false);
@@ -150,10 +264,261 @@ export const DailyReportPage: React.FC = () => {
     }
   };
 
-  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g: MetricGroup) => g.metrics);
+  // Authoritative timestamp info for current selected report
+  const currentReport = monthReports[selectedDate];
+  const saveInfo = getReportSaveInfo(currentReport, 'bn');
+
+  // Distribute groups into columns according to sequence so remaining empty space is packed with the rest of the card titles
+  const getColumnLayout = (groups: MetricGroup[], expandedId: string | null, colCount: number) => {
+    if (colCount <= 1) return [groups];
+
+    const cols: MetricGroup[][] = Array.from({ length: colCount }, () => []);
+
+    // When all cards are collapsed, round-robin ensures 1, 2, 3 across the top, 4, 5, 6 in middle, 7, 8, 9 at bottom
+    if (!expandedId) {
+      groups.forEach((g, i) => {
+        cols[i % colCount].push(g);
+      });
+      return cols;
+    }
+
+    // When one card is expanded, pack columns by current height so the rest of the card titles fill into the empty space in sequence
+    const colHeights = new Array(colCount).fill(0);
+
+    for (const group of groups) {
+      const isExpanded = group.id === expandedId;
+      // An expanded card has multiple fields (~360px), while a collapsed card is just a single header row (~64px)
+      const estimatedHeight = isExpanded ? 360 : 64;
+
+      // Find the column with the least height
+      let minCol = 0;
+      let minH = colHeights[0];
+      for (let c = 1; c < colCount; c++) {
+        if (colHeights[c] < minH) {
+          minH = colHeights[c];
+          minCol = c;
+        }
+      }
+
+      cols[minCol].push(group);
+      colHeights[minCol] += estimatedHeight;
+    }
+
+    return cols;
+  };
+
+  const desktopColumns = useMemo(
+    () => getColumnLayout(DEFAULT_METRIC_GROUPS, expandedGroupId, 3),
+    [expandedGroupId]
+  );
+
+  const tabletColumns = useMemo(
+    () => getColumnLayout(DEFAULT_METRIC_GROUPS, expandedGroupId, 2),
+    [expandedGroupId]
+  );
+
+  const renderCard = (group: MetricGroup) => {
+    const isExpanded = expandedGroupId === group.id;
+
+    return (
+      <div
+        key={group.id}
+        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${
+          isExpanded
+            ? 'border-brand-300 dark:border-brand-800/80 ring-1 ring-brand-500/10'
+            : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+        }`}
+      >
+        {/* Phase 2: Default Collapsed Card Header */}
+        <div
+          onClick={() => toggleGroup(group.id)}
+          className="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer select-none"
+          role="button"
+          tabIndex={0}
+          aria-expanded={isExpanded}
+          aria-controls={`group-fields-${group.id}`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleGroup(group.id);
+            }
+          }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Numbered Badge (Preserving existing style) */}
+            <div className="h-7 w-7 shrink-0 rounded-lg bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+              {group.order}
+            </div>
+
+            {/* Title */}
+            <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">
+              {group.titleBn}
+            </h2>
+          </div>
+
+          {/* Primary Toggle: Checkbox & Synchronized Chevron */}
+          <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="checkbox"
+              id={`group-checkbox-${group.id}`}
+              aria-label={`${group.titleBn} বিস্তারিত তথ্য উন্মুক্ত করুন`}
+              checked={isExpanded}
+              onChange={() => toggleGroup(group.id)}
+              className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
+            />
+            <button
+              type="button"
+              onClick={() => toggleGroup(group.id)}
+              aria-label={isExpanded ? 'সংকুচিত করুন' : 'উন্মুক্ত করুন'}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Phase 2: Expanded Content - Hidden by default */}
+        {isExpanded && (
+          <div
+            id={`group-fields-${group.id}`}
+            className="px-5 pb-5 pt-1 space-y-4 border-t border-slate-100 dark:border-slate-800 animate-fadeIn"
+          >
+            {group.metrics.map((metric: MetricDefinition) => {
+              const value = currentDayValues[metric.id];
+              const fieldError = validationErrors[metric.id];
+
+              // Boolean Field
+              if (metric.type === 'boolean') {
+                return (
+                  <div
+                    key={metric.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800/80"
+                  >
+                    <label
+                      htmlFor={`field-${metric.id}`}
+                      className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                    >
+                      {metric.labelBn}
+                    </label>
+                    <input
+                      id={`field-${metric.id}`}
+                      type="checkbox"
+                      checked={!!value}
+                      onChange={(e) => handleValueChange(metric.id, e.target.checked)}
+                      className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
+                    />
+                  </div>
+                );
+              }
+
+              // Duration Field (Phase 4 UX: Hours and Minutes Dual Input)
+              if (metric.type === 'duration_minutes') {
+                return (
+                  <div key={metric.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <label
+                        htmlFor={`duration-${metric.id}`}
+                        className="font-medium text-slate-700 dark:text-slate-300"
+                      >
+                        {metric.labelBn}
+                      </label>
+                      {metric.unitBn && (
+                        <span className="text-[11px] text-slate-400 font-normal">
+                          ({metric.unitBn})
+                        </span>
+                      )}
+                    </div>
+                    <DurationInput
+                      id={`duration-${metric.id}`}
+                      value={value}
+                      onChange={(totalMinutes) => handleValueChange(metric.id, totalMinutes)}
+                      maxMinutes={metric.max}
+                      disabled={saving}
+                    />
+                    {fieldError && (
+                      <p className="text-[11px] font-semibold text-red-500 mt-0.5">
+                        {fieldError}
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
+              // Count / Regular Numeric Field (Phase 3: Prevention of negative numbers)
+              const isDecimal = metric.id === 'routine_sleep_hours';
+
+              return (
+                <div key={metric.id} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <label
+                      htmlFor={`field-${metric.id}`}
+                      className="font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      {metric.labelBn}
+                    </label>
+                    {metric.unitBn && (
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        ({metric.unitBn})
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      id={`field-${metric.id}`}
+                      type="number"
+                      min={metric.min ?? 0}
+                      max={metric.max}
+                      step={isDecimal ? 0.5 : 1}
+                      value={value ?? ''}
+                      placeholder="0"
+                      onKeyDown={(e) => {
+                        // Prevent negative sign, exponential 'e', and '+' sign
+                        if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        const text = e.clipboardData.getData('text');
+                        if (text.includes('-') || isNaN(Number(text)) || Number(text) < 0) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        if (raw === '') {
+                          handleValueChange(metric.id, null);
+                          return;
+                        }
+                        const parsed = Number(raw);
+                        handleValueChange(metric.id, parsed);
+                      }}
+                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                        fieldError
+                          ? 'border-red-400 dark:border-red-700 focus:ring-red-400/20'
+                          : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/20 focus:border-brand-500'
+                      }`}
+                    />
+                  </div>
+                  {fieldError && (
+                    <p className="text-[11px] font-semibold text-red-500 mt-0.5">
+                      {fieldError}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
       {/* Top Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="space-y-1">
@@ -162,7 +527,7 @@ export const DailyReportPage: React.FC = () => {
             দৈনিক রিপোর্ট এন্ট্রি
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            নির্দিষ্ট তারিখ নির্বাচন করে দৈনন্দিন আমল ও অধ্যয়নের তথ্য সংরক্ষণ করুন
+            নির্দিষ্ট তারিখ নির্বাচন করে দৈনন্দিন আমল, শিক্ষা ও সাংগঠনিক কাজের তথ্য লিপিবদ্ধ করুন
           </p>
         </div>
 
@@ -172,7 +537,7 @@ export const DailyReportPage: React.FC = () => {
           <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setViewMode('single')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                 viewMode === 'single'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -183,7 +548,7 @@ export const DailyReportPage: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -210,120 +575,123 @@ export const DailyReportPage: React.FC = () => {
 
       {/* Date Carousel Navigation (for Single Day Mode) */}
       {viewMode === 'single' && (
-        <div className="flex items-center justify-between bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl">
-          <button
-            onClick={() => navigateDate('prev')}
-            disabled={daysArray.indexOf(selectedDate) === 0}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">পূর্ববর্তী দিন</span>
-          </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl">
+          <div className="flex items-center justify-between sm:justify-start gap-2">
+            <button
+              onClick={() => navigateDate('prev')}
+              disabled={daysArray.indexOf(selectedDate) === 0}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">পূর্ববর্তী দিন</span>
+            </button>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={selectedDate}
-              min={`${selectedMonth}-01`}
-              max={`${selectedMonth}-${String(totalDays).padStart(2, '0')}`}
-              onChange={(e) => {
-                setSelectedDate(e.target.value);
-                setSearchParams({ month: selectedMonth, date: e.target.value });
-              }}
-              className="px-3 py-1.5 text-sm font-bold rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-800 text-brand-900 dark:text-brand-100 shadow-sm"
-            />
-            {monthReports[selectedDate]?.status === 'saved' && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950 px-2.5 py-1 rounded-full">
-                <CheckCircle2 className="h-3 w-3" />
-                সংরক্ষিত
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={selectedDate}
+                min={`${selectedMonth}-01`}
+                max={`${selectedMonth}-${String(totalDays).padStart(2, '0')}`}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
+                  setSearchParams({ month: selectedMonth, date: e.target.value });
+                }}
+                className="px-3 py-1.5 text-sm font-bold rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-800 text-brand-900 dark:text-brand-100 shadow-sm cursor-pointer"
+              />
+              {saveInfo.isSaved && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span>সংরক্ষিত</span>
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => navigateDate('next')}
+              disabled={daysArray.indexOf(selectedDate) === daysArray.length - 1}
+              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+            >
+              <span className="hidden sm:inline">পরবর্তী দিন</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
 
-          <button
-            onClick={() => navigateDate('next')}
-            disabled={daysArray.indexOf(selectedDate) === daysArray.length - 1}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all"
-          >
-            <span className="hidden sm:inline">পরবর্তী দিন</span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          {/* Quick Collapse Indicator */}
+          {expandedGroupId && (
+            <div className="flex items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => setExpandedGroupId(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 font-medium transition-colors cursor-pointer"
+                title="উন্মুক্ত কার্ডটি সংকুচিত করুন"
+              >
+                <ChevronsUp className="h-3.5 w-3.5 text-slate-500" />
+                <span>কার্ড বন্ধ করুন</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {/* SINGLE DAY FORM VIEW */}
       {viewMode === 'single' ? (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {DEFAULT_METRIC_GROUPS.map((group: MetricGroup) => (
-              <div
-                key={group.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
-              >
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <div className="h-7 w-7 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs">
-                    {group.order}
-                  </div>
-                  <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                    {group.titleBn}
-                  </h2>
-                </div>
+          {/* Validation Warning Alert (if any negative or invalid numbers exist) */}
+          {hasValidationErrors && (
+            <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 flex items-center gap-3 text-red-800 dark:text-red-200 text-xs">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+              <div className="flex-1">
+                <strong>মনোযোগ দিন:</strong> ফর্মে নেতিবাচক বা অকার্যকর সংখ্যা রয়েছে। ত্রুটিযুক্ত ফিল্ডগুলো চিহ্নিত করা হয়েছে এবং সংরক্ষণ সাময়িকভাবে স্থগিত রাখা হয়েছে।
+              </div>
+            </div>
+          )}
 
-                <div className="space-y-3.5">
-                  {group.metrics.map((metric: MetricDefinition) => {
-                    const value = currentDayValues[metric.id];
-
-                    if (metric.type === 'boolean') {
-                      return (
-                        <div
-                          key={metric.id}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"
-                        >
-                          <label className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                            {metric.labelBn}
-                          </label>
-                          <input
-                            type="checkbox"
-                            checked={!!value}
-                            onChange={(e) => handleValueChange(metric.id, e.target.checked)}
-                            className="h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                          />
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div key={metric.id} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <label className="font-medium text-slate-700 dark:text-slate-300">
-                            {metric.labelBn}
-                          </label>
-                          {metric.unitBn && (
-                            <span className="text-[11px] text-slate-400 font-normal">
-                              ({metric.unitBn})
-                            </span>
-                          )}
-                        </div>
-                        <input
-                          type="number"
-                          min={metric.min ?? 0}
-                          max={metric.max}
-                          value={value ?? ''}
-                          placeholder="0"
-                          onChange={(e) =>
-                            handleValueChange(
-                              metric.id,
-                              e.target.value === '' ? null : Number(e.target.value)
-                            )
-                          }
-                          className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+          {/* Responsive Packed Columns (Desktop 3-column, Tablet 2-column, Mobile 1-column) */}
+          {/* Desktop (lg: 3 columns) */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-6 items-start">
+            {desktopColumns.map((colGroups, colIndex) => (
+              <div key={colIndex} className="space-y-6">
+                {colGroups.map((group) => renderCard(group))}
               </div>
             ))}
+          </div>
+
+          {/* Tablet (md: 2 columns) */}
+          <div className="hidden md:grid md:grid-cols-2 lg:hidden gap-6 items-start">
+            {tabletColumns.map((colGroups, colIndex) => (
+              <div key={colIndex} className="space-y-6">
+                {colGroups.map((group) => renderCard(group))}
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile (1 column) */}
+          <div className="space-y-6 md:hidden">
+            {DEFAULT_METRIC_GROUPS.map((group) => renderCard(group))}
+          </div>
+
+          {/* Phase 5: Daily Summary & Yesterday Comparison Card */}
+          <DailySummaryCard comparison={summaryComparison} selectedDate={selectedDate} />
+
+          {/* Phase 6: Authoritative Saved-at / Last-updated Timestamp Banner */}
+          <div className="bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+              <Clock className="h-4 w-4 text-brand-600 dark:text-brand-400 shrink-0" />
+              <div>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {saveInfo.isSaved ? saveInfo.full : 'এখনও সংরক্ষণ করা হয়নি (Not saved yet)'}
+                </span>
+                {typeof currentReport?.revision === 'number' && (
+                  <span className="ml-2 text-slate-400 text-[11px]">
+                    (রিভিশন #{currentReport.revision})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-400 dark:text-slate-500">
+              তারিখ: <strong className="text-slate-700 dark:text-slate-300">{selectedDate}</strong>
+            </div>
           </div>
 
           {/* Sticky Save Action Bar */}
@@ -345,27 +713,30 @@ export const DailyReportPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleReload}
-                      className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
                     >
-                      ডাটা রিলোড করুন
+                      <RotateCcw className="h-3 w-3" />
+                      <span>ডাটা রিলোড করুন</span>
                     </button>
                   )}
                 </div>
               )}
               {!saveSuccess && !errorMsg && (
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  তারিখ: <strong className="text-slate-800 dark:text-slate-200">{selectedDate}</strong>
-                  {typeof monthReports[selectedDate]?.revision === 'number' && (
-                    <span className="ml-2 text-slate-400">(রিভিশন #{monthReports[selectedDate].revision})</span>
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                    {saveInfo.full}
+                  </span>
+                  {hasValidationErrors && (
+                    <span className="text-red-500 font-semibold">(ত্রুটি রয়েছে)</span>
                   )}
-                </span>
+                </div>
               )}
             </div>
 
             <button
               onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 transition-all cursor-pointer"
+              disabled={saving || hasValidationErrors}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {saving ? (
                 <span>সংরক্ষণ হচ্ছে...</span>
@@ -379,14 +750,14 @@ export const DailyReportPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* DENSE MATRIX GRID VIEW */
+        /* DENSE MATRIX GRID VIEW WITH TIMESTAMPS */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="overflow-x-auto max-h-[70vh]">
             <table className="w-full text-left text-xs report-grid border-collapse">
               <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[100px]">
-                    তারিখ
+                  <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[120px]">
+                    তারিখ ও সংরক্ষণ সময়
                   </th>
                   {allMetrics.map((m: MetricDefinition) => (
                     <th
@@ -402,13 +773,21 @@ export const DailyReportPage: React.FC = () => {
                       )}
                     </th>
                   ))}
+                  <th className="p-3 bg-slate-100 dark:bg-slate-800 font-bold text-center min-w-[140px]">
+                    সর্বশেষ সংরক্ষণ
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {daysArray.map((dateStr) => {
                   const dayNum = dateStr.split('-')[2];
-                  const dayData = monthReports[dateStr]?.values || {};
+                  const dayReport = monthReports[dateStr];
+                  const dayData = dayReport?.values || {};
                   const isCurrentDay = dateStr === selectedDate;
+                  const dayTimestamp = formatReportTimestamp(
+                    dayReport?.updatedAt || dayReport?.lastSavedAt || dayReport?.createdAt,
+                    'bn'
+                  );
 
                   return (
                     <tr
@@ -419,7 +798,10 @@ export const DailyReportPage: React.FC = () => {
                       }`}
                     >
                       <td className="p-3 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200">
-                        {dayNum} তারিখ
+                        <div>{dayNum} তারিখ</div>
+                        <div className="text-[10px] text-slate-400 font-normal mt-0.5">
+                          {dayTimestamp ? 'সংরক্ষিত' : 'খালি'}
+                        </div>
                       </td>
                       {allMetrics.map((m: MetricDefinition) => {
                         const val = dayData[m.id];
@@ -431,13 +813,26 @@ export const DailyReportPage: React.FC = () => {
                             {m.type === 'boolean' ? (
                               val ? '✓' : '-'
                             ) : val !== undefined && val !== null ? (
-                              val
+                              m.type === 'duration_minutes' && typeof val === 'number' ? (
+                                `${Math.floor(val / 60)}ঘ ${val % 60}মি`
+                              ) : (
+                                val
+                              )
                             ) : (
                               <span className="text-slate-300 dark:text-slate-600">-</span>
                             )}
                           </td>
                         );
                       })}
+                      <td className="p-2 text-center text-[11px] text-slate-500 dark:text-slate-400">
+                        {dayTimestamp ? (
+                          <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                            {dayTimestamp}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-600">সংরক্ষিত নয়</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
