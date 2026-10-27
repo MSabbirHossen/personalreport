@@ -23,13 +23,42 @@ export const UpdateProfileInputSchema = z.object({
 export const DateKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)');
 export const MonthKeySchema = z.string().regex(/^\d{4}-\d{2}$/, 'Invalid month format (YYYY-MM)');
 
-export const SaveDailyReportInputSchema = z.object({
-  dateKey: DateKeySchema,
-  templateVersionId: z.string().optional(),
-  values: z.record(z.union([z.number(), z.boolean(), z.string(), z.null()])),
-  revision: z.number().int().nonnegative().optional(),
-  reason: z.string().max(300).optional(), // Reason for correction if editing prior saved date
-});
+export const SaveDailyReportInputSchema = z
+  .object({
+    dateKey: DateKeySchema,
+    templateVersionId: z.string().optional(),
+    values: z.record(z.union([z.number(), z.boolean(), z.string(), z.null()])),
+    revision: z.number().int().nonnegative().optional(),
+    reason: z.string().max(300).optional(), // Reason for correction if editing prior saved date
+  })
+  .superRefine((data, ctx) => {
+    for (const [key, val] of Object.entries(data.values)) {
+      if (typeof val === 'number') {
+        if (isNaN(val) || !isFinite(val)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Field '${key}' must be a valid number.`,
+            path: ['values', key],
+          });
+        } else if (val < 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Negative values are not permitted for '${key}'. Received: ${val}`,
+            path: ['values', key],
+          });
+        }
+      } else if (typeof val === 'string') {
+        const parsed = Number(val);
+        if (!isNaN(parsed) && parsed < 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Negative values are not permitted for '${key}'. Received: ${val}`,
+            path: ['values', key],
+          });
+        }
+      }
+    }
+  });
 
 // ==================== Monthly Plan ====================
 export const SaveMonthlyPlanInputSchema = z.object({
