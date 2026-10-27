@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { Lock, Mail, User, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { BPSReportLogo } from '../components/common/BPSReportLogo.js';
+import { ThemeSelector } from '../components/common/ThemeSelector.js';
+import { LanguageSelector } from '../components/common/LanguageSelector.js';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,20 +36,16 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await registerWithEmail(email, password, name.trim());
+      await registerWithEmail(email, password, name);
       navigate('/app/home');
     } catch (err: any) {
       console.error('Registration error:', err);
       setErrorMessage(
         err.message?.includes('auth/email-already-in-use')
-          ? 'এই ইমেইল অ্যাড্রেসটি দিয়ে ইতিমধ্যে অ্যাকাউন্ট তৈরি করা হয়েছে। অনুগ্রহ করে লগইন করুন।'
-          : err.message?.includes('auth/weak-password')
-          ? 'পাসওয়ার্ডটি খুব দুর্বল। অন্তত ৬ অক্ষরের শক্তিশালী পাসওয়ার্ড দিন।'
-          : err.message?.includes('auth/invalid-email')
-          ? 'অনুগ্রহ করে একটি সঠিক ইমেইল অ্যাড্রেস প্রদান করুন।'
+          ? 'এই ইমেইলটি ইতিমধ্যে ব্যবহার করা হয়েছে। অনুগ্রহ করে লগইন করুন।'
           : err.message?.includes('Firebase Auth is not configured')
           ? 'ফায়ারবেজ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'নিবন্ধন সম্পন্ন করতে ব্যর্থ হয়েছে।'
+          : err.message || 'নিবন্ধন ব্যর্থ হয়েছে।'
       );
     } finally {
       setLoading(false);
@@ -64,7 +63,7 @@ export const RegisterPage: React.FC = () => {
       setErrorMessage(
         err.message?.includes('Firebase Google Auth is not configured')
           ? 'গুগল অথ এখনও কনফিগার করা হয়নি। নিচের ডেমো বাটনে ক্লিক করুন।'
-          : err.message || 'গুগল দিয়ে অ্যাকাউন্ট তৈরি ব্যর্থ হয়েছে।'
+          : err.message || 'গুগল নিবন্ধন ব্যর্থ হয়েছে।'
       );
     } finally {
       setLoading(false);
@@ -77,24 +76,30 @@ export const RegisterPage: React.FC = () => {
       await loginDemo();
       navigate('/app/home');
     } catch (err: any) {
-      setErrorMessage(err.message || 'ডেমো মোডে প্রবেশ ব্যর্থ হয়েছে।');
+      setErrorMessage(err.message || 'ডেমো লগইন ব্যর্থ হয়েছে।');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
-      <div className="w-full max-w-md space-y-6 my-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-theme-bg p-4 relative transition-colors duration-200">
+      {/* Top utilities */}
+      <div className="w-full max-w-md flex justify-between items-center mb-4">
+        <LanguageSelector />
+        <ThemeSelector compact={true} />
+      </div>
+
+      <div className="w-full max-w-md space-y-6 my-4">
         {/* Brand header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg shadow-brand-600/30">
-            <span className="font-bold text-2xl">রি</span>
+          <div className="inline-flex items-center justify-center">
+            <BPSReportLogo size={52} wordmark={false} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Report<span className="text-brand-600 dark:text-brand-400">-BPS</span> এ নিবন্ধন
+          <h1 className="text-2xl font-extrabold text-theme-text tracking-tight font-latin">
+            BPS<span className="text-[var(--primary)]">_Report</span>
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-theme-text-muted">
             নতুন অ্যাকাউন্ট তৈরি করে ব্যক্তিগত আমল ও পাঠ্যক্রম ট্র্যাকিং শুরু করুন
           </p>
         </div>
@@ -108,13 +113,13 @@ export const RegisterPage: React.FC = () => {
         )}
 
         {/* Register Card */}
-        <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none space-y-5">
+        <div className="bg-theme-surface p-6 sm:p-8 rounded-3xl border border-theme-border shadow-xl space-y-5 text-theme-text">
           {/* Google Sign In/Up Button */}
           <button
             type="button"
             onClick={handleGoogleSignUp}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors shadow-sm cursor-pointer"
+            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-theme-border bg-theme-surface text-theme-text font-semibold text-xs hover:bg-theme-surface-muted transition-colors shadow-2xs cursor-pointer"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -138,8 +143,8 @@ export const RegisterPage: React.FC = () => {
           </button>
 
           <div className="relative flex items-center justify-center">
-            <div className="border-t border-slate-100 dark:border-slate-800 w-full" />
-            <span className="bg-white dark:bg-slate-900 px-3 text-[11px] text-slate-400 uppercase font-medium absolute">
+            <div className="border-t border-theme-border w-full" />
+            <span className="bg-theme-surface px-3 text-[11px] text-theme-text-muted uppercase font-medium absolute">
               অথবা ইমেইল দিয়ে
             </span>
           </div>
@@ -147,8 +152,8 @@ export const RegisterPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4 pt-1">
             {/* Full Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-slate-400" />
+              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-theme-text-muted" />
                 <span>আপনার পূর্ণ নাম</span>
               </label>
               <input
@@ -157,14 +162,14 @@ export const RegisterPage: React.FC = () => {
                 placeholder="মো. সাব্বির হোসেন"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
             {/* Email Address */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-slate-400" />
+              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
                 <span>ইমেইল অ্যাড্রেস</span>
               </label>
               <input
@@ -173,14 +178,14 @@ export const RegisterPage: React.FC = () => {
                 placeholder="student@bps-report.org"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-slate-400" />
+              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
                 <span>পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</span>
               </label>
               <div className="relative flex items-center">
@@ -191,12 +196,12 @@ export const RegisterPage: React.FC = () => {
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer p-0.5"
+                  className="absolute right-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
                   aria-label={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
                   title={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
                 >
@@ -211,8 +216,8 @@ export const RegisterPage: React.FC = () => {
 
             {/* Confirm Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-slate-400" />
+              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
                 <span>পাসওয়ার্ড নিশ্চিত করুন</span>
               </label>
               <div className="relative flex items-center">
@@ -223,12 +228,12 @@ export const RegisterPage: React.FC = () => {
                   minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer p-0.5"
+                  className="absolute right-3 text-theme-text-muted hover:text-theme-text transition-colors cursor-pointer p-0.5"
                   aria-label={showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
                   title={showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'}
                 >
@@ -245,7 +250,7 @@ export const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] mt-2"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md shadow-brand-600/20 transition-all cursor-pointer active:scale-[0.99] mt-2 focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             >
               <span>{loading ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'নিবন্ধন সম্পন্ন করুন'}</span>
               <ArrowRight className="h-4 w-4" />
@@ -253,12 +258,12 @@ export const RegisterPage: React.FC = () => {
           </form>
 
           {/* Already have an account link */}
-          <div className="text-center pt-2 border-t border-slate-100 dark:border-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-center pt-2 border-t border-theme-border">
+            <p className="text-xs text-theme-text-muted">
               ইতিমধ্যে একটি অ্যাকাউন্ট আছে?{' '}
               <Link
                 to="/login"
-                className="font-bold text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-1"
+                className="font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
               >
                 লগইন করুন
               </Link>
@@ -267,7 +272,7 @@ export const RegisterPage: React.FC = () => {
 
           {/* Development Demo Button */}
           {import.meta.env.DEV && (
-            <div className="relative flex items-center justify-center border-t border-slate-100 dark:border-slate-800 pt-3">
+            <div className="relative flex items-center justify-center border-t border-theme-border pt-3">
               <button
                 type="button"
                 onClick={handleDemoSignUp}
@@ -281,8 +286,8 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-slate-400">
-          সুরক্ষিত এবং গোপনীয়তা-সম্মত রিপোর্টিং প্ল্যাটফর্ম
+        <p className="text-center text-[11px] text-theme-text-muted">
+          BPS Report · Better Data · Brighter Future
         </p>
       </div>
     </div>
