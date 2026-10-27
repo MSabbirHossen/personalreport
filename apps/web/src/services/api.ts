@@ -1,3 +1,5 @@
+import { auth } from '../config/firebase.js';
+
 const API_PREFIX = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const API_BASE = `${API_PREFIX}/api/v1`;
 
@@ -5,7 +7,19 @@ export async function fetchWithAuth<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('auth_token');
+  let token = localStorage.getItem('auth_token');
+
+  // Attempt to obtain fresh token from Firebase client if user is signed in
+  if (auth?.currentUser) {
+    try {
+      token = await auth.currentUser.getIdToken();
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+    } catch {
+      // Fallback to token stored in localStorage
+    }
+  }
 
   const headers = new Headers(options.headers || {});
   if (token) {
@@ -15,10 +29,27 @@ export async function fetchWithAuth<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  let response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
   });
+
+  // If unauthorized (401) and Firebase user is present, force refresh token once and retry
+  if (response.status === 401 && auth?.currentUser) {
+    try {
+      const freshToken = await auth.currentUser.getIdToken(true);
+      if (freshToken) {
+        localStorage.setItem('auth_token', freshToken);
+        headers.set('Authorization', `Bearer ${freshToken}`);
+        response = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers,
+        });
+      }
+    } catch {
+      // Force refresh failed
+    }
+  }
 
   const data = await response.json();
 

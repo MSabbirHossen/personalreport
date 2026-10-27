@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api.js';
+import { useAuth } from '../context/AuthContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import {
   MessageSquareQuote,
@@ -13,6 +14,7 @@ import {
 
 export const AdvicePage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { t, isRTL, formatDate, formatMonthKey } = useLanguage();
   const [replyTextMap, setReplyTextMap] = useState<Record<string, string>>({});
   const [activeReplyId, setActiveReplyId] = useState<string | null>(null);
@@ -20,6 +22,7 @@ export const AdvicePage: React.FC = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['advice-list'],
     queryFn: () => api.getAdvice(),
+    enabled: !!user && !!user.orgId && (user.roles?.length ?? 0) > 0,
   });
 
   const acknowledgeMutation = useMutation({

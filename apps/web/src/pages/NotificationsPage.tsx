@@ -2,16 +2,19 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
+import { useAuth } from '../context/AuthContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { Bell, CheckCircle2, Clock, ArrowRight, CheckCheck, AlertCircle } from 'lucide-react';
 
 export const NotificationsPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { t, isRTL, formatDate, formatNumber } = useLanguage();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api.getNotifications(),
+    enabled: !!user && !!user.orgId && (user.roles?.length ?? 0) > 0,
     refetchInterval: 30000,
   });
 
