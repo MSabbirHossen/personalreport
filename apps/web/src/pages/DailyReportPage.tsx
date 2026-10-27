@@ -7,6 +7,9 @@ import {
   calculateDailySummary,
   compareDailySummaries,
   getPreviousDateKey,
+  getMetricLabel,
+  getGroupTitle,
+  getMetricUnit,
 } from '@reportbd/shared';
 import { api } from '../services/api.js';
 import {
@@ -28,11 +31,14 @@ import {
 import { DurationInput } from '../components/daily/DurationInput.js';
 import { DailySummaryCard } from '../components/daily/DailySummaryCard.js';
 import { formatReportTimestamp, getReportSaveInfo } from '../components/daily/timestampUtils.js';
+import { useLanguage } from '../context/LanguageContext.js';
 
 export const DailyReportPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentMonthParam = searchParams.get('month') || new Date().toISOString().substring(0, 7);
   const currentDateParam = searchParams.get('date') || new Date().toISOString().substring(0, 10);
+
+  const { t, locale, isRTL, formatDate, formatNumber } = useLanguage();
 
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthParam);
   const [selectedDate, setSelectedDate] = useState<string>(currentDateParam);
@@ -160,8 +166,8 @@ export const DailyReportPage: React.FC = () => {
   }, [yesterdayReport]);
 
   const summaryComparison = useMemo(() => {
-    return compareDailySummaries(todayTotals, yesterdayTotals, yesterdayDateKey, 'bn');
-  }, [todayTotals, yesterdayTotals, yesterdayDateKey]);
+    return compareDailySummaries(todayTotals, yesterdayTotals, yesterdayDateKey, locale);
+  }, [todayTotals, yesterdayTotals, yesterdayDateKey, locale]);
 
   // Client-side validation: detect any invalid or negative values, and enforce business rules
   const validationErrors = useMemo(() => {
@@ -173,19 +179,19 @@ export const DailyReportPage: React.FC = () => {
 
       if (typeof val === 'number') {
         if (isNaN(val)) {
-          errors[metric.id] = 'অকার্যকর সংখ্যা';
+          errors[metric.id] = t('validation.invalidNumber');
         } else if (val < 0) {
-          errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+          errors[metric.id] = t('validation.negativeNumberNotAllowed');
         } else if (metric.type === 'count' && metric.id !== 'routine_sleep_hours' && !Number.isInteger(val)) {
-          errors[metric.id] = 'পূর্ণসংখ্যা প্রয়োজন';
+          errors[metric.id] = t('validation.invalidNumber');
         }
       } else if (typeof val === 'string') {
         if (metric.type === 'count' || metric.type === 'duration_minutes') {
           const num = Number(val);
           if (isNaN(num)) {
-            errors[metric.id] = 'অকার্যকর সংখ্যা';
+            errors[metric.id] = t('validation.invalidNumber');
           } else if (num < 0) {
-            errors[metric.id] = 'নেতিবাচক মান গ্রহণযোগ্য নয়';
+            errors[metric.id] = t('validation.negativeNumberNotAllowed');
           }
         }
       }
@@ -201,11 +207,11 @@ export const DailyReportPage: React.FC = () => {
       !isNaN(attendedClasses) &&
       attendedClasses > totalClasses
     ) {
-      errors['class_attended_count'] = 'উপস্থিত ক্লাসের সংখ্যা মোট ক্লাসের সংখ্যার চেয়ে বেশি হতে পারে না';
+      errors['class_attended_count'] = t('validation.classAttendedExceedsTotal');
     }
 
     return errors;
-  }, [currentDayValues, allMetrics]);
+  }, [currentDayValues, allMetrics, t]);
 
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
@@ -218,7 +224,7 @@ export const DailyReportPage: React.FC = () => {
 
   const handleSave = async () => {
     if (hasValidationErrors) {
-      setErrorMsg('ফর্মটিতে কিছু ভুল বা অসঙ্গতি রয়েছে। ত্রুটিযুক্ত ফিল্ডগুলো সংশোধন করে পুনরায় সংরক্ষণ করুন।');
+      setErrorMsg(t('dailyReport.reportSaveError'));
       return;
     }
 
@@ -251,9 +257,9 @@ export const DailyReportPage: React.FC = () => {
     } catch (err: any) {
       if (err.status === 409 || err.code === 'CONFLICT') {
         setIsConflict(true);
-        setErrorMsg('অন্য ডিভাইসে পরিবর্তন হয়েছে: সার্ভারে নতুন তথ্য বিদ্যমান। প্রতিস্থাপন না করে সর্বশেষ ডাটা দেখতে রিলোড করুন।');
+        setErrorMsg(t('common.error'));
       } else {
-        setErrorMsg(err.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
+        setErrorMsg(err.message || t('dailyReport.reportSaveError'));
       }
     } finally {
       setSaving(false);
@@ -280,7 +286,7 @@ export const DailyReportPage: React.FC = () => {
       setIsConflict(false);
       setErrorMsg(null);
     } catch (err: any) {
-      setErrorMsg(err.message || 'রিলোড করতে ব্যর্থ হয়েছে');
+      setErrorMsg(err.message || t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -301,7 +307,7 @@ export const DailyReportPage: React.FC = () => {
 
   // Authoritative timestamp info for current selected report
   const currentReport = monthReports[selectedDate];
-  const saveInfo = getReportSaveInfo(currentReport, 'bn');
+  const saveInfo = getReportSaveInfo(currentReport, locale);
 
   // Distribute groups into columns according to sequence so remaining empty space is packed with the rest of the card titles
   const getColumnLayout = (groups: MetricGroup[], expandedId: string | null, colCount: number) => {
@@ -309,7 +315,6 @@ export const DailyReportPage: React.FC = () => {
 
     const cols: MetricGroup[][] = Array.from({ length: colCount }, () => []);
 
-    // When all cards are collapsed, round-robin ensures 1, 2, 3 across the top, 4, 5, 6 in middle, 7, 8, 9 at bottom
     if (!expandedId) {
       groups.forEach((g, i) => {
         cols[i % colCount].push(g);
@@ -317,15 +322,12 @@ export const DailyReportPage: React.FC = () => {
       return cols;
     }
 
-    // When one card is expanded, pack columns by current height so the rest of the card titles fill into the empty space in sequence
     const colHeights = new Array(colCount).fill(0);
 
     for (const group of groups) {
       const isExpanded = group.id === expandedId;
-      // An expanded card has multiple fields (~360px), while a collapsed card is just a single header row (~64px)
       const estimatedHeight = isExpanded ? 360 : 64;
 
-      // Find the column with the least height
       let minCol = 0;
       let minH = colHeights[0];
       for (let c = 1; c < colCount; c++) {
@@ -354,16 +356,18 @@ export const DailyReportPage: React.FC = () => {
 
   const renderCard = (group: MetricGroup) => {
     const isExpanded = expandedGroupId === group.id;
+    const groupTitle = getGroupTitle(group, locale);
 
     return (
       <div
         key={group.id}
-        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${isExpanded
+        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${
+          isExpanded
             ? 'border-brand-300 dark:border-brand-800/80 ring-1 ring-brand-500/10'
             : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-          }`}
+        }`}
       >
-        {/* Phase 2: Default Collapsed Card Header */}
+        {/* Default Collapsed Card Header */}
         <div
           onClick={() => toggleGroup(group.id)}
           className="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer select-none"
@@ -379,14 +383,14 @@ export const DailyReportPage: React.FC = () => {
           }}
         >
           <div className="flex items-center gap-3 min-w-0">
-            {/* Numbered Badge (Preserving existing style) */}
+            {/* Numbered Badge */}
             <div className="h-7 w-7 shrink-0 rounded-lg bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
-              {group.order}
+              {formatNumber(group.order)}
             </div>
 
             {/* Title */}
             <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">
-              {group.titleBn}
+              {groupTitle}
             </h2>
           </div>
 
@@ -395,7 +399,7 @@ export const DailyReportPage: React.FC = () => {
             <input
               type="checkbox"
               id={`group-checkbox-${group.id}`}
-              aria-label={`${group.titleBn} বিস্তারিত তথ্য উন্মুক্ত করুন`}
+              aria-label={`${groupTitle} ${isExpanded ? t('dailyReport.collapseAll') : t('dailyReport.expandAll')}`}
               checked={isExpanded}
               onChange={() => toggleGroup(group.id)}
               className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
@@ -403,7 +407,7 @@ export const DailyReportPage: React.FC = () => {
             <button
               type="button"
               onClick={() => toggleGroup(group.id)}
-              aria-label={isExpanded ? 'সংকুচিত করুন' : 'উন্মুক্ত করুন'}
+              aria-label={isExpanded ? t('dailyReport.collapseAll') : t('dailyReport.expandAll')}
               className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
               {isExpanded ? (
@@ -424,31 +428,35 @@ export const DailyReportPage: React.FC = () => {
             {group.metrics.map((metric: MetricDefinition) => {
               const value = currentDayValues[metric.id];
               const fieldError = validationErrors[metric.id];
+              const metricLabel = getMetricLabel(metric, locale);
+              const metricUnit = getMetricUnit(metric, locale);
 
-              // Card 9 Date-Restricted Checkbox: 'রিপোর্ট সংরক্ষণ'
+              // Card 9 Date-Restricted Checkbox: 'routine_report_confirmed'
               if (metric.id === 'routine_report_confirmed') {
                 return (
                   <div
                     key={metric.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${!isToday
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                      !isToday
                         ? 'bg-slate-100/70 dark:bg-slate-800/40 border-dashed border-slate-200 dark:border-slate-700/60'
                         : 'bg-slate-50 dark:bg-slate-800/60 border-slate-100 dark:border-slate-800/80'
-                      }`}
-                    title={!isToday ? 'Only editable on current date' : undefined}
+                    }`}
+                    title={!isToday ? t('dailyReport.dateRestrictedTooltip') : undefined}
                   >
-                    <div className="space-y-0.5 pr-2">
+                    <div className="space-y-0.5 pr-2 rtl:pr-0 rtl:pl-2">
                       <label
                         htmlFor={`field-${metric.id}`}
-                        className={`text-xs font-medium cursor-pointer ${!isToday
+                        className={`text-xs font-medium cursor-pointer ${
+                          !isToday
                             ? 'text-slate-500 dark:text-slate-400 cursor-not-allowed'
                             : 'text-slate-700 dark:text-slate-300'
-                          }`}
+                        }`}
                       >
-                        {metric.labelBn}
+                        {metricLabel}
                       </label>
                       {!isToday && (
                         <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-wide">
-                          Only editable on current date
+                          {t('dailyReport.dateRestrictedBadge')}
                         </p>
                       )}
                     </div>
@@ -456,8 +464,8 @@ export const DailyReportPage: React.FC = () => {
                       id={`field-${metric.id}`}
                       type="checkbox"
                       disabled={!isToday}
-                      title={!isToday ? 'Only editable on current date' : undefined}
-                      aria-label={`${metric.labelBn} ${!isToday ? '(Only editable on current date)' : ''}`}
+                      title={!isToday ? t('dailyReport.dateRestrictedTooltip') : undefined}
+                      aria-label={`${metricLabel} ${!isToday ? `(${t('dailyReport.dateRestrictedTooltip')})` : ''}`}
                       checked={!!value}
                       onChange={(e) => handleValueChange(metric.id, e.target.checked)}
                       className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -466,7 +474,7 @@ export const DailyReportPage: React.FC = () => {
                 );
               }
 
-              // Boolean Field (e.g. পারিবারিক বৈঠক, তাহাজ্জুদ, মুহাসাবা)
+              // Boolean Field
               if (metric.type === 'boolean') {
                 return (
                   <div
@@ -477,7 +485,7 @@ export const DailyReportPage: React.FC = () => {
                       htmlFor={`field-${metric.id}`}
                       className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
                     >
-                      {metric.labelBn}
+                      {metricLabel}
                     </label>
                     <input
                       id={`field-${metric.id}`}
@@ -490,7 +498,7 @@ export const DailyReportPage: React.FC = () => {
                 );
               }
 
-              // Text Field (Card 2: হাদিসের ব্যাখ্যা)
+              // Text Field (Card 2: Hadith explanation)
               if (metric.type === 'text') {
                 return (
                   <div key={metric.id} className="space-y-1">
@@ -499,14 +507,14 @@ export const DailyReportPage: React.FC = () => {
                         htmlFor={`field-${metric.id}`}
                         className="font-medium text-slate-700 dark:text-slate-300"
                       >
-                        {metric.labelBn}
+                        {metricLabel}
                       </label>
                     </div>
                     <textarea
                       id={`field-${metric.id}`}
                       rows={2}
                       value={value ?? ''}
-                      placeholder="হাদিসের ব্যাখ্যা বা শিক্ষা লিপিবদ্ধ করুন..."
+                      placeholder={t('dailyReport.hadithExplanationPlaceholder')}
                       onChange={(e) => handleValueChange(metric.id, e.target.value)}
                       className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y min-h-[58px]"
                     />
@@ -514,7 +522,7 @@ export const DailyReportPage: React.FC = () => {
                 );
               }
 
-              // Duration Field (Phase 4 UX: Hours and Minutes Dual Input)
+              // Duration Field
               if (metric.type === 'duration_minutes') {
                 return (
                   <div key={metric.id} className="space-y-1.5">
@@ -523,11 +531,11 @@ export const DailyReportPage: React.FC = () => {
                         htmlFor={`duration-${metric.id}`}
                         className="font-medium text-slate-700 dark:text-slate-300"
                       >
-                        {metric.labelBn}
+                        {metricLabel}
                       </label>
-                      {metric.unitBn && (
+                      {metricUnit && (
                         <span className="text-[11px] text-slate-400 font-normal">
-                          ({metric.unitBn})
+                          ({metricUnit})
                         </span>
                       )}
                     </div>
@@ -547,7 +555,7 @@ export const DailyReportPage: React.FC = () => {
                 );
               }
 
-              // Count / Regular Numeric Field (Phase 3: Prevention of negative numbers)
+              // Count / Regular Numeric Field
               const isDecimal = metric.id === 'routine_sleep_hours';
 
               return (
@@ -557,11 +565,11 @@ export const DailyReportPage: React.FC = () => {
                       htmlFor={`field-${metric.id}`}
                       className="font-medium text-slate-700 dark:text-slate-300"
                     >
-                      {metric.labelBn}
+                      {metricLabel}
                     </label>
-                    {metric.unitBn && (
+                    {metricUnit && (
                       <span className="text-[11px] text-slate-400 font-normal">
-                        ({metric.unitBn})
+                        ({metricUnit})
                       </span>
                     )}
                   </div>
@@ -575,7 +583,6 @@ export const DailyReportPage: React.FC = () => {
                       value={value ?? ''}
                       placeholder="0"
                       onKeyDown={(e) => {
-                        // Prevent negative sign, exponential 'e', and '+' sign
                         if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
                           e.preventDefault();
                         }
@@ -595,10 +602,11 @@ export const DailyReportPage: React.FC = () => {
                         const parsed = Number(raw);
                         handleValueChange(metric.id, parsed);
                       }}
-                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${fieldError
+                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                        fieldError
                           ? 'border-red-400 dark:border-red-700 focus:ring-red-400/20'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/20 focus:border-brand-500'
-                        }`}
+                      }`}
                     />
                   </div>
                   {fieldError && (
@@ -622,10 +630,10 @@ export const DailyReportPage: React.FC = () => {
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-            দৈনিক রিপোর্ট এন্ট্রি
+            <span>{t('dailyReport.title')}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            নির্দিষ্ট তারিখ নির্বাচন করে দৈনন্দিন আমল, শিক্ষা ও সাংগঠনিক কাজের তথ্য লিপিবদ্ধ করুন
+            {t('dailyReport.subtitle')}
           </p>
         </div>
 
@@ -635,23 +643,25 @@ export const DailyReportPage: React.FC = () => {
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setViewMode('single')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${viewMode === 'single'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === 'single'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
+              }`}
             >
               <FileEdit className="h-3.5 w-3.5" />
-              <span>একক দিন</span>
+              <span>{t('dailyReport.singleDayView')}</span>
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${viewMode === 'grid'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
+              }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
-              <span>মাসিক গ্রিড</span>
+              <span>{t('dailyReport.monthlyGridView')}</span>
             </button>
           </div>
 
@@ -661,10 +671,10 @@ export const DailyReportPage: React.FC = () => {
               type="button"
               onClick={() => window.print()}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer"
-              title="A4 ল্যান্ডস্কেপ ফরম্যাটে মাসিক গ্রিড প্রিন্ট করুন"
+              title={t('common.print')}
             >
               <Printer className="h-3.5 w-3.5" />
-              <span>প্রিন্ট করুন</span>
+              <span>{t('common.print')}</span>
             </button>
           )}
 
@@ -691,8 +701,8 @@ export const DailyReportPage: React.FC = () => {
               disabled={daysArray.indexOf(selectedDate) === 0}
               className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
             >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">পূর্ববর্তী দিন</span>
+              <ChevronLeft className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+              <span className="hidden sm:inline">{t('dailyReport.previousDay')}</span>
             </button>
 
             <div className="flex items-center gap-2">
@@ -710,7 +720,7 @@ export const DailyReportPage: React.FC = () => {
               {saveInfo.isSaved && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full">
                   <CheckCircle2 className="h-3 w-3" />
-                  <span>সংরক্ষিত</span>
+                  <span>{t('common.saved')}</span>
                 </span>
               )}
             </div>
@@ -720,8 +730,8 @@ export const DailyReportPage: React.FC = () => {
               disabled={daysArray.indexOf(selectedDate) === daysArray.length - 1}
               className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
             >
-              <span className="hidden sm:inline">পরবর্তী দিন</span>
-              <ChevronRight className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('dailyReport.nextDay')}</span>
+              <ChevronRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
             </button>
           </div>
 
@@ -732,10 +742,10 @@ export const DailyReportPage: React.FC = () => {
                 type="button"
                 onClick={() => setExpandedGroupId(null)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 font-medium transition-colors cursor-pointer"
-                title="উন্মুক্ত কার্ডটি সংকুচিত করুন"
+                title={t('dailyReport.collapseAll')}
               >
                 <ChevronsUp className="h-3.5 w-3.5 text-slate-500" />
-                <span>কার্ড বন্ধ করুন</span>
+                <span>{t('dailyReport.collapseAll')}</span>
               </button>
             </div>
           )}
@@ -745,12 +755,12 @@ export const DailyReportPage: React.FC = () => {
       {/* SINGLE DAY FORM VIEW */}
       {viewMode === 'single' ? (
         <div className="space-y-6">
-          {/* Validation Warning Alert (if any negative or invalid numbers exist) */}
+          {/* Validation Warning Alert */}
           {hasValidationErrors && (
             <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900/60 flex items-center gap-3 text-red-800 dark:text-red-200 text-xs">
               <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
               <div className="flex-1">
-                <strong>মনোযোগ দিন:</strong> ফর্মে নেতিবাচক বা অকার্যকর সংখ্যা রয়েছে। ত্রুটিযুক্ত ফিল্ডগুলো চিহ্নিত করা হয়েছে এবং সংরক্ষণ সাময়িকভাবে স্থগিত রাখা হয়েছে।
+                <strong>{t('common.error')}:</strong> {t('dailyReport.reportSaveError')}
               </div>
             </div>
           )}
@@ -779,27 +789,28 @@ export const DailyReportPage: React.FC = () => {
             {DEFAULT_METRIC_GROUPS.map((group) => renderCard(group))}
           </div>
 
-          {/* Phase 5: Daily Summary & Yesterday Comparison Card */}
+          {/* Daily Summary & Yesterday Comparison Card */}
           <DailySummaryCard comparison={summaryComparison} selectedDate={selectedDate} />
 
-          {/* Phase 6: Authoritative Saved-at / Last-updated Timestamp Banner */}
+          {/* Authoritative Saved-at / Last-updated Timestamp Banner */}
           <div className="bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
               <Clock className="h-4 w-4 text-brand-600 dark:text-brand-400 shrink-0" />
               <div>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {saveInfo.isSaved ? saveInfo.full : 'এখনও সংরক্ষণ করা হয়নি (Not saved yet)'}
+                  {saveInfo.full}
                 </span>
                 {typeof currentReport?.revision === 'number' && (
-                  <span className="ml-2 text-slate-400 text-[11px]">
-                    (রিভিশন #{currentReport.revision})
+                  <span className="mx-2 text-slate-400 text-[11px]">
+                    ({t('dailyReport.revisionLabel')} #{formatNumber(currentReport.revision)})
                   </span>
                 )}
               </div>
             </div>
 
             <div className="text-[11px] text-slate-400 dark:text-slate-500">
-              তারিখ: <strong className="text-slate-700 dark:text-slate-300">{selectedDate}</strong>
+              {t('common.date')}:{' '}
+              <strong className="text-slate-700 dark:text-slate-300">{formatDate(selectedDate)}</strong>
             </div>
           </div>
 
@@ -809,7 +820,7 @@ export const DailyReportPage: React.FC = () => {
               {saveSuccess && (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>তথ্য সফলভাবে সংরক্ষিত হয়েছে!</span>
+                  <span>{t('dailyReport.reportSavedSuccess')}</span>
                 </div>
               )}
               {errorMsg && (
@@ -825,7 +836,7 @@ export const DailyReportPage: React.FC = () => {
                       className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <RotateCcw className="h-3 w-3" />
-                      <span>ডাটা রিলোড করুন</span>
+                      <span>{t('common.retry')}</span>
                     </button>
                   )}
                 </div>
@@ -836,7 +847,7 @@ export const DailyReportPage: React.FC = () => {
                     {saveInfo.full}
                   </span>
                   {hasValidationErrors && (
-                    <span className="text-red-500 font-semibold">(ত্রুটি রয়েছে)</span>
+                    <span className="text-red-500 font-semibold">({t('common.error')})</span>
                   )}
                 </div>
               )}
@@ -848,11 +859,11 @@ export const DailyReportPage: React.FC = () => {
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {saving ? (
-                <span>সংরক্ষণ হচ্ছে...</span>
+                <span>{t('dailyReport.savingReport')}</span>
               ) : (
                 <>
                   <Save className="h-4 w-4" />
-                  <span>রিপোর্ট সংরক্ষণ করুন</span>
+                  <span>{t('dailyReport.saveReportBtn')}</span>
                 </>
               )}
             </button>
@@ -865,41 +876,45 @@ export const DailyReportPage: React.FC = () => {
           <div className="hidden print:block mb-3 border-b-2 border-slate-800 pb-2 text-slate-900">
             <div className="flex justify-between items-end">
               <div>
-                <h1 className="text-xl font-bold tracking-tight">ব্যক্তিগত মাসিক রিপোর্ট গ্রিড</h1>
+                <h1 className="text-xl font-bold tracking-tight">{t('common.appTitle')} — {t('dailyReport.monthlyGridView')}</h1>
                 <p className="text-xs text-slate-700 mt-0.5">
-                  মাস: <strong className="font-bold">{selectedMonth}</strong> (মোট {totalDays} দিন)
+                  {t('dailyReport.monthSelector')}: <strong className="font-bold">{selectedMonth}</strong> ({formatNumber(totalDays)} {t('common.actions')})
                 </p>
               </div>
               <div className="text-right text-[10px] text-slate-600">
-                মুদ্রণ সময়: {formatReportTimestamp(new Date().toISOString(), 'bn')}
+                {t('dailyReport.lastUpdatedLabel')}: {formatReportTimestamp(new Date().toISOString(), locale)}
               </div>
             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden report-grid-container">
             <div className="overflow-x-auto max-h-[72vh] print:max-h-none print:overflow-visible">
-              <table className="w-full text-left text-xs report-grid border-collapse">
+              <table className="w-full text-start text-xs report-grid border-collapse">
                 <thead className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 print:bg-slate-100 print:text-black">
                   <tr>
-                    <th className="p-2.5 bg-slate-100 dark:bg-slate-800 font-bold border-r border-slate-200 dark:border-slate-700 min-w-[100px] sticky left-0 z-10 print:static">
-                      তারিখ
+                    <th className="p-2.5 bg-slate-100 dark:bg-slate-800 font-bold border-r rtl:border-r-0 rtl:border-l border-slate-200 dark:border-slate-700 min-w-[100px] sticky left-0 z-10 print:static">
+                      {t('common.date')}
                     </th>
-                    {allMetrics.map((m: MetricDefinition) => (
-                      <th
-                        key={m.id}
-                        className="p-2 font-semibold min-w-[115px] text-center border-r border-slate-200/60 dark:border-slate-700/60 text-[11px]"
-                        title={m.labelBn}
-                      >
-                        <div className="line-clamp-2">{m.labelBn}</div>
-                        {m.unitBn && (
-                          <div className="text-[10px] text-slate-400 font-normal">
-                            ({m.unitBn})
-                          </div>
-                        )}
-                      </th>
-                    ))}
+                    {allMetrics.map((m: MetricDefinition) => {
+                      const mLabel = getMetricLabel(m, locale);
+                      const mUnit = getMetricUnit(m, locale);
+                      return (
+                        <th
+                          key={m.id}
+                          className="p-2 font-semibold min-w-[115px] text-center border-r rtl:border-r-0 rtl:border-l border-slate-200/60 dark:border-slate-700/60 text-[11px]"
+                          title={mLabel}
+                        >
+                          <div className="line-clamp-2">{mLabel}</div>
+                          {mUnit && (
+                            <div className="text-[10px] text-slate-400 font-normal">
+                              ({mUnit})
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
                     <th className="p-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-center min-w-[130px] no-print">
-                      সর্বশেষ সংরক্ষণ
+                      {t('dailyReport.lastUpdatedLabel')}
                     </th>
                   </tr>
                 </thead>
@@ -911,20 +926,21 @@ export const DailyReportPage: React.FC = () => {
                     const isCurrentDay = dateStr === selectedDate;
                     const dayTimestamp = formatReportTimestamp(
                       dayReport?.updatedAt || dayReport?.lastSavedAt || dayReport?.createdAt,
-                      'bn'
+                      locale
                     );
 
                     return (
                       <tr
                         key={dateStr}
                         onClick={() => setSelectedDate(dateStr)}
-                        className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
-                          }`}
+                        className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${
+                          isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
+                        }`}
                       >
-                        <td className="p-2.5 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 sticky left-0 z-10 print:static print:bg-white print:text-black">
-                          <div>{dayNum} তারিখ</div>
+                        <td className="p-2.5 bg-white dark:bg-slate-900 border-r rtl:border-r-0 rtl:border-l border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 sticky left-0 z-10 print:static print:bg-white print:text-black">
+                          <div>{formatNumber(Number(dayNum))}</div>
                           <div className="text-[10px] text-slate-400 font-normal mt-0.5 no-print">
-                            {dayTimestamp ? 'সংরক্ষিত' : 'খালি'}
+                            {dayTimestamp ? t('common.saved') : t('common.noData')}
                           </div>
                         </td>
                         {allMetrics.map((m: MetricDefinition) => {
@@ -932,30 +948,30 @@ export const DailyReportPage: React.FC = () => {
                           return (
                             <td
                               key={m.id}
-                              className="p-1.5 text-center border-r border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 text-xs print:text-black"
+                              className="p-1.5 text-center border-r rtl:border-r-0 rtl:border-l border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 text-xs print:text-black"
                             >
                               {m.type === 'boolean' ? (
                                 val === true ? (
                                   <span className="text-emerald-700 dark:text-emerald-400 font-bold print:text-black">
-                                    হ্যাঁ
+                                    {t('common.yes')}
                                   </span>
                                 ) : val === false ? (
                                   <span className="text-slate-400 dark:text-slate-500 print:text-slate-600">
-                                    না
+                                    {t('common.no')}
                                   </span>
                                 ) : (
-                                  <span className="text-slate-300 dark:text-slate-600">-</span>
+                                  <span className="text-slate-300 dark:text-slate-600">{t('common.unrecorded')}</span>
                                 )
                               ) : val !== undefined && val !== null ? (
                                 m.type === 'duration_minutes' && typeof val === 'number' ? (
-                                  `${Math.floor(val / 60)}ঘ ${val % 60}মি`
+                                  `${formatNumber(Math.floor(val / 60))}${t('common.hours')} ${formatNumber(val % 60)}${t('common.minutes')}`
                                 ) : (
                                   <span title={String(val)} className="truncate block max-w-[120px] mx-auto">
-                                    {val}
+                                    {formatNumber(val)}
                                   </span>
                                 )
                               ) : (
-                                <span className="text-slate-300 dark:text-slate-600">-</span>
+                                <span className="text-slate-300 dark:text-slate-600">{t('common.unrecorded')}</span>
                               )}
                             </td>
                           );
@@ -966,7 +982,7 @@ export const DailyReportPage: React.FC = () => {
                               {dayTimestamp}
                             </span>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-600">সংরক্ষিত নয়</span>
+                            <span className="text-slate-400 dark:text-slate-600">{t('common.unrecorded')}</span>
                           )}
                         </td>
                       </tr>

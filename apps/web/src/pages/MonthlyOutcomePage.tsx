@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { DEFAULT_METRIC_GROUPS, MetricGroup, MetricDefinition } from '@reportbd/shared';
+import {
+  DEFAULT_METRIC_GROUPS,
+  MetricGroup,
+  MetricDefinition,
+  getMetricLabel,
+  getGroupTitle,
+  getMetricUnit,
+} from '@reportbd/shared';
 import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useLanguage } from '../context/LanguageContext.js';
 import {
   FileSpreadsheet,
   Printer,
@@ -19,6 +27,8 @@ export const MonthlyOutcomePage: React.FC = () => {
   const currentMonthParam = searchParams.get('month') || new Date().toISOString().substring(0, 7);
 
   const { user } = useAuth();
+  const { t, locale, isRTL, formatDate, formatNumber, formatMonthKey } = useLanguage();
+
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthParam);
   const [derivedValues, setDerivedValues] = useState<Record<string, number | null>>({});
   const [manualValues, setManualValues] = useState<Record<string, any>>({});
@@ -71,10 +81,10 @@ export const MonthlyOutcomePage: React.FC = () => {
         revision,
       });
       setRevision(res.outcome?.revision || revision + 1);
-      setStatusMsg({ type: 'success', text: 'ফলাফল খসড়া সংরক্ষিত হয়েছে।' });
+      setStatusMsg({ type: 'success', text: t('common.saved') });
       setTimeout(() => setStatusMsg(null), 3000);
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message || 'সংরক্ষণ ব্যর্থ হয়েছে।' });
+      setStatusMsg({ type: 'error', text: err.message || t('common.error') });
     } finally {
       setSaving(false);
     }
@@ -83,8 +93,8 @@ export const MonthlyOutcomePage: React.FC = () => {
   const handleSubmitReport = async () => {
     const isResubmit = outcomeStatus === 'returned';
     const confirmText = isResubmit
-      ? 'আপনি কি নিশ্চিত যে সংশোধিত মাসিক রিপোর্টটি পুনরায় জমা দিতে চান?'
-      : 'আপনি কি নিশ্চিত যে মাসিক রিপোর্টটি দায়িত্বশীলের মূল্যায়নের জন্য জমা দিতে চান? (জমার পর স্ন্যাপশট সংরক্ষিত থাকবে)';
+      ? t('monthlyOutcome.resubmitConfirmText')
+      : t('monthlyOutcome.submitConfirmText');
 
     if (!window.confirm(confirmText)) {
       return;
@@ -97,11 +107,13 @@ export const MonthlyOutcomePage: React.FC = () => {
       await loadOutcome();
       setStatusMsg({
         type: 'success',
-        text: isResubmit ? 'সংশোধিত রিপোর্ট সফলভাবে পুনরায় জমা দেওয়া হয়েছে!' : 'মাসিক রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে!',
+        text: isResubmit
+          ? t('monthlyOutcome.outcomeResubmittedSuccess')
+          : t('monthlyOutcome.outcomeSubmittedSuccess'),
       });
       setTimeout(() => setStatusMsg(null), 4000);
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message || 'রিপোর্ট জমা ব্যর্থ হয়েছে।' });
+      setStatusMsg({ type: 'error', text: err.message || t('common.error') });
     } finally {
       setSubmitting(false);
     }
@@ -111,7 +123,32 @@ export const MonthlyOutcomePage: React.FC = () => {
     window.print();
   };
 
-  const allMetrics = DEFAULT_METRIC_GROUPS.flatMap((g: MetricGroup) => g.metrics);
+  const getStatusBadge = () => {
+    if (outcomeStatus === 'acknowledged') {
+      return {
+        label: t('monthlyOutcome.statusApproved'),
+        className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+      };
+    }
+    if (outcomeStatus === 'submitted') {
+      return {
+        label: t('monthlyOutcome.statusSubmitted'),
+        className: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+      };
+    }
+    if (outcomeStatus === 'returned') {
+      return {
+        label: t('monthlyOutcome.statusReturned'),
+        className: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
+      };
+    }
+    return {
+      label: t('monthlyOutcome.statusDraft'),
+      className: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    };
+  };
+
+  const badge = getStatusBadge();
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto print-container">
@@ -121,30 +158,14 @@ export const MonthlyOutcomePage: React.FC = () => {
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-              মাসিক ফলাফল ও রিপোর্ট
+              <span>{t('monthlyOutcome.title')}</span>
             </h1>
-            <span
-              className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
-                outcomeStatus === 'acknowledged'
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                  : outcomeStatus === 'submitted'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
-                  : outcomeStatus === 'returned'
-                  ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
-                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
-              }`}
-            >
-              {outcomeStatus === 'acknowledged'
-                ? 'অনুমোদিত ও পর্যালোচিত'
-                : outcomeStatus === 'submitted'
-                ? 'জমা দেওয়া হয়েছে'
-                : outcomeStatus === 'returned'
-                ? 'সংশোধনের জন্য ফেরত'
-                : 'খসড়া'}
+            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${badge.className}`}>
+              {badge.label}
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            পরিকল্পনার বিপরীতে দৈনিক অর্জনের স্বয়ংক্রিয় হিসাব ও আত্মমূল্যায়ন
+            {t('monthlyOutcome.subtitle')}
           </p>
         </div>
 
@@ -162,10 +183,10 @@ export const MonthlyOutcomePage: React.FC = () => {
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
           >
             <Printer className="h-4 w-4" />
-            <span>প্রিন্ট</span>
+            <span>{t('common.print')}</span>
           </button>
         </div>
       </div>
@@ -193,10 +214,8 @@ export const MonthlyOutcomePage: React.FC = () => {
         <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-start gap-3 no-print">
           <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
-            <p className="font-bold">সতর্কবার্তা: জমা দেওয়ার পর দৈনিক তথ্যে পরিবর্তন করা হয়েছে (Snapshot Stale)</p>
-            <p className="text-amber-700 dark:text-amber-300">
-              {staleReason || 'রিপোর্ট সাবমিট করার পর এই মাসের দৈনিক এন্ট্রি আপডেট করা হয়েছে।'} দায়িত্বশীলের পর্যালোচনার অখণ্ডতা নিশ্চিত করার স্বার্থে পূর্বে জমাকৃত স্ন্যাপশট অপরিবর্তিত রাখা হয়েছে।
-            </p>
+            <p className="font-bold">{t('monthlyOutcome.staleDataWarning')}</p>
+            {staleReason && <p className="text-amber-700 dark:text-amber-300">{staleReason}</p>}
           </div>
         </div>
       )}
@@ -204,16 +223,16 @@ export const MonthlyOutcomePage: React.FC = () => {
       {/* Snapshot Information Banner */}
       {snapshot && ['submitted', 'in_review', 'acknowledged'].includes(outcomeStatus) && (
         <div className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between no-print">
-          <span>📌 প্রদর্শিত ফলাফলসমূহ জমাকৃত স্ন্যাপশট ({new Date(snapshot.calculatedAt).toLocaleString('bn-BD')}) থেকে সংরক্ষিত।</span>
-          <span className="font-medium text-slate-500">মোট দিন: {snapshot.dailyReportsCount || 0}</span>
+          <span>{t('monthlyOutcome.frozenSnapshotNotice')} ({formatDate(snapshot.calculatedAt)})</span>
+          <span className="font-medium text-slate-500">{t('common.total')}: {formatNumber(snapshot.dailyReportsCount || 0)}</span>
         </div>
       )}
 
       {/* Printable Header details */}
       <div className="hidden print:block mb-6 text-center border-b pb-4">
-        <h1 className="text-2xl font-bold">ব্যক্তিগত রিপোর্ট ও মাসিক মূল্যায়ন</h1>
+        <h1 className="text-2xl font-bold">{t('common.appTitle')} — {t('monthlyOutcome.title')}</h1>
         <p className="text-sm text-slate-600 mt-1">
-          ছাত্রের নাম: {user?.name} | মাস: {selectedMonth}
+          {t('monthlyPlan.studentNameLabel')} {user?.name} | {t('monthlyPlan.monthSelectLabel')} {formatMonthKey(selectedMonth)}
         </p>
       </div>
 
@@ -222,20 +241,20 @@ export const MonthlyOutcomePage: React.FC = () => {
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-brand-600" />
-            পরিকল্পনা ও অর্জনের তুলনামূলক ছক
+            <span>{t('monthlyOutcome.title')}</span>
           </h2>
-          <span className="text-xs text-slate-500">মাস: {selectedMonth}</span>
+          <span className="text-xs text-slate-500">{t('monthlyPlan.monthSelectLabel')}: {formatMonthKey(selectedMonth)}</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-start text-xs border-collapse">
             <thead className="bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="p-3 font-semibold">কার্যক্রমের বিষয়</th>
-                <th className="p-3 font-semibold text-center">একক</th>
-                <th className="p-3 font-semibold text-center">পরিকল্পনা (Target)</th>
-                <th className="p-3 font-semibold text-center">বাস্তবায়ন (Actual)</th>
-                <th className="p-3 font-semibold text-center">পার্থক্য / অগ্রগতি</th>
+                <th className="p-3 font-semibold text-start">{t('monthlyPlan.setTargetHeader')}</th>
+                <th className="p-3 font-semibold text-center">{t('monthlyPlan.unitLabel')}</th>
+                <th className="p-3 font-semibold text-center">{t('monthlyPlan.targetInputLabel')}</th>
+                <th className="p-3 font-semibold text-center">{t('common.actions')}</th>
+                <th className="p-3 font-semibold text-center">{t('dashboard.monthlyTargetStatus')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -243,8 +262,8 @@ export const MonthlyOutcomePage: React.FC = () => {
                 <React.Fragment key={group.id}>
                   {/* Group heading row */}
                   <tr className="bg-slate-50/50 dark:bg-slate-800/40">
-                    <td colSpan={5} className="p-2.5 font-bold text-brand-700 dark:text-brand-400">
-                      {group.titleBn}
+                    <td colSpan={5} className="p-2.5 font-bold text-brand-700 dark:text-brand-400 text-start">
+                      {getGroupTitle(group, locale)}
                     </td>
                   </tr>
 
@@ -257,7 +276,7 @@ export const MonthlyOutcomePage: React.FC = () => {
 
                     if (typeof targetVal === 'number' && typeof actualVal === 'number') {
                       const diff = actualVal - targetVal;
-                      diffStr = (diff >= 0 ? '+' : '') + diff;
+                      diffStr = (diff >= 0 ? '+' : '') + formatNumber(diff);
                       if (targetVal > 0) {
                         progressPercent = Math.min(100, Math.round((actualVal / targetVal) * 100));
                       }
@@ -265,17 +284,17 @@ export const MonthlyOutcomePage: React.FC = () => {
 
                     return (
                       <tr key={metric.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="p-3 font-medium text-slate-800 dark:text-slate-200 pl-6">
-                          {metric.labelBn}
+                        <td className="p-3 font-medium text-slate-800 dark:text-slate-200 ps-6 text-start">
+                          {getMetricLabel(metric, locale)}
                         </td>
                         <td className="p-3 text-center text-slate-500">
-                          {metric.unitBn || (metric.type === 'boolean' ? 'দিন' : '')}
+                          {getMetricUnit(metric, locale) || (metric.type === 'boolean' ? t('common.actions') : '')}
                         </td>
                         <td className="p-3 text-center font-semibold text-slate-700 dark:text-slate-300">
-                          {targetVal !== undefined && targetVal !== null ? targetVal : '-'}
+                          {targetVal !== undefined && targetVal !== null ? formatNumber(targetVal) : '-'}
                         </td>
                         <td className="p-3 text-center font-bold text-brand-600 dark:text-brand-400">
-                          {actualVal !== null && actualVal !== undefined ? actualVal : 0}
+                          {actualVal !== null && actualVal !== undefined ? formatNumber(actualVal) : formatNumber(0)}
                         </td>
                         <td className="p-3 text-center">
                           {progressPercent !== null ? (
@@ -287,7 +306,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                                 />
                               </div>
                               <span className="font-semibold text-[11px] text-slate-600 dark:text-slate-300">
-                                {progressPercent}%
+                                {formatNumber(progressPercent)}%
                               </span>
                             </div>
                           ) : (
@@ -308,13 +327,13 @@ export const MonthlyOutcomePage: React.FC = () => {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
         <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <Award className="h-4 w-4 text-brand-600" />
-          আত্মসমালোচনা ও মূল্যায়ন
+          <span>{t('monthlyOutcome.subtitle')}</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              এ মাসের উল্লেখযোগ্য অর্জনসমূহ
+              {t('common.notes')} (1)
             </label>
             <textarea
               rows={4}
@@ -322,14 +341,14 @@ export const MonthlyOutcomePage: React.FC = () => {
               onChange={(e) =>
                 setReflections((prev) => ({ ...prev, achievements: e.target.value }))
               }
-              placeholder="কোন বিষয়ে সবচেয়ে ভালো অগ্রগতি হয়েছে..."
+              placeholder="..."
               className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              সীমাবদ্ধতা ও ঘাটতিসমূহ
+              {t('common.notes')} (2)
             </label>
             <textarea
               rows={4}
@@ -337,14 +356,14 @@ export const MonthlyOutcomePage: React.FC = () => {
               onChange={(e) =>
                 setReflections((prev) => ({ ...prev, challenges: e.target.value }))
               }
-              placeholder="কোন ক্ষেত্রে ঘাটতি হয়েছে এবং কারণ কী..."
+              placeholder="..."
               className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              আগামী মাসের অগ্রাধিকার
+              {t('common.notes')} (3)
             </label>
             <textarea
               rows={4}
@@ -352,7 +371,7 @@ export const MonthlyOutcomePage: React.FC = () => {
               onChange={(e) =>
                 setReflections((prev) => ({ ...prev, nextMonthPriorities: e.target.value }))
               }
-              placeholder="পরবর্তী মাসে যেসব বিষয়ে বিশেষ জোর দিতে চান..."
+              placeholder="..."
               className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
             />
           </div>
@@ -364,16 +383,16 @@ export const MonthlyOutcomePage: React.FC = () => {
         <div className="text-xs text-slate-500">
           {submittedAt ? (
             <div className="space-y-0.5">
-              <span>জমা দেওয়ার সময়: <strong>{new Date(submittedAt).toLocaleString('bn-BD')}</strong></span>
+              <span>{t('supervisor.submittedAtHeader')}: <strong>{formatDate(submittedAt)}</strong></span>
               {outcomeStatus === 'acknowledged' && (
-                <span className="block text-emerald-600 dark:text-emerald-400 font-semibold">✓ দায়িত্বশীল কর্তৃক রিপোর্ট অনুমোদিত হয়েছে।</span>
+                <span className="block text-emerald-600 dark:text-emerald-400 font-semibold">{t('monthlyOutcome.approvedBanner')}</span>
               )}
               {outcomeStatus === 'returned' && (
-                <span className="block text-rose-600 dark:text-rose-400 font-semibold">⚠️ রিপোর্টটি সংশোধনের জন্য ফেরত দেওয়া হয়েছে। সংশোধন শেষে পুনরায় জমা দিন।</span>
+                <span className="block text-rose-600 dark:text-rose-400 font-semibold">{t('monthlyOutcome.returnedBanner')}</span>
               )}
             </div>
           ) : (
-            <span>খসড়া হিসেবে সংরক্ষিত রয়েছে</span>
+            <span>{t('monthlyOutcome.statusDraft')}</span>
           )}
         </div>
 
@@ -386,7 +405,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
-                <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'খসড়া সংরক্ষণ'}</span>
+                <span>{saving ? t('monthlyPlan.savingDraft') : t('monthlyPlan.saveDraftBtn')}</span>
               </button>
 
               <button
@@ -394,19 +413,19 @@ export const MonthlyOutcomePage: React.FC = () => {
                 disabled={submitting || saving}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer disabled:opacity-50"
               >
-                <Send className="h-4 w-4" />
+                <Send className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
                 <span>
                   {submitting
-                    ? 'জমা হচ্ছে...'
+                    ? t('monthlyOutcome.submittingOutcome')
                     : outcomeStatus === 'returned'
-                    ? 'সংশোধিত রিপোর্ট পুনরায় জমা দিন'
-                    : 'মাসিক রিপোর্ট ফাইনাল জমা দিন'}
+                    ? t('monthlyOutcome.resubmitOutcomeBtn')
+                    : t('monthlyOutcome.submitOutcomeBtn')}
                 </span>
               </button>
             </>
           ) : (
             <div className="text-xs text-slate-500 italic">
-              রিপোর্টটি লক করা রয়েছে। কোনো পরিবর্তন আনতে চাইলে দায়িত্বশীলকে রিপোর্টটি ফেরত পাঠানোর অনুরোধ জানান।
+              {t('monthlyOutcome.lockedNotice')}
             </div>
           )}
         </div>
