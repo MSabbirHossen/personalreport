@@ -7,18 +7,44 @@ import {
   FileSpreadsheet,
   User,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 export const MobileNav: React.FC = () => {
+  const { locale } = useLanguage();
+
   const navItems = [
-    { to: '/app/home', label: 'হোম', icon: LayoutDashboard },
-    { to: '/app/reports/daily', label: 'দৈনিক', icon: CalendarCheck },
-    { to: '/app/reports/monthly-plan', label: 'পরিকল্পনা', icon: Target },
-    { to: '/app/reports/monthly-outcome', label: 'ফলাফল', icon: FileSpreadsheet },
-    { to: '/app/profile', label: 'প্রোফাইল', icon: User },
+    {
+      to: '/app/home',
+      label: locale === 'ar' ? 'الرئيسية' : locale === 'en' ? 'Home' : 'হোম',
+      icon: LayoutDashboard,
+    },
+    {
+      to: '/app/reports/daily',
+      label: locale === 'ar' ? 'اليومي' : locale === 'en' ? 'Daily' : 'দৈনিক',
+      icon: CalendarCheck,
+    },
+    {
+      to: '/app/reports/monthly-plan',
+      label: locale === 'ar' ? 'الخطة' : locale === 'en' ? 'Plan' : 'পরিকল্পনা',
+      icon: Target,
+    },
+    {
+      to: '/app/reports/monthly-outcome',
+      label: locale === 'ar' ? 'النتائج' : locale === 'en' ? 'Outcome' : 'ফলাফল',
+      icon: FileSpreadsheet,
+    },
+    {
+      to: '/app/profile',
+      label: locale === 'ar' ? 'الملف' : locale === 'en' ? 'Profile' : 'প্রোফাইল',
+      icon: User,
+    },
   ];
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/80 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95 px-2 py-1.5 shadow-lg safe-area-bottom">
+    <nav
+      aria-label="Mobile Navigation"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-theme-border bg-theme-surface/95 backdrop-blur-md px-2 py-1.5 shadow-lg safe-area-bottom transition-colors duration-200"
+    >
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -27,10 +53,10 @@ export const MobileNav: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors text-center min-w-[54px] ${
+                `flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-colors text-center min-w-[54px] ${
                   isActive
-                    ? 'text-brand-600 dark:text-brand-400 font-semibold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'text-[var(--primary)] font-bold'
+                    : 'text-theme-text-muted hover:text-theme-text'
                 }`
               }
             >
@@ -44,6 +70,6 @@ export const MobileNav: React.FC = () => {
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 };
