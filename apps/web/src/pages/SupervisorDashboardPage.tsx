@@ -92,7 +92,7 @@ export const SupervisorDashboardPage: React.FC = () => {
                 refetchSummary();
                 refetchQueue();
               }}
-              className="px-3.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition-colors shadow-sm cursor-pointer"
+              className="px-4 py-2.5 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition-colors shadow-sm cursor-pointer min-h-[40px]"
             >
               {t('audit.refreshBtn')}
             </button>
@@ -103,51 +103,51 @@ export const SupervisorDashboardPage: React.FC = () => {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Assigned Students */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-semibold">{t('supervisor.assignedStudentsTitle')}</span>
-            <Users className="h-4 w-4 text-brand-600" />
+            <span className="text-base font-semibold">{t('supervisor.assignedStudentsTitle')}</span>
+            <Users className="h-4.5 w-4.5 text-brand-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">
             {isSummaryLoading ? '...' : formatNumber(summary?.assignedStudentsCount ?? 0)}
           </div>
-          <span className="text-xs text-slate-400">{t('profile.studentRole')}</span>
+          <span className="text-sm text-slate-400">{t('profile.studentRole')}</span>
         </div>
 
         {/* Card 2: Pending Reviews */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-amber-200/70 dark:border-amber-900/50 shadow-sm space-y-2">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-amber-200/70 dark:border-amber-900/50 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between text-amber-700 dark:text-amber-400">
-            <span className="text-sm font-semibold">{t('supervisor.pendingReviewsCount')}</span>
-            <ClipboardList className="h-4 w-4 text-amber-600" />
+            <span className="text-base font-semibold">{t('supervisor.pendingReviewsCount')}</span>
+            <ClipboardList className="h-4.5 w-4.5 text-amber-600" />
           </div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+          <div className="text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
             {isSummaryLoading ? '...' : formatNumber(summary?.pendingReviewsCount ?? 0)}
           </div>
-          <span className="text-xs text-amber-600/80 dark:text-amber-400/80">{t('monthlyOutcome.statusSubmitted')}</span>
+          <span className="text-sm text-amber-600/80 dark:text-amber-400/80">{t('monthlyOutcome.statusSubmitted')}</span>
         </div>
 
         {/* Card 3: Approved */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400">
-            <span className="text-sm font-semibold">{t('supervisor.approvedCount')}</span>
-            <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <span className="text-base font-semibold">{t('supervisor.approvedCount')}</span>
+            <CheckCircle className="h-4.5 w-4.5 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+          <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
             {isSummaryLoading ? '...' : formatNumber(summary?.acknowledgedThisMonthCount ?? 0)}
           </div>
-          <span className="text-xs text-slate-400">{t('monthlyOutcome.statusApproved')}</span>
+          <span className="text-sm text-slate-400">{t('monthlyOutcome.statusApproved')}</span>
         </div>
 
         {/* Card 4: Returned */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2.5">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-semibold">{t('supervisor.returnedCount')}</span>
-            <RotateCcw className="h-4 w-4 text-rose-600" />
+            <span className="text-base font-semibold">{t('supervisor.returnedCount')}</span>
+            <RotateCcw className="h-4.5 w-4.5 text-rose-600" />
           </div>
-          <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+          <div className="text-2xl sm:text-3xl font-bold text-rose-600 dark:text-rose-400">
             {isSummaryLoading ? '...' : formatNumber(summary?.returnedThisMonthCount ?? 0)}
           </div>
-          <span className="text-xs text-slate-400">{t('monthlyOutcome.statusReturned')}</span>
+          <span className="text-sm text-slate-400">{t('monthlyOutcome.statusReturned')}</span>
         </div>
       </div>
 
@@ -155,25 +155,25 @@ export const SupervisorDashboardPage: React.FC = () => {
       <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab('queue')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold transition-all cursor-pointer ${
             activeTab === 'queue'
               ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/20'
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
-          <ClipboardList className="h-4 w-4" />
+          <ClipboardList className="h-4.5 w-4.5" />
           <span>{t('supervisor.reviewQueueTitle')}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('students')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold transition-all cursor-pointer ${
             activeTab === 'students'
               ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/20'
               : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
           }`}
         >
-          <Users className="h-4 w-4" />
+          <Users className="h-4.5 w-4.5" />
           <span>{t('supervisor.assignedStudentsTitle')} ({formatNumber(students.length)})</span>
         </button>
       </div>
@@ -182,7 +182,7 @@ export const SupervisorDashboardPage: React.FC = () => {
       {activeTab === 'queue' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <Search className="h-4 w-4 text-slate-400 shrink-0 mx-1" />
               <input
@@ -190,19 +190,19 @@ export const SupervisorDashboardPage: React.FC = () => {
                 placeholder={t('common.search')}
                 value={searchStudent}
                 onChange={(e) => setSearchStudent(e.target.value)}
-                className="w-full text-xs bg-transparent border-none focus:outline-none text-slate-800 dark:text-slate-200"
+                className="w-full text-base bg-transparent border-none focus:outline-none text-slate-800 dark:text-slate-200"
               />
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Filter className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                <Filter className="h-4 w-4" />
                 <span>{t('common.status')}:</span>
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none"
+                className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none"
               >
                 <option value="submitted">{t('monthlyOutcome.statusSubmitted')}</option>
                 <option value="all">{t('common.all')}</option>
@@ -214,12 +214,12 @@ export const SupervisorDashboardPage: React.FC = () => {
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none"
+                className="text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:outline-none"
               />
               {selectedMonth && (
                 <button
                   onClick={() => setSelectedMonth('')}
-                  className="text-[11px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
+                  className="text-xs text-slate-400 hover:text-slate-600 underline cursor-pointer"
                 >
                   {t('common.cancel')}
                 </button>
@@ -269,28 +269,28 @@ export const SupervisorDashboardPage: React.FC = () => {
               return (
                 <div
                   key={item.id}
-                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-800 transition-all duration-150 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-800 transition-all duration-150 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-base">
+                      <span className="font-bold text-slate-900 dark:text-slate-100 text-lg">
                         {item.studentName}
                       </span>
-                      <span className="text-xs text-slate-400">({item.studentEmail})</span>
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusBadge.bg}`}>
+                      <span className="text-sm text-slate-400">({item.studentEmail})</span>
+                      <span className={`text-sm font-semibold px-3 py-1 rounded-full ${statusBadge.bg}`}>
                         {statusBadge.label}
                       </span>
                       {item.isStale && (
-                        <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                          <AlertTriangle className="h-3 w-3" />
+                        <span className="flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                          <AlertTriangle className="h-3.5 w-3.5" />
                           <span>{t('monthlyOutcome.staleDataWarning')}</span>
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="h-4 w-4" />
                         {t('common.date')}: <strong className="font-semibold text-slate-700 dark:text-slate-300">{item.monthKey}</strong>
                       </span>
                       {item.submittedAt && (
@@ -302,7 +302,7 @@ export const SupervisorDashboardPage: React.FC = () => {
                     </div>
 
                     {item.isStale && item.staleReason && (
-                      <p className="text-xs text-amber-700 dark:text-amber-400/90 pt-0.5">
+                      <p className="text-sm text-amber-700 dark:text-amber-400/90 pt-0.5">
                         ⚠️ {item.staleReason}
                       </p>
                     )}
@@ -310,10 +310,10 @@ export const SupervisorDashboardPage: React.FC = () => {
 
                   <Link
                     to={`/supervisor/reports/${item.id}`}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white transition-colors shadow-sm shadow-brand-500/20 shrink-0"
+                    className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm sm:text-base font-bold bg-brand-600 hover:bg-brand-700 text-white transition-colors shadow-sm shadow-brand-500/20 shrink-0"
                   >
                     <span>{t('supervisor.reviewReportBtn')}</span>
-                    <ArrowRight className={`h-3.5 w-3.5 ${isRTL ? 'rtl-flip' : ''}`} />
+                    <ArrowRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
                   </Link>
                 </div>
               );

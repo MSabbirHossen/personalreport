@@ -229,19 +229,19 @@ export const SupervisorReportReviewPage: React.FC = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-start text-xs">
+                <table className="w-full text-start text-sm sm:text-base">
                   <thead className="bg-slate-50/40 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800/60 text-slate-500">
                     <tr>
-                      <th className="py-2.5 px-4 font-semibold text-start">
+                      <th className="py-3 px-4 font-semibold text-start">
                         {t('supervisor.activityHeader')}
                       </th>
-                      <th className="py-2.5 px-4 font-semibold text-center">
+                      <th className="py-3 px-4 font-semibold text-center">
                         {t('supervisor.targetHeader')}
                       </th>
-                      <th className="py-2.5 px-4 font-semibold text-center">
+                      <th className="py-3 px-4 font-semibold text-center">
                         {t('supervisor.actualHeader')}
                       </th>
-                      <th className="py-2.5 px-4 font-semibold text-center">
+                      <th className="py-3 px-4 font-semibold text-center">
                         {t('supervisor.unitHeader')}
                       </th>
                     </tr>
@@ -255,16 +255,16 @@ export const SupervisorReportReviewPage: React.FC = () => {
 
                       return (
                         <tr key={metric.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
-                          <td className="py-2.5 px-4 font-medium text-slate-900 dark:text-slate-100 text-start">
+                          <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100 text-start">
                             {getMetricLabel(metric, locale)}
                           </td>
-                          <td className="py-2.5 px-4 text-center font-semibold text-slate-600 dark:text-slate-400">
+                          <td className="py-3 px-4 text-center font-semibold text-slate-600 dark:text-slate-400">
                             {hasTarget ? formatNumber(targetVal) : '—'}
                           </td>
-                          <td className="py-2.5 px-4 text-center font-bold text-brand-600 dark:text-brand-400">
+                          <td className="py-3 px-4 text-center font-bold text-brand-600 dark:text-brand-400">
                             {hasActual ? formatNumber(actualVal) : formatNumber(0)}
                           </td>
-                          <td className="py-2.5 px-4 text-center text-slate-400 text-xs">
+                          <td className="py-3 px-4 text-center text-slate-400 text-sm">
                             {getMetricUnit(metric, locale)}
                           </td>
                         </tr>
@@ -285,29 +285,29 @@ export const SupervisorReportReviewPage: React.FC = () => {
             {t('supervisor.reflectionsTitle')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 block">
                 {t('supervisor.achievementsTitle')}
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {outcome.reflections.achievements || t('supervisor.noComments')}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
-              <span className="text-xs font-bold text-rose-600 dark:text-rose-400 block">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <span className="text-sm font-bold text-rose-600 dark:text-rose-400 block">
                 {t('supervisor.challengesTitle')}
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {outcome.reflections.challenges || t('supervisor.noComments')}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-sm">
-              <span className="text-xs font-bold text-brand-600 dark:text-brand-400 block">
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <span className="text-sm font-bold text-brand-600 dark:text-brand-400 block">
                 {t('supervisor.nextMonthTitle')}
               </span>
-              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {outcome.reflections.nextMonthPriorities || t('supervisor.noComments')}
               </p>
             </div>
@@ -360,7 +360,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
             />
             <div>
               <span className="text-base font-semibold block">{t('supervisor.acknowledgeOption')}</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+              <span className="text-sm text-slate-500 dark:text-slate-400 font-normal">
                 {t('supervisor.acknowledgeDesc')}
               </span>
             </div>
@@ -382,7 +382,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
             />
             <div>
               <span className="text-base font-semibold block">{t('supervisor.returnOption')}</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+              <span className="text-sm text-slate-500 dark:text-slate-400 font-normal">
                 {t('supervisor.returnDesc')}
               </span>
             </div>
@@ -390,8 +390,8 @@ export const SupervisorReportReviewPage: React.FC = () => {
         </div>
 
         {/* Written Feedback input */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+        <div className="space-y-2">
+          <label className="block text-base font-bold text-slate-700 dark:text-slate-300">
             {t('supervisor.feedbackLabel')}
           </label>
           <textarea
@@ -399,7 +399,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder={t('supervisor.feedbackPlaceholder')}
-            className="w-full text-xs p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-800 dark:text-slate-200"
+            className="w-full text-base p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-800 dark:text-slate-200"
           />
         </div>
 
@@ -409,7 +409,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
             <button
               onClick={() => reviewMutation.mutate()}
               disabled={reviewMutation.isPending}
-              className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
+              className={`px-6 py-3 rounded-xl text-base font-bold text-white transition-all shadow-md cursor-pointer ${
                 reviewAction === 'acknowledge'
                   ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
                   : 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
