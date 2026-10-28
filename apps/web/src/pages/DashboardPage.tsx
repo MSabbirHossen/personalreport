@@ -53,7 +53,7 @@ export const DashboardPage: React.FC = () => {
             <PermissionGate permission={PERMISSIONS.DAILY_REPORT_WRITE_OWN}>
               <Link
                 to={`/app/reports/daily?date=${today}`}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-4.5 py-3 text-base font-bold text-[#006A4E] shadow-md hover:bg-emerald-50 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-xs font-bold text-[#006A4E] shadow-md hover:bg-emerald-50 transition-all active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white"
               >
                 <CalendarCheck className="h-5 w-5 text-[#006A4E]" />
                 <span>{t('dashboard.enterDailyReportBtn')}</span>
@@ -63,7 +63,7 @@ export const DashboardPage: React.FC = () => {
             <PermissionGate permission={PERMISSIONS.MONTHLY_PLAN_READ_OWN}>
               <Link
                 to={`/app/reports/monthly-plan?month=${currentMonth}`}
-                className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 px-4.5 py-3 text-base font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 px-6 py-3 text-xs font-semibold text-white transition-all focus-visible:ring-2 focus-visible:ring-white"
               >
                 <Target className="h-5 w-5" />
                 <span>{t('dashboard.viewMonthlyPlanBtn')}</span>
