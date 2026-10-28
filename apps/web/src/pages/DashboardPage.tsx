@@ -74,7 +74,7 @@ export const DashboardPage: React.FC = () => {
         {/* Daily Report Tile */}
         <Link
           to="/app/reports/daily"
-          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
+          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
         >
           <div className="flex items-center justify-between">
             <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--primary)] flex items-center justify-center border border-theme-border font-bold">
@@ -95,7 +95,7 @@ export const DashboardPage: React.FC = () => {
         {/* Monthly Plan Tile */}
         <Link
           to="/app/reports/monthly-plan"
-          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
+          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
         >
           <div className="flex items-center justify-between">
             <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--info)] flex items-center justify-center border border-theme-border font-bold">
@@ -116,7 +116,7 @@ export const DashboardPage: React.FC = () => {
         {/* Monthly Outcome Tile */}
         <Link
           to="/app/reports/monthly-outcome"
-          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
+          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
         >
           <div className="flex items-center justify-between">
             <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--warning)] flex items-center justify-center border border-theme-border font-bold">
@@ -137,7 +137,7 @@ export const DashboardPage: React.FC = () => {
         {/* Advice & Mentorship Tile */}
         <Link
           to="/app/advice"
-          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
+          className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
         >
           <div className="flex items-center justify-between">
             <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-purple-600 dark:text-purple-400 flex items-center justify-center border border-theme-border font-bold">
@@ -157,7 +157,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Routine & Guidance Institutional Card */}
-      <div className="p-6 rounded-3xl bg-theme-surface border border-theme-border shadow-xs space-y-4">
+      <div className="p-6 rounded-3xl bg-theme-surface islamic-card border border-theme-border shadow-xs space-y-4">
         <h3 className="font-bold text-lg text-theme-text flex items-center gap-2">
           <CheckCircle2 className="h-5 w-5 text-[var(--primary)]" />
           <span>{t('dashboard.reportReminderTitle')}</span>
