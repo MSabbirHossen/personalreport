@@ -199,15 +199,15 @@ export const MonthlyPlanPage: React.FC = () => {
       </div>
 
       {/* ==================== SCREEN-ONLY PAGE HEADER ==================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-5 sm:p-6 rounded-2xl border border-theme-border shadow-sm no-print">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Target className="h-5 w-5 text-brand-600 dark:text-brand-400" />
               <span>{t('monthlyPlan.title')}</span>
             </h1>
             <span
-              className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+              className={`text-sm px-3 py-1 rounded-full font-semibold ${
                 planStatus === 'shared'
                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
                   : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
@@ -215,17 +215,17 @@ export const MonthlyPlanPage: React.FC = () => {
             >
               {statusLabel}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span className="text-sm px-2.5 py-1 rounded-full font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               rev.{formatNumber(revision)}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {t('monthlyPlan.subtitle')}
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <input
             type="month"
             value={selectedMonth}
@@ -233,15 +233,15 @@ export const MonthlyPlanPage: React.FC = () => {
               setSelectedMonth(e.target.value);
               setSearchParams({ month: e.target.value });
             }}
-            className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+            className="px-4 py-2.5 text-base font-semibold rounded-xl border border-theme-border bg-theme-surface text-theme-text min-h-[44px]"
           />
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-base font-bold rounded-xl bg-theme-surface hover:bg-theme-surface-muted text-theme-text border border-theme-border transition-colors cursor-pointer min-h-[44px] shadow-xs"
             title={t('common.print')}
           >
-            <Printer className="h-4 w-4" />
+            <Printer className="h-4.5 w-4.5" />
             <span>{t('common.print')}</span>
           </button>
         </div>
@@ -250,17 +250,17 @@ export const MonthlyPlanPage: React.FC = () => {
       {/* Screen Status banner */}
       {statusMsg && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 no-print ${
+          className={`p-4 rounded-xl text-sm font-semibold flex items-center justify-between gap-2.5 no-print ${
             statusMsg.type === 'success'
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200'
               : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200'
           }`}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {statusMsg.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
             ) : (
-              <AlertCircle className="h-4 w-4 shrink-0" />
+              <AlertCircle className="h-4.5 w-4.5 shrink-0" />
             )}
             <span>{statusMsg.text}</span>
           </div>
@@ -268,7 +268,7 @@ export const MonthlyPlanPage: React.FC = () => {
             <button
               type="button"
               onClick={loadPlan}
-              className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 font-bold text-xs cursor-pointer"
+              className="px-3 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 font-bold text-xs cursor-pointer"
             >
               {t('common.retry')}
             </button>
@@ -289,36 +289,36 @@ export const MonthlyPlanPage: React.FC = () => {
           return (
             <div
               key={group.id}
-              className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm p-4 sm:p-5 space-y-3 print-card"
+              className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm p-5 sm:p-6 space-y-4 print-card"
             >
               {/* Group Heading */}
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs print:bg-slate-100 print:text-slate-900">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <span className="h-7 w-7 rounded-xl bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-sm print:bg-slate-100 print:text-slate-900">
                     {formatNumber(group.order)}
                   </span>
-                  <h2 className="font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100 print:text-slate-950">
+                  <h2 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-slate-100 print:text-slate-950">
                     {groupTitle}
                   </h2>
                 </div>
-                <span className="text-xs text-slate-400 print:text-slate-600 font-medium">
+                <span className="text-sm text-slate-400 print:text-slate-600 font-medium">
                   {formatNumber(eligibleMetrics.length)} {t('common.actions')}
                 </span>
               </div>
 
               {/* SCREEN-ONLY: Interactive Form Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 no-print">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 no-print">
                 {eligibleMetrics.map((metric: MetricDefinition) => {
                   const mLabel = getMetricLabel(metric, locale);
                   const mUnit = getMetricUnit(metric, locale);
                   return (
-                    <div key={metric.id} className="space-y-1.5 bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
-                      <div className="flex items-center justify-between text-sm">
+                    <div key={metric.id} className="space-y-2 bg-slate-50/50 dark:bg-slate-800/30 p-3.5 sm:p-4 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                      <div className="flex items-center justify-between text-base">
                         <label className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={mLabel}>
                           {mLabel}
                         </label>
                         {mUnit && (
-                          <span className="text-xs text-slate-400 font-normal">({mUnit})</span>
+                          <span className="text-sm text-slate-400 font-normal">({mUnit})</span>
                         )}
                       </div>
                       <input
@@ -326,7 +326,7 @@ export const MonthlyPlanPage: React.FC = () => {
                         placeholder="0"
                         value={targets[metric.id] ?? ''}
                         onChange={(e) => handleTargetChange(metric.id, e.target.value)}
-                        className="w-full px-3 py-2 text-base rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                        className="w-full px-3.5 py-2.5 text-base rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                       />
                     </div>
                   );
@@ -374,11 +374,11 @@ export const MonthlyPlanPage: React.FC = () => {
 
           {/* Screen textarea */}
           <textarea
-            rows={3}
+            rows={4}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="..."
-            className="w-full p-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 no-print"
+            className="w-full p-3.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 no-print"
           />
 
           {/* Print readable text */}
@@ -389,29 +389,29 @@ export const MonthlyPlanPage: React.FC = () => {
 
         {/* ==================== SUPERVISOR ADVICE IN PRINT ==================== */}
         {planAdvice.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-3 print-card">
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-              <MessageSquare className="h-4 w-4 text-brand-600 print:text-slate-900" />
-              <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100 print:text-slate-950">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-4 print-card">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+              <MessageSquare className="h-4.5 w-4.5 text-brand-600 print:text-slate-900" />
+              <h2 className="font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100 print:text-slate-950">
                 {t('monthlyOutcome.adviceThreadHeader')}
               </h2>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {planAdvice.map((adv: any) => (
                 <div
                   key={adv.id || adv._id}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-1.5"
+                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 space-y-2"
                 >
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="font-bold text-slate-900 dark:text-slate-100">
                       {adv.authorName} ({adv.authorRole ? t('profile.supervisorRole') : ''})
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-xs text-slate-400 font-mono">
                       {formatDate(adv.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                     {adv.body}
                   </p>
                 </div>
@@ -421,14 +421,14 @@ export const MonthlyPlanPage: React.FC = () => {
         )}
 
         {/* ==================== SCREEN ACTION BAR ==================== */}
-        <div className="flex items-center justify-end gap-3 pt-2 no-print">
+        <div className="flex items-center justify-end gap-3.5 pt-4 no-print flex-wrap">
           <PermissionGate permission={PERMISSIONS.MONTHLY_PLAN_WRITE_OWN}>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl border border-theme-border bg-theme-surface text-theme-text text-base font-semibold hover:bg-theme-surface-muted transition-all cursor-pointer min-h-[48px] shadow-xs"
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-5 w-5" />
               <span>{saving ? t('monthlyPlan.savingDraft') : t('monthlyPlan.saveDraftBtn')}</span>
             </button>
           </PermissionGate>
@@ -437,9 +437,9 @@ export const MonthlyPlanPage: React.FC = () => {
             <button
               onClick={handleShare}
               disabled={sharing}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer"
+              className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-lg shadow-brand-600/25 active:scale-[0.98] transition-all cursor-pointer min-h-[48px]"
             >
-              <Send className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+              <Send className={`h-5 w-5 ${isRTL ? 'rtl-flip' : ''}`} />
               <span>{sharing ? t('monthlyPlan.sharingPlan') : t('monthlyPlan.shareSupervisorBtn')}</span>
             </button>
           </PermissionGate>
