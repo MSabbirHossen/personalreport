@@ -35,15 +35,34 @@
   ],
   "rewrites": [
     {
+      "source": "/api",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
       "source": "/api/(.*)",
       "destination": {
         "service": "api"
       }
     },
     {
-      "source": "/(.*)",
+      "source": "/assets/(.*)",
       "destination": {
         "service": "web"
+      }
+    },
+    {
+      "source": "/(.*\\.(?:ico|png|svg|jpg|jpeg|gif|webp|json|css|js|woff|woff2|ttf|eot))",
+      "destination": {
+        "service": "web"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web",
+        "path": "/index.html"
       }
     }
   ]
