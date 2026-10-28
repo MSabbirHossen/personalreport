@@ -127,3 +127,4 @@ describe('Typography Scale & Text Size Accessibility Quality Gates', () => {
     }
   });
 });
+

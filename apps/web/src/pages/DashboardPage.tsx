@@ -5,11 +5,8 @@ import { useLanguage } from '../context/LanguageContext.js';
 import {
   CalendarCheck,
   Target,
-  FileSpreadsheet,
-  MessageSquareQuote,
   CheckCircle2,
   Clock,
-  ArrowUpRight,
   ShieldCheck,
   Sparkles,
   ClipboardCheck,
@@ -17,11 +14,11 @@ import {
 } from 'lucide-react';
 import { QuickLinks } from '../components/navigation/QuickLinks.js';
 import { PermissionGate } from '../components/auth/PermissionGate.js';
-import { PERMISSIONS, SystemRole } from '@reportbd/shared';
+import { PERMISSIONS } from '@reportbd/shared';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const { t, isRTL, formatDate } = useLanguage();
+  const { t, formatDate } = useLanguage();
   const today = new Date().toISOString().split('T')[0];
   const currentMonth = today.substring(0, 7);
 
@@ -103,111 +100,8 @@ export const DashboardPage: React.FC = () => {
       {/* Prominent Role-Based Quick Links */}
       <QuickLinks />
 
-      {/* Student Personal Reporting Details Grid (Permission-Guarded) */}
+      {/* Routine & Guidance Institutional Card */}
       <PermissionGate permission={PERMISSIONS.DAILY_REPORT_READ_OWN}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Daily Report Tile */}
-          <Link
-            to="/app/reports/daily"
-            className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--primary)] flex items-center justify-center border border-theme-border font-bold">
-                <CalendarCheck className="h-5 w-5" />
-              </div>
-              <ArrowUpRight
-                className={`h-4 w-4 text-theme-text-muted group-hover:text-[var(--primary)] transition-colors ${
-                  isRTL ? 'rtl-flip' : ''
-                }`}
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <h2 className="font-bold text-lg text-theme-text">
-                {t('nav.dailyReport')}
-              </h2>
-              <p className="text-sm text-theme-text-muted">
-                {t('dailyReport.subtitle')}
-              </p>
-            </div>
-          </Link>
-
-          {/* Monthly Plan Tile */}
-          <Link
-            to="/app/reports/monthly-plan"
-            className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--info)] flex items-center justify-center border border-theme-border font-bold">
-                <Target className="h-5 w-5" />
-              </div>
-              <ArrowUpRight
-                className={`h-4 w-4 text-theme-text-muted group-hover:text-[var(--info)] transition-colors ${
-                  isRTL ? 'rtl-flip' : ''
-                }`}
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <h2 className="font-bold text-lg text-theme-text">
-                {t('nav.monthlyPlan')}
-              </h2>
-              <p className="text-sm text-theme-text-muted">
-                {t('dashboard.monthlyPlanSubtitle')}
-              </p>
-            </div>
-          </Link>
-
-          {/* Monthly Outcome Tile */}
-          <Link
-            to="/app/reports/monthly-outcome"
-            className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-[var(--warning)] flex items-center justify-center border border-theme-border font-bold">
-                <FileSpreadsheet className="h-5 w-5" />
-              </div>
-              <ArrowUpRight
-                className={`h-4 w-4 text-theme-text-muted group-hover:text-[var(--warning)] transition-colors ${
-                  isRTL ? 'rtl-flip' : ''
-                }`}
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <h2 className="font-bold text-lg text-theme-text">
-                {t('nav.monthlyOutcome')}
-              </h2>
-              <p className="text-sm text-theme-text-muted">
-                {t('dashboard.monthlyOutcomeSubtitle')}
-              </p>
-            </div>
-          </Link>
-
-          {/* Advice & Mentorship Tile */}
-          <Link
-            to="/app/advice"
-            className="group relative flex flex-col justify-between p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border hover:border-[var(--primary)] shadow-xs hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-theme-surface-muted text-purple-600 dark:text-purple-400 flex items-center justify-center border border-theme-border font-bold">
-                <MessageSquareQuote className="h-5 w-5" />
-              </div>
-              <ArrowUpRight
-                className={`h-4 w-4 text-theme-text-muted group-hover:text-purple-600 transition-colors ${
-                  isRTL ? 'rtl-flip' : ''
-                }`}
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <h2 className="font-bold text-lg text-theme-text">
-                {t('nav.advice')}
-              </h2>
-              <p className="text-sm text-theme-text-muted">
-                {t('dashboard.adviceCardSubtitle')}
-              </p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Routine & Guidance Institutional Card */}
         <div className="p-6 rounded-3xl bg-theme-surface islamic-card border border-theme-border shadow-xs space-y-4">
           <h3 className="font-bold text-xl sm:text-2xl text-theme-text flex items-center gap-2">
             <CheckCircle2 className="h-6 w-6 text-[var(--primary)]" />

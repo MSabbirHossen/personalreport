@@ -736,33 +736,6 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
           )}
         </div>
       </div>
-
-      {/* Developer Attribution Footer Card */}
-      <div className="mt-8 pt-6 border-t border-theme-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-theme-text-muted">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
-            MS
-          </div>
-          <span>
-            {t('developer.footerCraftedWith')}{' '}
-            <a
-              href="https://msabbirhossen.github.io/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-theme-text hover:text-[var(--primary)] transition-colors underline"
-            >
-              MS Hossen
-            </a>{' '}
-            (@sabb1rhossen / @parttimecoder)
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-xs font-medium">
-          <span>{t('developer.footerTagline')}</span>
-          <span>•</span>
-          <span>© {new Date().getFullYear()} {t('developer.footerRights')}</span>
-        </div>
-      </div>
     </div>
   );
 };
