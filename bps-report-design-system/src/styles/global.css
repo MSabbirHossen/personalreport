@@ -26,9 +26,18 @@ img, svg { max-width: 100%; }
 
 .rb-app { min-height: 100vh; background: var(--bg); color: var(--text); }
 .rb-container { width: min(100% - 32px, var(--content-width)); margin-inline: auto; }
-.rb-card {
-  min-width: 0; background: var(--surface); border: 1px solid var(--border);
+.rb-card,
+.card-pattern,
+.islamic-card {
+  min-width: 0; background-color: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--space-5);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.08' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+[data-theme="dark"] .rb-card,
+[data-theme="dark"] .card-pattern,
+[data-theme="dark"] .islamic-card {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2334d399' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
 }
 .rb-muted { color: var(--text-muted); }
 .rb-eyebrow { color: var(--primary); font-size: .75rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
@@ -54,11 +63,15 @@ img, svg { max-width: 100%; }
 .rb-span-6 { grid-column: span 6; }
 .rb-span-8 { grid-column: span 8; }
 .rb-span-12 { grid-column: span 12; }
-.rb-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.10' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+.rb-pattern,
+.islamic-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.10' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
-[data-theme="dark"] .rb-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23a9ddc8' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+[data-theme="dark"] .rb-pattern,
+[data-theme="dark"] .islamic-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2334d399' stroke-opacity='.11' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 .rb-dashboard-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
 .rb-stat { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
