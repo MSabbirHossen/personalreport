@@ -1,44 +1,16 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  CalendarCheck,
-  Target,
-  FileSpreadsheet,
-  User,
-} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext.js';
 import { useLanguage } from '../../context/LanguageContext.js';
+import { getVisibleMobileNavItems } from '../../config/navigation.js';
+import { SystemRole } from '@reportbd/shared';
 
 export const MobileNav: React.FC = () => {
+  const { user } = useAuth();
   const { t } = useLanguage();
 
-  const navItems = [
-    {
-      to: '/app/home',
-      label: t('nav.dashboard'),
-      icon: LayoutDashboard,
-    },
-    {
-      to: '/app/reports/daily',
-      label: t('nav.dailyReport'),
-      icon: CalendarCheck,
-    },
-    {
-      to: '/app/reports/monthly-plan',
-      label: t('nav.monthlyPlan'),
-      icon: Target,
-    },
-    {
-      to: '/app/reports/monthly-outcome',
-      label: t('nav.monthlyOutcome'),
-      icon: FileSpreadsheet,
-    },
-    {
-      to: '/app/profile',
-      label: t('nav.profile'),
-      icon: User,
-    },
-  ];
+  const userRoles = (user?.roles || []) as SystemRole[];
+  const navItems = getVisibleMobileNavItems(userRoles);
 
   return (
     <nav
@@ -50,8 +22,8 @@ export const MobileNav: React.FC = () => {
           const Icon = item.icon;
           return (
             <NavLink
-              key={item.to}
-              to={item.to}
+              key={item.id}
+              to={item.href}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-colors text-center min-w-[54px] ${
                   isActive
@@ -63,7 +35,9 @@ export const MobileNav: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                  <span className="text-[11px] mt-0.5 truncate max-w-[65px]">{item.label}</span>
+                  <span className="text-[11px] mt-0.5 truncate max-w-[65px]">
+                    {t(item.labelKey)}
+                  </span>
                 </>
               )}
             </NavLink>
