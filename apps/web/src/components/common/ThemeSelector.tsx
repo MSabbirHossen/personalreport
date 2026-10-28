@@ -33,11 +33,11 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
       <button
         type="button"
         onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-        className="flex h-9 w-9 items-center justify-center rounded-xl text-theme-text-muted hover:bg-theme-surface-muted hover:text-theme-text transition-colors border border-transparent hover:border-theme-border"
+        className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl text-theme-text-muted hover:bg-theme-surface-muted hover:text-theme-text transition-colors border border-transparent hover:border-theme-border cursor-pointer"
         title={`${t('common.theme')}: ${t(currentOption.labelKey)}`}
         aria-label={t('common.theme')}
       >
-        <CurrentIcon className="h-4 w-4 transition-transform duration-200" />
+        <CurrentIcon className="h-4.5 w-4.5 transition-transform duration-200" />
       </button>
     );
   }
@@ -50,17 +50,17 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={t('common.theme')}
-        className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl text-xs font-medium text-theme-text-muted hover:text-theme-text bg-theme-surface hover:bg-theme-surface-muted border border-theme-border transition-colors shadow-xs"
+        className="flex items-center justify-center gap-1.5 h-10 min-h-[40px] px-2.5 sm:px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-theme-text-muted hover:text-theme-text bg-theme-surface hover:bg-theme-surface-muted border border-theme-border transition-colors shadow-2xs cursor-pointer"
       >
-        <CurrentIcon className="h-4 w-4 text-[var(--primary)]" />
+        <CurrentIcon className="h-4.5 w-4.5 text-[var(--primary)]" />
         <span className="hidden sm:inline">{t(currentOption.labelKey)}</span>
-        <ChevronDown className="h-3 w-3 opacity-60" />
+        <ChevronDown className="hidden sm:inline h-3.5 w-3.5 opacity-60" />
       </button>
 
       {isOpen && (
         <div
           role="listbox"
-          className="absolute right-0 rtl:right-auto rtl:left-0 mt-1.5 w-36 rounded-xl bg-theme-surface border border-theme-border shadow-md py-1 z-50 animate-fadeIn"
+          className="absolute right-0 rtl:right-auto rtl:left-0 mt-1.5 w-40 rounded-xl bg-theme-surface border border-theme-border shadow-md py-1.5 z-50 animate-fadeIn"
         >
           {options.map((opt) => {
             const Icon = opt.icon;
@@ -75,7 +75,7 @@ export const ThemeSelector: React.FC<{ compact?: boolean }> = ({ compact = false
                   setTheme(opt.value);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                   isSelected
                     ? 'bg-theme-surface-muted text-[var(--primary)] font-bold'
                     : 'text-theme-text hover:bg-theme-surface-muted'

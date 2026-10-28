@@ -33,17 +33,20 @@ export const LanguageSelector: React.FC = () => {
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label="Select language"
-        className="flex items-center gap-1.5 h-9 px-2.5 rounded-xl text-xs font-medium text-theme-text-muted hover:text-theme-text bg-theme-surface hover:bg-theme-surface-muted border border-theme-border transition-colors shadow-xs"
+        className="flex items-center justify-center gap-1.5 h-10 min-h-[40px] px-2.5 sm:px-3.5 rounded-xl text-xs sm:text-sm font-semibold text-theme-text-muted hover:text-theme-text bg-theme-surface hover:bg-theme-surface-muted border border-theme-border transition-colors shadow-2xs"
       >
-        <Globe className="h-4 w-4 text-[var(--primary)]" />
-        <span className="font-semibold">{currentLocale.nativeName}</span>
-        <ChevronDown className="h-3 w-3 opacity-60" />
+        <Globe className="h-4.5 w-4.5 text-[var(--primary)] shrink-0" />
+        <span className="hidden sm:inline font-semibold">{currentLocale.nativeName}</span>
+        <span className="sm:hidden text-xs font-bold uppercase tracking-tight text-theme-text">
+          {currentLocale.code}
+        </span>
+        <ChevronDown className="hidden sm:inline h-3.5 w-3.5 opacity-60" />
       </button>
 
       {isOpen && (
         <div
           role="listbox"
-          className="absolute right-0 rtl:right-auto rtl:left-0 mt-1.5 w-40 rounded-xl bg-theme-surface border border-theme-border shadow-md py-1 z-50 animate-fadeIn"
+          className="absolute right-0 rtl:right-auto rtl:left-0 mt-1.5 w-44 rounded-xl bg-theme-surface border border-theme-border shadow-md py-1.5 z-50 animate-fadeIn"
         >
           {locales.map((item) => {
             const isSelected = locale === item.code;
@@ -57,7 +60,7 @@ export const LanguageSelector: React.FC = () => {
                   setLocale(item.code);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-2 text-xs font-medium transition-colors ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-xs sm:text-sm font-semibold transition-colors ${
                   isSelected
                     ? 'bg-theme-surface-muted text-[var(--primary)] font-bold'
                     : 'text-theme-text hover:bg-theme-surface-muted'

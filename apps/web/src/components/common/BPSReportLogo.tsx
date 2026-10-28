@@ -164,11 +164,11 @@ export const BPSReportLogo: React.FC<BPSReportLogoProps> = ({
           <span className="text-[var(--primary)] font-extrabold">Report</span>
         </span>
         {tagline ? (
-          <span className="text-[10px] text-theme-text-muted tracking-tight font-medium font-latin">
+          <span className="hidden sm:block text-[10px] text-theme-text-muted tracking-tight font-medium font-latin">
             Better Data · Brighter Future
           </span>
         ) : (
-          <span className="text-[10px] text-theme-text-muted tracking-tight">
+          <span className="hidden sm:block text-[10px] text-theme-text-muted tracking-tight">
             ব্যক্তিগত রিপোর্ট প্ল্যাটফর্ম
           </span>
         )}
