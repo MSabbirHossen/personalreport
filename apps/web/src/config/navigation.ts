@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   Users,
   Send,
+  Code2,
 } from 'lucide-react';
 import {
   SystemRole,
@@ -141,6 +142,14 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     requiredPermissions: [PERMISSIONS.PROFILE_READ_OWN],
     group: 'common',
     order: 31,
+  },
+  {
+    id: 'nav-developer',
+    labelKey: 'nav.developerInfo',
+    href: '/app/developer',
+    icon: Code2,
+    group: 'common',
+    order: 32,
   },
 ];
 

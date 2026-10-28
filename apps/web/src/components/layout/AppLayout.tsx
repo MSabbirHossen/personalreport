@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { MobileNav } from './MobileNav.js';
+import { Footer } from './Footer.js';
 
 export const AppLayout: React.FC = () => {
   return (
@@ -10,9 +11,12 @@ export const AppLayout: React.FC = () => {
       <Header />
       <div className="flex flex-1 w-full max-w-[1440px] mx-auto">
         <Sidebar />
-        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-24 lg:pb-8 overflow-x-hidden min-w-0">
-          <Outlet />
-        </main>
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-20 lg:pb-8 overflow-x-hidden min-w-0">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
       </div>
       <MobileNav />
     </div>

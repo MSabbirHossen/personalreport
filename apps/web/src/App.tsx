@@ -21,6 +21,7 @@ import { NotificationsPage } from './pages/NotificationsPage.js';
 import { SupervisorDashboardPage } from './pages/SupervisorDashboardPage.js';
 import { SupervisorReportReviewPage } from './pages/SupervisorReportReviewPage.js';
 import { AuditLogPage } from './pages/AuditLogPage.js';
+import { DeveloperInfoPage } from './pages/DeveloperInfoPage.js';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,8 @@ export const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/invite/:token" element={<InvitePage />} />
+                <Route path="/developer" element={<DeveloperInfoPage />} />
+                <Route path="/developer-info" element={<Navigate to="/developer" replace />} />
 
                 {/* Protected General App Routes */}
                 <Route
@@ -107,6 +110,7 @@ export const App: React.FC = () => {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="developer" element={<DeveloperInfoPage />} />
                 </Route>
 
                 {/* Protected Supervisor Routes */}

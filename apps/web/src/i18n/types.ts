@@ -63,6 +63,7 @@ export interface NavTranslations {
   mainMenu: string;
   supervisorMenu: string;
   orgAdminMenu: string;
+  developerInfo: string;
 }
 
 export interface AuthTranslations {
@@ -419,6 +420,42 @@ export interface RbacTranslations {
   profileSettingsDesc: string;
 }
 
+export interface DeveloperTranslations {
+  pageCategory: string;
+  pageTitle: string;
+  pageDescription: string;
+  copyEmail: string;
+  emailCopied: string;
+  portfolioBtn: string;
+  linkedInBtn: string;
+  availableForHire: string;
+  creatorRole: string;
+  creatorTagline: string;
+  creatorBio: string;
+  coreToolkit: string;
+  channelsTitle: string;
+  channelsSubtitle: string;
+  tabAll: string;
+  tabDirectChat: string;
+  tabPlatforms: string;
+  tabVentures: string;
+  aboutVisionTitle: string;
+  aboutVisionSubtitle: string;
+  aboutVisionP1: string;
+  aboutVisionP2: string;
+  feedbackTitle: string;
+  feedbackSubtitle: string;
+  feedbackPlaceholder: string;
+  sendFeedbackBtn: string;
+  openingWhatsApp: string;
+  readyToSend: string;
+  clickIfNotOpened: string;
+  directWhatsAppNotice: string;
+  footerCraftedWith: string;
+  footerRights: string;
+  footerTagline: string;
+}
+
 export interface TranslationSchema {
   common: CommonTranslations;
   nav: NavTranslations;
@@ -434,4 +471,5 @@ export interface TranslationSchema {
   audit: AuditTranslations;
   validation: ValidationTranslations;
   rbac: RbacTranslations;
+  developer: DeveloperTranslations;
 }
