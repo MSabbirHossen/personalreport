@@ -179,18 +179,41 @@ export async function requireAuth(
       status: 'active',
     });
 
-    if (!membership && token === 'mock-token' && config.allowDevMockAuth) {
-      const mockMembership = {
-        _id: new ObjectId(),
-        userId,
-        orgId: 'org_default',
-        roles: ['student'] as SystemRole[],
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      };
-      await db.collection('memberships').insertOne(mockMembership);
-      membership = mockMembership;
+    if (!membership) {
+      const adminEmails = [
+        'mshossen724@gmail.com',
+        'sabb1rhossen@gmail.com',
+        'admin@bps-report.org',
+        'admin@reportbd.org',
+      ];
+      const normalizedEmail = (userRecord.email || email || '').toLowerCase();
+      const isSystemAdmin = adminEmails.includes(normalizedEmail) || normalizedEmail.startsWith('admin@');
+
+      if (isSystemAdmin) {
+        const adminMembership = {
+          _id: new ObjectId(),
+          userId,
+          orgId: 'org_default',
+          roles: ['student', 'supervisor', 'org_admin', 'platform_admin'] as SystemRole[],
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        };
+        await db.collection('memberships').insertOne(adminMembership);
+        membership = adminMembership;
+      } else if (token === 'mock-token' && config.allowDevMockAuth) {
+        const mockMembership = {
+          _id: new ObjectId(),
+          userId,
+          orgId: 'org_default',
+          roles: ['student'] as SystemRole[],
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        };
+        await db.collection('memberships').insertOne(mockMembership);
+        membership = mockMembership;
+      }
     }
 
     const roles: SystemRole[] = membership && Array.isArray(membership.roles) ? membership.roles : [];

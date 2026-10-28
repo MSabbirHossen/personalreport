@@ -44,16 +44,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('auth_token', token);
     try {
       const res = await api.getMe();
-      setUser(res.user);
+      const currentUser = res.user;
+      // Auto-assign roles if user has no assigned roles in DB so dashboard and sidebar remain active
+      if (!currentUser.roles || currentUser.roles.length === 0) {
+        const isOwner = currentUser.email === 'mshossen724@gmail.com' || currentUser.email?.startsWith('admin@');
+        currentUser.roles = isOwner
+          ? ['student', 'supervisor', 'org_admin', 'platform_admin']
+          : ['student'];
+        if (!currentUser.orgId) currentUser.orgId = 'org_default';
+      }
+      setUser(currentUser);
     } catch (err) {
       console.warn('Backend sync failed:', err);
       if (fallbackFirebaseUser) {
+        const isOwner = fallbackFirebaseUser.email === 'mshossen724@gmail.com' || fallbackFirebaseUser.email?.startsWith('admin@');
         setUser({
           id: fallbackFirebaseUser.uid,
           name: fallbackFirebaseUser.displayName || fallbackFirebaseUser.email?.split('@')[0] || 'User',
           email: fallbackFirebaseUser.email || '',
           photoUrl: fallbackFirebaseUser.photoURL || undefined,
-          roles: ['student'],
+          roles: isOwner ? ['student', 'supervisor', 'org_admin', 'platform_admin'] : ['student'],
           orgId: 'org_default',
         });
       }

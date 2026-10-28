@@ -254,7 +254,10 @@ export function canAccessNavigationItem(
   item: NavigationItem | QuickLinkItem
 ): boolean {
   if (!userRoles || userRoles.length === 0) {
-    return false;
+    // If an item has NO required roles and NO required permissions (e.g. common nav links like Dashboard and Developer Info), allow access
+    const hasRequiredPerms = Boolean(item.requiredPermissions && item.requiredPermissions.length > 0);
+    const hasRequiredRoles = Boolean(item.requiredRoles && item.requiredRoles.length > 0);
+    return !hasRequiredPerms && !hasRequiredRoles;
   }
 
   // Permission checks are primary
