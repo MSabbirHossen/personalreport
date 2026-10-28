@@ -51,8 +51,12 @@ const corsOptions: cors.CorsOptions = {
     }
 
     if (config.isProduction) {
-      // In production, reject wildcards and strictly match allowed origins
-      if (config.cors.allowedOrigins.includes(requestOrigin)) {
+      const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(requestOrigin);
+      // In production, reject wildcards and match allowed origins (or localhost if explicitly enabled)
+      if (
+        config.cors.allowedOrigins.includes(requestOrigin) ||
+        (isLocalhost && (process.env.ALLOW_LOCALHOST_CORS === 'true' || config.cors.allowedOrigins.some(o => o.includes('localhost') || o.includes('127.0.0.1'))))
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`Origin ${requestOrigin} not permitted by CORS policy.`));
