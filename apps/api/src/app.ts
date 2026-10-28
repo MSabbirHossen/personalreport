@@ -36,8 +36,9 @@ if (!configValidation.valid) {
 }
 
 // Global Security Middlewares
+const helmetMiddleware: any = (helmet as any).default || helmet;
 app.use(
-  helmet({
+  helmetMiddleware({
     crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   })
 );
