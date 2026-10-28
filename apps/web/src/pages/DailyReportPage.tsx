@@ -29,6 +29,15 @@ import {
   Clock,
   RotateCcw,
   Printer,
+  BookOpen,
+  Bookmark,
+  Sparkles,
+  Library,
+  GraduationCap,
+  Users,
+  Share2,
+  Briefcase,
+  Activity,
 } from 'lucide-react';
 import { DurationInput } from '../components/daily/DurationInput.js';
 import { DailySummaryCard } from '../components/daily/DailySummaryCard.js';
@@ -356,23 +365,95 @@ export const DailyReportPage: React.FC = () => {
     [expandedGroupId]
   );
 
+  const GROUP_THEMES: Record<
+    string,
+    {
+      icon: React.ComponentType<{ className?: string }>;
+      iconBg: string;
+      activeBorder: string;
+      hoverBorder: string;
+    }
+  > = {
+    quran: {
+      icon: BookOpen,
+      iconBg: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg shadow-emerald-950/20',
+      hoverBorder: 'hover:border-emerald-500/60',
+    },
+    hadith: {
+      icon: Bookmark,
+      iconBg: 'bg-teal-500/15 text-teal-700 dark:text-teal-400 border-teal-500/30',
+      activeBorder: 'border-teal-500 ring-2 ring-teal-500/20 shadow-lg shadow-teal-950/20',
+      hoverBorder: 'hover:border-teal-500/60',
+    },
+    salah: {
+      icon: Sparkles,
+      iconBg: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
+      activeBorder: 'border-amber-500 ring-2 ring-amber-500/20 shadow-lg shadow-amber-950/20',
+      hoverBorder: 'hover:border-amber-500/60',
+    },
+    reading: {
+      icon: Library,
+      iconBg: 'bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-500/30',
+      activeBorder: 'border-sky-500 ring-2 ring-sky-500/20 shadow-lg shadow-sky-950/20',
+      hoverBorder: 'hover:border-sky-500/60',
+    },
+    academic: {
+      icon: GraduationCap,
+      iconBg: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-500/30',
+      activeBorder: 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-lg shadow-indigo-950/20',
+      hoverBorder: 'hover:border-indigo-500/60',
+    },
+    contacts: {
+      icon: Users,
+      iconBg: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg shadow-emerald-950/20',
+      hoverBorder: 'hover:border-emerald-500/60',
+    },
+    distribution: {
+      icon: Share2,
+      iconBg: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/30',
+      activeBorder: 'border-cyan-500 ring-2 ring-cyan-500/20 shadow-lg shadow-cyan-950/20',
+      hoverBorder: 'hover:border-cyan-500/60',
+    },
+    organizational: {
+      icon: Briefcase,
+      iconBg: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30',
+      activeBorder: 'border-amber-500 ring-2 ring-amber-500/20 shadow-lg shadow-amber-950/20',
+      hoverBorder: 'hover:border-amber-500/60',
+    },
+    routine: {
+      icon: Activity,
+      iconBg: 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30',
+      activeBorder: 'border-rose-500 ring-2 ring-rose-500/20 shadow-lg shadow-rose-950/20',
+      hoverBorder: 'hover:border-rose-500/60',
+    },
+  };
+
   const renderCard = (group: MetricGroup) => {
     const isExpanded = expandedGroupId === group.id;
     const groupTitle = getGroupTitle(group, locale);
+    const theme = GROUP_THEMES[group.id] || GROUP_THEMES.quran;
+    const Icon = theme.icon;
+
+    const hasFilledMetrics = group.metrics.some((m) => {
+      const v = currentDayValues[m.id];
+      return v !== undefined && v !== null && v !== '' && v !== false;
+    });
 
     return (
       <div
         key={group.id}
-        className={`bg-theme-surface islamic-card rounded-2xl border transition-all duration-200 shadow-sm ${
+        className={`group relative rounded-2xl sm:rounded-3xl bg-theme-surface islamic-card border transition-all duration-200 shadow-xs hover:shadow-lg ${
           isExpanded
-            ? 'border-brand-300 dark:border-brand-800/80 ring-1 ring-brand-500/10'
-            : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            ? `${theme.activeBorder} shadow-lg`
+            : `border-theme-border ${theme.hoverBorder} hover:-translate-y-0.5`
         }`}
       >
-        {/* Default Collapsed Card Header */}
+        {/* Collapsible Card Header */}
         <div
           onClick={() => toggleGroup(group.id)}
-          className="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer select-none"
+          className="p-4.5 sm:p-5 flex items-center justify-between gap-3.5 cursor-pointer select-none"
           role="button"
           tabIndex={0}
           aria-expanded={isExpanded}
@@ -384,40 +465,51 @@ export const DailyReportPage: React.FC = () => {
             }
           }}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Numbered Badge */}
-            <div className="h-7 w-7 shrink-0 rounded-lg bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
-              {formatNumber(group.order)}
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* Themed Icon Container with Order Badge */}
+            <div className="relative shrink-0">
+              <div
+                className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold border shadow-2xs transition-transform duration-200 group-hover:scale-105 ${theme.iconBg}`}
+              >
+                <Icon className="h-6 w-6" />
+              </div>
+              <span className="absolute -top-1.5 -right-1.5 rtl:-right-auto rtl:-left-1.5 h-5 min-w-5 px-1.5 rounded-full bg-brand-600 text-white text-[11px] font-extrabold flex items-center justify-center shadow-xs border border-white/30">
+                {formatNumber(group.order)}
+              </span>
             </div>
 
-            {/* Title */}
-            <h2 className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100 truncate">
-              {groupTitle}
-            </h2>
+            {/* Title & Metadata */}
+            <div className="space-y-0.5 min-w-0">
+              <h2 className="font-bold text-base sm:text-lg text-theme-text group-hover:text-[var(--primary)] transition-colors leading-snug truncate">
+                {groupTitle}
+              </h2>
+              <div className="flex items-center gap-2 text-xs text-theme-text-muted">
+                <span>{formatNumber(group.metrics.length)} {t('common.actions')}</span>
+                {hasFilledMetrics && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" />
+                    <span>{t('common.saved')}</span>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Primary Toggle: Checkbox & Synchronized Chevron */}
-          <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="checkbox"
-              id={`group-checkbox-${group.id}`}
-              aria-label={`${groupTitle} ${isExpanded ? t('dailyReport.collapseAll') : t('dailyReport.expandAll')}`}
-              checked={isExpanded}
-              onChange={() => toggleGroup(group.id)}
-              className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
-            />
-            <button
-              type="button"
-              onClick={() => toggleGroup(group.id)}
-              aria-label={isExpanded ? t('dailyReport.collapseAll') : t('dailyReport.expandAll')}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+          {/* Expand/Collapse Chevron Indicator Pill */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div
+              className={`h-9 w-9 rounded-xl flex items-center justify-center border transition-all duration-200 ${
+                isExpanded
+                  ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                  : 'bg-theme-surface-muted text-theme-text-muted border-theme-border group-hover:border-[var(--primary)]/50 group-hover:text-theme-text'
+              }`}
             >
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </button>
+              <ChevronDown
+                className={`h-5 w-5 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-180' : 'rotate-0'
+                }`}
+              />
+            </div>
           </div>
         </div>
 
@@ -425,7 +517,7 @@ export const DailyReportPage: React.FC = () => {
         {isExpanded && (
           <div
             id={`group-fields-${group.id}`}
-            className="px-5 pb-5 pt-1 space-y-4 border-t border-slate-100 dark:border-slate-800 animate-fadeIn"
+            className="px-5 sm:px-6 pb-6 pt-4 space-y-4.5 border-t border-theme-border animate-fadeIn"
           >
             {group.metrics.map((metric: MetricDefinition) => {
               const value = currentDayValues[metric.id];
@@ -438,20 +530,20 @@ export const DailyReportPage: React.FC = () => {
                 return (
                   <div
                     key={metric.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                    className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border transition-colors ${
                       !isToday
-                        ? 'bg-slate-100/70 dark:bg-slate-800/40 border-dashed border-slate-200 dark:border-slate-700/60'
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-100 dark:border-slate-800/80'
+                        ? 'bg-theme-surface-muted/50 border-dashed border-theme-border/60'
+                        : 'bg-theme-surface-muted border-theme-border hover:border-[var(--primary)]/40'
                     }`}
                     title={!isToday ? t('dailyReport.dateRestrictedTooltip') : undefined}
                   >
                     <div className="space-y-0.5 pr-2 rtl:pr-0 rtl:pl-2">
                       <label
                         htmlFor={`field-${metric.id}`}
-                        className={`text-sm font-semibold cursor-pointer ${
+                        className={`text-base font-semibold cursor-pointer ${
                           !isToday
-                            ? 'text-slate-500 dark:text-slate-400 cursor-not-allowed'
-                            : 'text-slate-700 dark:text-slate-300'
+                            ? 'text-theme-text-muted cursor-not-allowed'
+                            : 'text-theme-text'
                         }`}
                       >
                         {metricLabel}
@@ -470,7 +562,7 @@ export const DailyReportPage: React.FC = () => {
                       aria-label={`${metricLabel} ${!isToday ? `(${t('dailyReport.dateRestrictedTooltip')})` : ''}`}
                       checked={!!value}
                       onChange={(e) => handleValueChange(metric.id, e.target.checked)}
-                      className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="h-5 w-5 rounded border-theme-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </div>
                 );
@@ -481,11 +573,11 @@ export const DailyReportPage: React.FC = () => {
                 return (
                   <div
                     key={metric.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800/80"
+                    className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-theme-surface-muted border border-theme-border hover:border-[var(--primary)]/40 transition-colors"
                   >
                     <label
                       htmlFor={`field-${metric.id}`}
-                      className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
+                      className="text-base font-semibold text-theme-text cursor-pointer"
                     >
                       {metricLabel}
                     </label>
@@ -494,7 +586,7 @@ export const DailyReportPage: React.FC = () => {
                       type="checkbox"
                       checked={!!value}
                       onChange={(e) => handleValueChange(metric.id, e.target.checked)}
-                      className="h-5 w-5 rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
+                      className="h-5 w-5 rounded border-theme-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
                     />
                   </div>
                 );
@@ -503,11 +595,11 @@ export const DailyReportPage: React.FC = () => {
               // Text Field (Card 2: Hadith explanation)
               if (metric.type === 'text') {
                 return (
-                  <div key={metric.id} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
+                  <div key={metric.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-base">
                       <label
                         htmlFor={`field-${metric.id}`}
-                        className="font-semibold text-slate-700 dark:text-slate-300"
+                        className="font-semibold text-theme-text"
                       >
                         {metricLabel}
                       </label>
@@ -518,7 +610,7 @@ export const DailyReportPage: React.FC = () => {
                       value={value ?? ''}
                       placeholder={t('dailyReport.hadithExplanationPlaceholder')}
                       onChange={(e) => handleValueChange(metric.id, e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y min-h-[58px]"
+                      className="w-full px-3.5 py-2.5 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text placeholder:text-theme-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-[var(--primary)] transition-all resize-y min-h-[58px]"
                     />
                   </div>
                 );
@@ -527,16 +619,16 @@ export const DailyReportPage: React.FC = () => {
               // Duration Field
               if (metric.type === 'duration_minutes') {
                 return (
-                  <div key={metric.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
+                  <div key={metric.id} className="space-y-2">
+                    <div className="flex items-center justify-between text-base">
                       <label
                         htmlFor={`duration-${metric.id}`}
-                        className="font-semibold text-slate-700 dark:text-slate-300"
+                        className="font-semibold text-theme-text"
                       >
                         {metricLabel}
                       </label>
                       {metricUnit && (
-                        <span className="text-xs text-slate-400 font-normal">
+                        <span className="text-sm text-theme-text-muted font-normal">
                           ({metricUnit})
                         </span>
                       )}
@@ -549,7 +641,7 @@ export const DailyReportPage: React.FC = () => {
                       disabled={saving}
                     />
                     {fieldError && (
-                      <p className="text-xs font-semibold text-red-500 mt-0.5">
+                      <p className="text-sm font-semibold text-red-500 mt-1">
                         {fieldError}
                       </p>
                     )}
@@ -561,16 +653,16 @@ export const DailyReportPage: React.FC = () => {
               const isDecimal = metric.id === 'routine_sleep_hours';
 
               return (
-                <div key={metric.id} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
+                <div key={metric.id} className="space-y-2">
+                  <div className="flex items-center justify-between text-base">
                     <label
                       htmlFor={`field-${metric.id}`}
-                      className="font-semibold text-slate-700 dark:text-slate-300"
+                      className="font-semibold text-theme-text"
                     >
                       {metricLabel}
                     </label>
                     {metricUnit && (
-                      <span className="text-xs text-slate-400 font-normal">
+                      <span className="text-sm text-theme-text-muted font-normal">
                         ({metricUnit})
                       </span>
                     )}
@@ -604,15 +696,15 @@ export const DailyReportPage: React.FC = () => {
                         const parsed = Number(raw);
                         handleValueChange(metric.id, parsed);
                       }}
-                      className={`w-full px-3.5 py-2.5 text-base rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full px-3.5 py-2.5 text-base rounded-xl border bg-theme-surface text-theme-text placeholder:text-theme-text-muted/60 focus:outline-none focus:ring-2 transition-all ${
                         fieldError
                           ? 'border-red-400 dark:border-red-700 focus:ring-red-400/20'
-                          : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/20 focus:border-brand-500'
+                          : 'border-theme-border focus:ring-brand-500/20 focus:border-[var(--primary)]'
                       }`}
                     />
                   </div>
                   {fieldError && (
-                    <p className="text-xs font-semibold text-red-500 mt-0.5">
+                    <p className="text-sm font-semibold text-red-500 mt-1">
                       {fieldError}
                     </p>
                   )}
@@ -640,29 +732,29 @@ export const DailyReportPage: React.FC = () => {
         </div>
 
         {/* View mode toggle, Print Button & Month selector */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex items-center bg-theme-surface-muted p-1.5 rounded-2xl border border-theme-border shadow-2xs gap-1.5">
             <button
               onClick={() => setViewMode('single')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold transition-all cursor-pointer min-h-[44px] ${
                 viewMode === 'single'
-                  ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-theme-surface text-brand-700 dark:text-brand-300 shadow-sm border border-theme-border/60'
+                  : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
               }`}
             >
-              <FileEdit className="h-4 w-4" />
+              <FileEdit className="h-4.5 w-4.5" />
               <span>{t('dailyReport.singleDayView')}</span>
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold transition-all cursor-pointer min-h-[44px] ${
                 viewMode === 'grid'
-                  ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-theme-surface text-brand-700 dark:text-brand-300 shadow-sm border border-theme-border/60'
+                  : 'text-theme-text-muted hover:text-theme-text hover:bg-theme-surface/50'
               }`}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-4.5 w-4.5" />
               <span>{t('dailyReport.monthlyGridView')}</span>
             </button>
           </div>
@@ -672,10 +764,10 @@ export const DailyReportPage: React.FC = () => {
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer min-h-[44px]"
               title={t('common.print')}
             >
-              <Printer className="h-4 w-4" />
+              <Printer className="h-4.5 w-4.5" />
               <span>{t('common.print')}</span>
             </button>
           )}
@@ -689,25 +781,25 @@ export const DailyReportPage: React.FC = () => {
               setSelectedDate(`${e.target.value}-01`);
               setSearchParams({ month: e.target.value, date: `${e.target.value}-01` });
             }}
-            className="px-3.5 py-2.5 text-base font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="px-4 py-2.5 text-base font-semibold rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-xs min-h-[44px]"
           />
         </div>
       </div>
 
       {/* Date Carousel Navigation (for Single Day Mode) */}
       {viewMode === 'single' && (
-        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl islamic-card">
-          <div className="flex items-center justify-between sm:justify-start gap-2">
+        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/50 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900/40 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl islamic-card">
+          <div className="flex items-center justify-between sm:justify-start gap-2.5 flex-wrap">
             <button
               onClick={() => navigateDate('prev')}
               disabled={daysArray.indexOf(selectedDate) === 0}
-              className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold bg-theme-surface hover:bg-theme-surface-muted text-theme-text border border-theme-border shadow-xs disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer min-h-[44px]"
             >
-              <ChevronLeft className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+              <ChevronLeft className={`h-4.5 w-4.5 ${isRTL ? 'rtl-flip' : ''}`} />
               <span className="hidden sm:inline">{t('dailyReport.previousDay')}</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <input
                 type="date"
                 value={selectedDate}
@@ -717,11 +809,11 @@ export const DailyReportPage: React.FC = () => {
                   setSelectedDate(e.target.value);
                   setSearchParams({ month: selectedMonth, date: e.target.value });
                 }}
-                className="px-3.5 py-2 text-base font-bold rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-800 text-brand-900 dark:text-brand-100 shadow-sm cursor-pointer"
+                className="px-4 py-2.5 text-base font-bold rounded-xl border border-theme-border bg-theme-surface text-theme-text shadow-xs cursor-pointer min-h-[44px] focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
               {saveInfo.isSaved && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                  <CheckCircle2 className="h-4 w-4" />
                   <span>{t('common.saved')}</span>
                 </span>
               )}
@@ -730,10 +822,10 @@ export const DailyReportPage: React.FC = () => {
             <button
               onClick={() => navigateDate('next')}
               disabled={daysArray.indexOf(selectedDate) === daysArray.length - 1}
-              className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4.5 py-2.5 rounded-xl text-base font-semibold bg-theme-surface hover:bg-theme-surface-muted text-theme-text border border-theme-border shadow-xs disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer min-h-[44px]"
             >
               <span className="hidden sm:inline">{t('dailyReport.nextDay')}</span>
-              <ChevronRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+              <ChevronRight className={`h-4.5 w-4.5 ${isRTL ? 'rtl-flip' : ''}`} />
             </button>
           </div>
 
@@ -743,10 +835,10 @@ export const DailyReportPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setExpandedGroupId(null)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 font-medium transition-colors cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-theme-surface hover:bg-theme-surface-muted border border-theme-border text-theme-text font-semibold transition-colors cursor-pointer min-h-[44px] shadow-xs"
                 title={t('dailyReport.collapseAll')}
               >
-                <ChevronsUp className="h-4 w-4 text-slate-500" />
+                <ChevronsUp className="h-4.5 w-4.5 text-theme-text-muted" />
                 <span>{t('dailyReport.collapseAll')}</span>
               </button>
             </div>
@@ -790,34 +882,8 @@ export const DailyReportPage: React.FC = () => {
           <div className="space-y-6 md:hidden">
             {DEFAULT_METRIC_GROUPS.map((group) => renderCard(group))}
           </div>
-
-          {/* Daily Summary & Yesterday Comparison Card */}
-          <DailySummaryCard comparison={summaryComparison} selectedDate={selectedDate} />
-
-          {/* Authoritative Saved-at / Last-updated Timestamp Banner */}
-          <div className="bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-              <Clock className="h-4 w-4 text-brand-600 dark:text-brand-400 shrink-0" />
-              <div>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {saveInfo.full}
-                </span>
-                {typeof currentReport?.revision === 'number' && (
-                  <span className="mx-2 text-slate-400 text-[11px]">
-                    ({t('dailyReport.revisionLabel')} #{formatNumber(currentReport.revision)})
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="text-[11px] text-slate-400 dark:text-slate-500">
-              {t('common.date')}:{' '}
-              <strong className="text-slate-700 dark:text-slate-300">{formatDate(selectedDate)}</strong>
-            </div>
-          </div>
-
           {/* Sticky Save Action Bar */}
-          <div className="sticky bottom-16 lg:bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-xl flex items-center justify-between gap-4">
+          <div className="sticky bottom-16 lg:bottom-4 z-30 p-4.5 sm:p-5 rounded-2xl bg-theme-surface/95 backdrop-blur-md border border-theme-border shadow-xl islamic-pattern flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               {saveSuccess && (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -835,17 +901,17 @@ export const DailyReportPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleReload}
-                      className="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                      className="px-3.5 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 dark:bg-red-950 dark:hover:bg-red-900 text-red-800 dark:text-red-200 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 min-h-[34px]"
                     >
-                      <RotateCcw className="h-3 w-3" />
+                      <RotateCcw className="h-3.5 w-3.5" />
                       <span>{t('common.retry')}</span>
                     </button>
                   )}
                 </div>
               )}
               {!saveSuccess && !errorMsg && (
-                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="font-medium text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-2 text-xs text-theme-text-muted">
+                  <span className="font-medium text-theme-text">
                     {saveInfo.full}
                   </span>
                   {hasValidationErrors && (
@@ -859,19 +925,46 @@ export const DailyReportPage: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={saving || hasValidationErrors}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-lg shadow-brand-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer min-h-[48px]"
               >
                 {saving ? (
                   <span>{t('dailyReport.savingReport')}</span>
                 ) : (
                   <>
-                    <Save className="h-4 w-4" />
+                    <Save className="h-5 w-5" />
                     <span>{t('dailyReport.saveReportBtn')}</span>
                   </>
                 )}
               </button>
             </PermissionGate>
           </div>
+
+          {/* Daily Summary & Yesterday Comparison Card */}
+          <DailySummaryCard comparison={summaryComparison} selectedDate={selectedDate} />
+
+          {/* Authoritative Saved-at / Last-updated Timestamp Banner */}
+          <div className="bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+              <Clock className="h-4 w-4 text-brand-600 dark:text-brand-400 shrink-0" />
+              <div>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {saveInfo.full}
+                </span>
+                {typeof currentReport?.revision === 'number' && (
+                  <span className="mx-2 text-slate-400 text-xs">
+                    ({t('dailyReport.revisionLabel')} #{formatNumber(currentReport.revision)})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-400 dark:text-slate-500">
+              {t('common.date')}:{' '}
+              <strong className="text-slate-700 dark:text-slate-300">{formatDate(selectedDate)}</strong>
+            </div>
+          </div>
+
+
         </div>
       ) : (
         /* DENSE MATRIX GRID VIEW WITH PRINT SUPPORT */
@@ -937,9 +1030,8 @@ export const DailyReportPage: React.FC = () => {
                       <tr
                         key={dateStr}
                         onClick={() => setSelectedDate(dateStr)}
-                        className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${
-                          isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
-                        }`}
+                        className={`hover:bg-brand-50/50 dark:hover:bg-brand-950/30 cursor-pointer transition-colors ${isCurrentDay ? 'bg-brand-50/80 dark:bg-brand-950/60 font-semibold' : ''
+                          }`}
                       >
                         <td className="p-2.5 bg-white dark:bg-slate-900 border-r rtl:border-r-0 rtl:border-l border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 sticky left-0 z-10 print:static print:bg-white print:text-black">
                           <div>{formatNumber(Number(dayNum))}</div>
