@@ -7,7 +7,9 @@ import {
   getMetricLabel,
   getGroupTitle,
   getMetricUnit,
+  PERMISSIONS,
 } from '@reportbd/shared';
+import { PermissionGate } from '../components/auth/PermissionGate.js';
 import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
@@ -420,23 +422,27 @@ export const MonthlyPlanPage: React.FC = () => {
 
         {/* ==================== SCREEN ACTION BAR ==================== */}
         <div className="flex items-center justify-end gap-3 pt-2 no-print">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
-          >
-            <Save className="h-4 w-4" />
-            <span>{saving ? t('monthlyPlan.savingDraft') : t('monthlyPlan.saveDraftBtn')}</span>
-          </button>
+          <PermissionGate permission={PERMISSIONS.MONTHLY_PLAN_WRITE_OWN}>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all cursor-pointer"
+            >
+              <Save className="h-4 w-4" />
+              <span>{saving ? t('monthlyPlan.savingDraft') : t('monthlyPlan.saveDraftBtn')}</span>
+            </button>
+          </PermissionGate>
 
-          <button
-            onClick={handleShare}
-            disabled={sharing}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer"
-          >
-            <Send className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
-            <span>{sharing ? t('monthlyPlan.sharingPlan') : t('monthlyPlan.shareSupervisorBtn')}</span>
-          </button>
+          <PermissionGate permission={PERMISSIONS.MONTHLY_PLAN_SHARE_OWN}>
+            <button
+              onClick={handleShare}
+              disabled={sharing}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer"
+            >
+              <Send className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+              <span>{sharing ? t('monthlyPlan.sharingPlan') : t('monthlyPlan.shareSupervisorBtn')}</span>
+            </button>
+          </PermissionGate>
         </div>
       </div>
     </div>

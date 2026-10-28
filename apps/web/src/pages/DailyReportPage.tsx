@@ -10,7 +10,9 @@ import {
   getMetricLabel,
   getGroupTitle,
   getMetricUnit,
+  PERMISSIONS,
 } from '@reportbd/shared';
+import { PermissionGate } from '../components/auth/PermissionGate.js';
 import { api } from '../services/api.js';
 import {
   Save,
@@ -853,20 +855,22 @@ export const DailyReportPage: React.FC = () => {
               )}
             </div>
 
-            <button
-              onClick={handleSave}
-              disabled={saving || hasValidationErrors}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
-            >
-              {saving ? (
-                <span>{t('dailyReport.savingReport')}</span>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  <span>{t('dailyReport.saveReportBtn')}</span>
-                </>
-              )}
-            </button>
+            <PermissionGate permission={PERMISSIONS.DAILY_REPORT_WRITE_OWN}>
+              <button
+                onClick={handleSave}
+                disabled={saving || hasValidationErrors}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                {saving ? (
+                  <span>{t('dailyReport.savingReport')}</span>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    <span>{t('dailyReport.saveReportBtn')}</span>
+                  </>
+                )}
+              </button>
+            </PermissionGate>
           </div>
         </div>
       ) : (

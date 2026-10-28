@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useLanguage } from '../context/LanguageContext.js';
+import { PermissionGate } from '../components/auth/PermissionGate.js';
+import { PERMISSIONS } from '@reportbd/shared';
 import {
   MessageSquareQuote,
   CheckCircle2,
@@ -192,25 +194,29 @@ export const AdvicePage: React.FC = () => {
                     )}
 
                     {activeReplyId !== item.id && (
-                      <button
-                        onClick={() => setActiveReplyId(item.id)}
-                        className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
-                      >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        <span>{t('advice.sendReplyBtn')}</span>
-                      </button>
+                      <PermissionGate permission={PERMISSIONS.ADVICE_REPLY}>
+                        <button
+                          onClick={() => setActiveReplyId(item.id)}
+                          className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          <span>{t('advice.sendReplyBtn')}</span>
+                        </button>
+                      </PermissionGate>
                     )}
                   </div>
 
                   {!item.isAcknowledged && (
-                    <button
-                      onClick={() => acknowledgeMutation.mutate(item.id)}
-                      disabled={acknowledgeMutation.isPending}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm cursor-pointer disabled:opacity-50"
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                      <span>{t('common.confirm')}</span>
-                    </button>
+                    <PermissionGate permission={PERMISSIONS.ADVICE_ACKNOWLEDGE_OWN}>
+                      <button
+                        onClick={() => acknowledgeMutation.mutate(item.id)}
+                        disabled={acknowledgeMutation.isPending}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        <span>{t('common.confirm')}</span>
+                      </button>
+                    </PermissionGate>
                   )}
                 </div>
               </div>

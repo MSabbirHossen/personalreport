@@ -7,7 +7,9 @@ import {
   getGroupTitle,
   getMetricLabel,
   getMetricUnit,
+  PERMISSIONS,
 } from '@reportbd/shared';
+import { PermissionGate } from '../components/auth/PermissionGate.js';
 import { useTranslation } from '../context/LanguageContext.js';
 import {
   ArrowLeft,
@@ -402,23 +404,25 @@ export const SupervisorReportReviewPage: React.FC = () => {
         </div>
 
         {/* Submit review button */}
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <button
-            onClick={() => reviewMutation.mutate()}
-            disabled={reviewMutation.isPending}
-            className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
-              reviewAction === 'acknowledge'
-                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
-                : 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
-            } disabled:opacity-50`}
-          >
-            {reviewMutation.isPending
-              ? t('common.loading')
-              : reviewAction === 'acknowledge'
-              ? t('supervisor.confirmApprovalBtn')
-              : t('supervisor.confirmReturnBtn')}
-          </button>
-        </div>
+        <PermissionGate permission={PERMISSIONS.SUPERVISOR_REVIEW_SUBMIT}>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              onClick={() => reviewMutation.mutate()}
+              disabled={reviewMutation.isPending}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-md cursor-pointer ${
+                reviewAction === 'acknowledge'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20'
+                  : 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
+              } disabled:opacity-50`}
+            >
+              {reviewMutation.isPending
+                ? t('common.loading')
+                : reviewAction === 'acknowledge'
+                ? t('supervisor.confirmApprovalBtn')
+                : t('supervisor.confirmReturnBtn')}
+            </button>
+          </div>
+        </PermissionGate>
       </div>
 
       {/* Advice and Guidance Conversation History */}
