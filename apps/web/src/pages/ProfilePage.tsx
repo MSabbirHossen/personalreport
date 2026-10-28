@@ -50,7 +50,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Page Header */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="bg-theme-surface islamic-card p-5 rounded-2xl border border-theme-border shadow-sm flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <User className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -81,7 +81,7 @@ export const ProfilePage: React.FC = () => {
 
       {/* Profile Form */}
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-5">
+        <div className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm p-6 space-y-5">
           <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <GraduationCap className="h-4 w-4 text-brand-600" />
             <span>{t('profile.personalInfoCard')}</span>
