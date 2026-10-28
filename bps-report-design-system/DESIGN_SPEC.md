@@ -33,7 +33,7 @@ Red should be used sparingly for destructive actions, urgent status, and selecte
 ## Layout and components
 - 8px spacing rhythm with compact 4px micro-spacing.
 - Card radius 14px; large hero radius 22px; inputs 10px.
-- Content width 1440px; 12-column responsive grid.
+- Content width 1600px; 12-column responsive grid.
 - Use CSS logical properties (`margin-inline`, `padding-inline`, `inset-inline`) so Arabic layouts mirror naturally.
 - Desktop: sidebar + content; tablet: collapsible navigation and two-column cards; mobile: stacked cards and full-width primary actions.
 - Forms: visible labels, helper text, inline validation, and clear required markers.

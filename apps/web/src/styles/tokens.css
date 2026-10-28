@@ -51,7 +51,7 @@
   --space-12: 48px;
 
   /* Layout */
-  --content-width: 1440px;
+  --content-width: 100%;
 
   /* Typography */
   --font-bangla: "Noto Sans Bengali", "Hind Siliguri", sans-serif;
