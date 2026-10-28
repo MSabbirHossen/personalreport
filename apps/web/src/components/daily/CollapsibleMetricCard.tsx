@@ -60,7 +60,7 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
   return (
     <div className="space-y-1">
       {/* Title & Checkbox row */}
-      <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center justify-between text-base">
         <label
           htmlFor={`metric-check-${metric.id}`}
           className="font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1 select-none"
@@ -69,7 +69,7 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
         </label>
         <div className="flex items-center gap-2">
           {isExpanded && unit && !isDuration && (
-            <span className="text-[11px] text-slate-400 font-normal">
+            <span className="text-xs text-slate-400 font-normal">
               ({unit})
             </span>
           )}

@@ -151,7 +151,7 @@ export const InvitePage: React.FC = () => {
                   <Clock className="h-3 w-3" />
                   <span>{t('auth.inviteExpires')}</span>
                 </span>
-                <span className="text-theme-text-muted text-[11px]">
+                <span className="text-theme-text-muted text-xs">
                   {invitationData?.invitation?.expiresAt ? formatDate(invitationData.invitation.expiresAt) : '-'}
                 </span>
               </div>

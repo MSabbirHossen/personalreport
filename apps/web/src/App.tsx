@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext.js';
 import { ThemeProvider } from './context/ThemeContext.js';
 import { LanguageProvider } from './context/LanguageContext.js';
+import { TextSizeProvider } from './context/TextSizeContext.js';
 import { AppLayout } from './components/layout/AppLayout.js';
 import { ProtectedRoute } from './components/auth/ProtectedRoute.js';
 import { PERMISSIONS } from '@reportbd/shared';
@@ -39,9 +40,10 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system">
-        <LanguageProvider defaultLocale="bn">
-          <AuthProvider>
-            <BrowserRouter>
+        <TextSizeProvider defaultSize="standard">
+          <LanguageProvider defaultLocale="bn">
+            <AuthProvider>
+              <BrowserRouter>
               <Routes>
                 {/* Public / Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -190,7 +192,8 @@ export const App: React.FC = () => {
             </BrowserRouter>
           </AuthProvider>
         </LanguageProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+      </TextSizeProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
   );
 };

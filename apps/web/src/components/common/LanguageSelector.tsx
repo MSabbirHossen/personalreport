@@ -65,7 +65,7 @@ export const LanguageSelector: React.FC = () => {
                 dir={item.dir}
               >
                 <span>{item.nativeName}</span>
-                <span className="text-[10px] text-theme-text-muted uppercase tracking-wider">
+                <span className="text-2xs text-theme-text-muted uppercase tracking-wider font-semibold">
                   {item.code}
                 </span>
               </button>

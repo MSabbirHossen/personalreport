@@ -35,7 +35,7 @@ export const MobileNav: React.FC = () => {
               {({ isActive }) => (
                 <>
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                  <span className="text-[11px] mt-0.5 truncate max-w-[65px]">
+                  <span className="text-xs mt-0.5 truncate max-w-[72px]">
                     {t(item.labelKey)}
                   </span>
                 </>

@@ -24,7 +24,7 @@ export const Sidebar: React.FC = () => {
               groupIdx > 0 ? 'pt-4 border-t border-theme-border' : ''
             }`}
           >
-            <p className="px-3 text-[11px] font-bold tracking-wider text-theme-text-muted uppercase">
+            <p className="px-3 text-xs font-bold tracking-wider text-theme-text-muted uppercase">
               {t(group.groupTitleKey)}
             </p>
             <div className="space-y-1 pt-2">
@@ -35,7 +35,7 @@ export const Sidebar: React.FC = () => {
                     key={item.id}
                     to={item.href}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-base transition-all duration-150 ${
                         isActive
                           ? 'bg-theme-surface-muted text-[var(--primary)] font-bold shadow-2xs border border-[var(--border)]'
                           : 'text-theme-text-muted hover:bg-theme-surface-muted hover:text-theme-text'
@@ -65,11 +65,11 @@ export const Sidebar: React.FC = () => {
         <div className="mt-auto p-3.5 rounded-2xl bg-theme-surface-muted border border-theme-border text-xs text-theme-text-muted space-y-2 relative overflow-hidden islamic-pattern">
           <div className="flex items-center justify-between font-semibold text-theme-text relative z-10">
             <span>{t('dashboard.reportReminderTitle')}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-theme-surface border border-theme-border font-bold text-[var(--primary)]">
+            <span className="text-2xs px-2 py-0.5 rounded-full bg-theme-surface border border-theme-border font-bold text-[var(--primary)]">
               {t('dailyReport.todayBadge')}
             </span>
           </div>
-          <p className="text-[11px] leading-relaxed text-theme-text-muted relative z-10">
+          <p className="text-xs leading-relaxed text-theme-text-muted relative z-10">
             {t('dashboard.reportReminderDesc')}
           </p>
         </div>

@@ -161,14 +161,14 @@ export const MonthlyPlanPage: React.FC = () => {
               {t('monthlyPlan.printSubheader')}
             </p>
           </div>
-          <div className="text-end text-[11px] font-mono text-slate-600">
+          <div className="text-end text-xs font-mono text-slate-600">
             <div>{t('monthlyPlan.monthSelectLabel')} <strong>{formatMonthKey(selectedMonth)}</strong> ({selectedMonth})</div>
             <div>{t('dailyReport.revisionLabel')} Rev.{formatNumber(revision)}</div>
           </div>
         </div>
 
         {/* Student and Organization Meta Strip */}
-        <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-300 text-[11px]">
+        <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-300 text-xs">
           <div>
             <span className="text-slate-500 block">{t('monthlyPlan.studentNameLabel')}</span>
             <strong className="text-slate-900">{userProfile?.name || user?.name || '—'}</strong>
@@ -191,7 +191,7 @@ export const MonthlyPlanPage: React.FC = () => {
           </div>
           <div>
             <span className="text-slate-500 block">{t('common.date')}:</span>
-            <span className="text-slate-700 font-mono text-[10px]">
+            <span className="text-slate-700 font-mono text-xs">
               {printTimestamp || formatDate(new Date())}
             </span>
           </div>
@@ -297,11 +297,11 @@ export const MonthlyPlanPage: React.FC = () => {
                   <span className="h-6 w-6 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs print:bg-slate-100 print:text-slate-900">
                     {formatNumber(group.order)}
                   </span>
-                  <h2 className="font-bold text-sm text-slate-900 dark:text-slate-100 print:text-slate-950">
+                  <h2 className="font-bold text-base sm:text-lg text-slate-900 dark:text-slate-100 print:text-slate-950">
                     {groupTitle}
                   </h2>
                 </div>
-                <span className="text-[11px] text-slate-400 print:text-slate-600 font-medium">
+                <span className="text-xs text-slate-400 print:text-slate-600 font-medium">
                   {formatNumber(eligibleMetrics.length)} {t('common.actions')}
                 </span>
               </div>
@@ -312,13 +312,13 @@ export const MonthlyPlanPage: React.FC = () => {
                   const mLabel = getMetricLabel(metric, locale);
                   const mUnit = getMetricUnit(metric, locale);
                   return (
-                    <div key={metric.id} className="space-y-1 bg-slate-50/50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/60">
-                      <div className="flex items-center justify-between text-xs">
-                        <label className="font-medium text-slate-700 dark:text-slate-300 truncate" title={mLabel}>
+                    <div key={metric.id} className="space-y-1.5 bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                      <div className="flex items-center justify-between text-sm">
+                        <label className="font-semibold text-slate-700 dark:text-slate-300 truncate" title={mLabel}>
                           {mLabel}
                         </label>
                         {mUnit && (
-                          <span className="text-[11px] text-slate-400 font-normal">({mUnit})</span>
+                          <span className="text-xs text-slate-400 font-normal">({mUnit})</span>
                         )}
                       </div>
                       <input
@@ -326,7 +326,7 @@ export const MonthlyPlanPage: React.FC = () => {
                         placeholder="0"
                         value={targets[metric.id] ?? ''}
                         onChange={(e) => handleTargetChange(metric.id, e.target.value)}
-                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                        className="w-full px-3 py-2 text-base rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                       />
                     </div>
                   );

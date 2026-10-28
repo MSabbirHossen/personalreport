@@ -391,7 +391,7 @@ export const DailyReportPage: React.FC = () => {
             </div>
 
             {/* Title */}
-            <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">
+            <h2 className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100 truncate">
               {groupTitle}
             </h2>
           </div>
@@ -448,7 +448,7 @@ export const DailyReportPage: React.FC = () => {
                     <div className="space-y-0.5 pr-2 rtl:pr-0 rtl:pl-2">
                       <label
                         htmlFor={`field-${metric.id}`}
-                        className={`text-xs font-medium cursor-pointer ${
+                        className={`text-sm font-semibold cursor-pointer ${
                           !isToday
                             ? 'text-slate-500 dark:text-slate-400 cursor-not-allowed'
                             : 'text-slate-700 dark:text-slate-300'
@@ -457,7 +457,7 @@ export const DailyReportPage: React.FC = () => {
                         {metricLabel}
                       </label>
                       {!isToday && (
-                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-wide">
+                        <p className="text-2xs text-amber-600 dark:text-amber-400 font-semibold tracking-wide">
                           {t('dailyReport.dateRestrictedBadge')}
                         </p>
                       )}
@@ -485,7 +485,7 @@ export const DailyReportPage: React.FC = () => {
                   >
                     <label
                       htmlFor={`field-${metric.id}`}
-                      className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                      className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
                     >
                       {metricLabel}
                     </label>
@@ -504,10 +504,10 @@ export const DailyReportPage: React.FC = () => {
               if (metric.type === 'text') {
                 return (
                   <div key={metric.id} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-sm">
                       <label
                         htmlFor={`field-${metric.id}`}
-                        className="font-medium text-slate-700 dark:text-slate-300"
+                        className="font-semibold text-slate-700 dark:text-slate-300"
                       >
                         {metricLabel}
                       </label>
@@ -518,7 +518,7 @@ export const DailyReportPage: React.FC = () => {
                       value={value ?? ''}
                       placeholder={t('dailyReport.hadithExplanationPlaceholder')}
                       onChange={(e) => handleValueChange(metric.id, e.target.value)}
-                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y min-h-[58px]"
+                      className="w-full px-3.5 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y min-h-[58px]"
                     />
                   </div>
                 );
@@ -528,15 +528,15 @@ export const DailyReportPage: React.FC = () => {
               if (metric.type === 'duration_minutes') {
                 return (
                   <div key={metric.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-sm">
                       <label
                         htmlFor={`duration-${metric.id}`}
-                        className="font-medium text-slate-700 dark:text-slate-300"
+                        className="font-semibold text-slate-700 dark:text-slate-300"
                       >
                         {metricLabel}
                       </label>
                       {metricUnit && (
-                        <span className="text-[11px] text-slate-400 font-normal">
+                        <span className="text-xs text-slate-400 font-normal">
                           ({metricUnit})
                         </span>
                       )}
@@ -549,7 +549,7 @@ export const DailyReportPage: React.FC = () => {
                       disabled={saving}
                     />
                     {fieldError && (
-                      <p className="text-[11px] font-semibold text-red-500 mt-0.5">
+                      <p className="text-xs font-semibold text-red-500 mt-0.5">
                         {fieldError}
                       </p>
                     )}
@@ -562,15 +562,15 @@ export const DailyReportPage: React.FC = () => {
 
               return (
                 <div key={metric.id} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-sm">
                     <label
                       htmlFor={`field-${metric.id}`}
-                      className="font-medium text-slate-700 dark:text-slate-300"
+                      className="font-semibold text-slate-700 dark:text-slate-300"
                     >
                       {metricLabel}
                     </label>
                     {metricUnit && (
-                      <span className="text-[11px] text-slate-400 font-normal">
+                      <span className="text-xs text-slate-400 font-normal">
                         ({metricUnit})
                       </span>
                     )}
@@ -604,7 +604,7 @@ export const DailyReportPage: React.FC = () => {
                         const parsed = Number(raw);
                         handleValueChange(metric.id, parsed);
                       }}
-                      className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full px-3.5 py-2.5 text-base rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
                         fieldError
                           ? 'border-red-400 dark:border-red-700 focus:ring-red-400/20'
                           : 'border-slate-200 dark:border-slate-700 focus:ring-brand-500/20 focus:border-brand-500'
@@ -612,7 +612,7 @@ export const DailyReportPage: React.FC = () => {
                     />
                   </div>
                   {fieldError && (
-                    <p className="text-[11px] font-semibold text-red-500 mt-0.5">
+                    <p className="text-xs font-semibold text-red-500 mt-0.5">
                       {fieldError}
                     </p>
                   )}
@@ -630,11 +630,11 @@ export const DailyReportPage: React.FC = () => {
       {/* Top Header & Controls */}
       <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Calendar className="h-6 w-6 text-brand-600 dark:text-brand-400" />
             <span>{t('dailyReport.title')}</span>
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {t('dailyReport.subtitle')}
           </p>
         </div>
@@ -645,24 +645,24 @@ export const DailyReportPage: React.FC = () => {
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setViewMode('single')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                 viewMode === 'single'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
-              <FileEdit className="h-3.5 w-3.5" />
+              <FileEdit className="h-4 w-4" />
               <span>{t('dailyReport.singleDayView')}</span>
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
-              <LayoutGrid className="h-3.5 w-3.5" />
+              <LayoutGrid className="h-4 w-4" />
               <span>{t('dailyReport.monthlyGridView')}</span>
             </button>
           </div>
@@ -672,10 +672,10 @@ export const DailyReportPage: React.FC = () => {
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-md shadow-brand-600/20 active:scale-[0.98] transition-all cursor-pointer"
               title={t('common.print')}
             >
-              <Printer className="h-3.5 w-3.5" />
+              <Printer className="h-4 w-4" />
               <span>{t('common.print')}</span>
             </button>
           )}
@@ -689,7 +689,7 @@ export const DailyReportPage: React.FC = () => {
               setSelectedDate(`${e.target.value}-01`);
               setSearchParams({ month: e.target.value, date: `${e.target.value}-01` });
             }}
-            className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="px-3.5 py-2.5 text-base font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
       </div>
@@ -701,7 +701,7 @@ export const DailyReportPage: React.FC = () => {
             <button
               onClick={() => navigateDate('prev')}
               disabled={daysArray.indexOf(selectedDate) === 0}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
             >
               <ChevronLeft className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
               <span className="hidden sm:inline">{t('dailyReport.previousDay')}</span>
@@ -717,11 +717,11 @@ export const DailyReportPage: React.FC = () => {
                   setSelectedDate(e.target.value);
                   setSearchParams({ month: selectedMonth, date: e.target.value });
                 }}
-                className="px-3 py-1.5 text-sm font-bold rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-800 text-brand-900 dark:text-brand-100 shadow-sm cursor-pointer"
+                className="px-3.5 py-2 text-base font-bold rounded-xl border border-brand-200 dark:border-brand-800 bg-white dark:bg-slate-800 text-brand-900 dark:text-brand-100 shadow-sm cursor-pointer"
               />
               {saveInfo.isSaved && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 className="h-3 w-3" />
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                   <span>{t('common.saved')}</span>
                 </span>
               )}
@@ -730,7 +730,7 @@ export const DailyReportPage: React.FC = () => {
             <button
               onClick={() => navigateDate('next')}
               disabled={daysArray.indexOf(selectedDate) === daysArray.length - 1}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
+              className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none transition-all cursor-pointer"
             >
               <span className="hidden sm:inline">{t('dailyReport.nextDay')}</span>
               <ChevronRight className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
@@ -739,14 +739,14 @@ export const DailyReportPage: React.FC = () => {
 
           {/* Quick Collapse Indicator */}
           {expandedGroupId && (
-            <div className="flex items-center justify-end gap-2 text-xs">
+            <div className="flex items-center justify-end gap-2 text-sm">
               <button
                 type="button"
                 onClick={() => setExpandedGroupId(null)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 font-medium transition-colors cursor-pointer"
                 title={t('dailyReport.collapseAll')}
               >
-                <ChevronsUp className="h-3.5 w-3.5 text-slate-500" />
+                <ChevronsUp className="h-4 w-4 text-slate-500" />
                 <span>{t('dailyReport.collapseAll')}</span>
               </button>
             </div>
@@ -859,7 +859,7 @@ export const DailyReportPage: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={saving || hasValidationErrors}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-lg shadow-brand-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
                 {saving ? (
                   <span>{t('dailyReport.savingReport')}</span>

@@ -131,17 +131,17 @@ export const NotificationsPage: React.FC = () => {
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         {item.title}
                       </h4>
                       {isUnread && (
                         <span className="h-2 w-2 rounded-full bg-brand-600 ring-2 ring-brand-100 dark:ring-brand-900" />
                       )}
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                       {item.message}
                     </p>
-                    <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-3 pt-1 text-xs text-slate-400">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDate(item.createdAt, {

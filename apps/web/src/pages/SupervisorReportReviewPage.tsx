@@ -264,7 +264,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
                           <td className="py-2.5 px-4 text-center font-bold text-brand-600 dark:text-brand-400">
                             {hasActual ? formatNumber(actualVal) : formatNumber(0)}
                           </td>
-                          <td className="py-2.5 px-4 text-center text-slate-400 text-[11px]">
+                          <td className="py-2.5 px-4 text-center text-slate-400 text-xs">
                             {getMetricUnit(metric, locale)}
                           </td>
                         </tr>
@@ -359,8 +359,8 @@ export const SupervisorReportReviewPage: React.FC = () => {
               className="text-emerald-600 focus:ring-emerald-500"
             />
             <div>
-              <span className="text-sm block">{t('supervisor.acknowledgeOption')}</span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+              <span className="text-base font-semibold block">{t('supervisor.acknowledgeOption')}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
                 {t('supervisor.acknowledgeDesc')}
               </span>
             </div>
@@ -381,8 +381,8 @@ export const SupervisorReportReviewPage: React.FC = () => {
               className="text-rose-600 focus:ring-rose-500"
             />
             <div>
-              <span className="text-sm block">{t('supervisor.returnOption')}</span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+              <span className="text-base font-semibold block">{t('supervisor.returnOption')}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
                 {t('supervisor.returnDesc')}
               </span>
             </div>
@@ -391,7 +391,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
 
         {/* Written Feedback input */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
             {t('supervisor.feedbackLabel')}
           </label>
           <textarea
@@ -462,7 +462,7 @@ export const SupervisorReportReviewPage: React.FC = () => {
                       <div key={rIdx} className="text-xs space-y-0.5">
                         <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
                           <span>{reply.authorName}</span>
-                          <span className="text-[10px] text-slate-400">({reply.authorRole})</span>
+                          <span className="text-2xs text-slate-400">({reply.authorRole})</span>
                         </div>
                         <p className="text-slate-600 dark:text-slate-400">{reply.body}</p>
                       </div>

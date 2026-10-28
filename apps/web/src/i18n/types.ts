@@ -32,6 +32,13 @@ export interface CommonTranslations {
   themeSystem: string;
   language: string;
   theme: string;
+  textSize: string;
+  textSizeStandard: string;
+  textSizeLarge: string;
+  textSizeExtraLarge: string;
+  textSizeDescription: string;
+  textSizePreviewHeading: string;
+  textSizePreviewBody: string;
   date: string;
   time: string;
   status: string;

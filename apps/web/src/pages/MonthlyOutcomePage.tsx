@@ -307,7 +307,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                                   style={{ width: `${progressPercent}%` }}
                                 />
                               </div>
-                              <span className="font-semibold text-[11px] text-slate-600 dark:text-slate-300">
+                              <span className="font-semibold text-xs text-slate-600 dark:text-slate-300">
                                 {formatNumber(progressPercent)}%
                               </span>
                             </div>

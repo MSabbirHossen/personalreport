@@ -107,22 +107,22 @@ export const AdvicePage: React.FC = () => {
                       {item.authorName?.charAt(0) || 'U'}
                     </div>
                     <div>
-                      <div className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                      <div className="font-bold text-base text-slate-800 dark:text-slate-200">
                         {item.authorName}
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-xs text-slate-500">
                         {item.authorRole || t('profile.supervisorRole')} {item.monthKey && `• ${t('monthlyPlan.monthSelectLabel')} ${formatMonthKey(item.monthKey)}`}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
                     <Clock className="h-3.5 w-3.5" />
                     <span>{formatDate(item.createdAt, { day: 'numeric', month: 'short' })}</span>
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
+                <p className="mt-4 text-base text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
                   {item.body}
                 </p>
 
@@ -130,11 +130,11 @@ export const AdvicePage: React.FC = () => {
                 {item.replies && item.replies.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5 ps-4 border-inline-start-2 border-brand-200 dark:border-brand-900">
                     {item.replies.map((reply: any, rIdx: number) => (
-                      <div key={rIdx} className="text-xs space-y-0.5">
+                      <div key={rIdx} className="text-sm space-y-0.5">
                         <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
                           <span>{reply.authorName}</span>
-                          <span className="text-[10px] text-slate-400">({reply.authorRole})</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
+                          <span className="text-2xs text-slate-400">({reply.authorRole})</span>
+                          <span className="text-2xs text-slate-400 font-normal">
                             {formatDate(reply.createdAt, { day: 'numeric', month: 'short' })}
                           </span>
                         </div>

@@ -142,8 +142,8 @@ export const AuditLogPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* From Date */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
               <span>{t('audit.fromDateLabel')}</span>
             </label>
             <input
@@ -153,14 +153,14 @@ export const AuditLogPage: React.FC = () => {
                 setFrom(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+              className="w-full px-3 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
             />
           </div>
 
           {/* To Date */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
               <span>{t('audit.toDateLabel')}</span>
             </label>
             <input
@@ -170,13 +170,13 @@ export const AuditLogPage: React.FC = () => {
                 setTo(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+              className="w-full px-3 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
             />
           </div>
 
           {/* Action Filter */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('audit.actionHeader')}
             </label>
             <select
@@ -185,7 +185,7 @@ export const AuditLogPage: React.FC = () => {
                 setAction(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
+              className="w-full px-3 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
             >
               <option value="">{t('audit.allActions')}</option>
               <option value="review.acknowledged">review.acknowledged</option>
@@ -203,7 +203,7 @@ export const AuditLogPage: React.FC = () => {
 
           {/* Entity Type Filter */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('audit.targetHeader')}
             </label>
             <select
@@ -212,7 +212,7 @@ export const AuditLogPage: React.FC = () => {
                 setEntityType(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
+              className="w-full px-3 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium"
             >
               <option value="">{t('audit.allEntities')}</option>
               <option value="monthlyOutcome">monthlyOutcome</option>
@@ -225,8 +225,8 @@ export const AuditLogPage: React.FC = () => {
 
           {/* Actor Filter */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
-              <Search className="h-3 w-3" />
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Search className="h-3.5 w-3.5" />
               <span>{t('audit.actorIdLabel')}</span>
             </label>
             <input
@@ -237,7 +237,7 @@ export const AuditLogPage: React.FC = () => {
                 setActorId(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+              className="w-full px-3 py-2.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
             />
           </div>
         </div>
@@ -275,7 +275,7 @@ export const AuditLogPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-start border-collapse text-xs">
+            <table className="w-full text-start border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
                   <th className="py-3 px-4 text-start">{t('audit.timestampHeader')}</th>
@@ -291,7 +291,7 @@ export const AuditLogPage: React.FC = () => {
                     key={ev.id || ev._id}
                     className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                   >
-                    <td className="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-[11px] text-start">
+                    <td className="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-xs text-start">
                       {formatDate(ev.time)}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-start">{getActionBadge(ev.action)}</td>
@@ -301,7 +301,7 @@ export const AuditLogPage: React.FC = () => {
                           {ev.actorId}
                         </span>
                         {ev.actorRole && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase font-bold">
+                          <span className="text-2xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase font-bold">
                             {ev.actorRole}
                           </span>
                         )}
@@ -310,7 +310,7 @@ export const AuditLogPage: React.FC = () => {
                     <td className="py-3 px-4 whitespace-nowrap text-start">
                       <div className="space-y-0.5">
                         <span className="text-slate-900 dark:text-slate-100 font-medium">{ev.entityType}</span>
-                        <div className="text-[11px] font-mono text-slate-400 truncate max-w-[150px]" title={ev.entityId}>
+                        <div className="text-xs font-mono text-slate-400 truncate max-w-[150px]" title={ev.entityId}>
                           {ev.entityId}
                         </div>
                       </div>
@@ -318,7 +318,7 @@ export const AuditLogPage: React.FC = () => {
                     <td className="py-3 px-4 text-end whitespace-nowrap">
                       <button
                         onClick={() => setSelectedEvent(ev)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                       >
                         <Info className="h-3 w-3" />
                         <span>{t('audit.detailsBtn')}</span>

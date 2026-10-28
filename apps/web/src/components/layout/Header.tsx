@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { BPSReportLogo } from '../common/BPSReportLogo.js';
 import { ThemeSelector } from '../common/ThemeSelector.js';
 import { LanguageSelector } from '../common/LanguageSelector.js';
+import { TextSizeSelector } from '../common/TextSizeSelector.js';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -46,6 +47,9 @@ export const Header: React.FC = () => {
         {/* Multilingual script & direction selector */}
         <LanguageSelector />
 
+        {/* Text size accessibility selector */}
+        <TextSizeSelector />
+
         {/* Light / Dark / System theme selector */}
         <ThemeSelector />
 
@@ -58,7 +62,7 @@ export const Header: React.FC = () => {
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 rtl:right-auto rtl:-left-0.5 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-[var(--brand-red)] text-[10px] font-bold text-white ring-2 ring-theme-surface">
+            <span className="absolute -top-0.5 -right-0.5 rtl:right-auto rtl:-left-0.5 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-[var(--brand-red)] text-2xs font-bold text-white ring-2 ring-theme-surface">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -75,10 +79,10 @@ export const Header: React.FC = () => {
               {user?.name ? user.name.charAt(0) : <User className="h-4 w-4" />}
             </div>
             <div className="hidden md:flex flex-col text-start">
-              <span className="text-xs font-semibold text-theme-text group-hover:text-[var(--primary)] transition-colors">
+              <span className="text-sm font-semibold text-theme-text group-hover:text-[var(--primary)] transition-colors leading-tight">
                 {user?.name || t('profile.studentRole')}
               </span>
-              <span className="text-[10px] text-theme-text-muted">
+              <span className="text-xs text-theme-text-muted leading-tight">
                 {getRoleLabel()}
               </span>
             </div>

@@ -33,25 +33,25 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-3">
               <BPSReportLogo size={32} wordmark={true} />
             </div>
-            <p className="text-xs text-theme-text-muted leading-relaxed max-w-md">
+            <p className="text-sm text-theme-text-muted leading-relaxed max-w-md">
               {t('common.tagline') || 'বাংলা-ফার্স্ট ও বহুভাষিক প্রাতিষ্ঠানিক ব্যক্তিগত রিপোর্ট ও মূল্যায়ন প্ল্যাটফর্ম — Better Data · Brighter Future'}
             </p>
             <div className="flex items-center gap-2 text-xs text-theme-text-muted pt-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>v1.0.0 Production</span>
               </span>
               <span>•</span>
-              <span className="text-[11px]">Bangla · English · Arabic</span>
+              <span className="text-xs">Bangla · English · Arabic</span>
             </div>
           </div>
 
           {/* Quick Navigation Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-theme-text">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-theme-text">
               {t('nav.mainMenu')}
             </h4>
-            <ul className="space-y-2 text-xs text-theme-text-muted">
+            <ul className="space-y-2 text-sm text-theme-text-muted">
               <li>
                 <Link
                   to="/app/home"
@@ -93,15 +93,15 @@ export const Footer: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5 text-[var(--primary)]" />
               <span>{t('developer.pageCategory')}</span>
             </h4>
-            <p className="text-xs text-theme-text-muted leading-relaxed">
+            <p className="text-sm text-theme-text-muted leading-relaxed">
               {t('developer.aboutVisionSubtitle')}
             </p>
             <div>
               <Link
                 to={developerPath}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-theme-surface-muted hover:bg-theme-surface border border-theme-border hover:border-brand-500/40 text-theme-text transition-all shadow-2xs group cursor-pointer"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold bg-theme-surface-muted hover:bg-theme-surface border border-theme-border hover:border-brand-500/40 text-theme-text transition-all shadow-2xs group cursor-pointer"
               >
-                <div className="w-5 h-5 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-600 flex items-center justify-center text-white text-[10px] font-black group-hover:scale-105 transition-transform">
+                <div className="w-5 h-5 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-600 flex items-center justify-center text-white text-xs font-black group-hover:scale-105 transition-transform">
                   MS
                 </div>
                 <span>{t('nav.developerInfo')}</span>
@@ -112,7 +112,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar: Copyright & Attribution */}
-        <div className="pt-6 border-t border-theme-border/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-theme-text-muted">
+        <div className="pt-6 border-t border-theme-border/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-theme-text-muted">
           <div className="flex items-center gap-2 flex-wrap text-center sm:text-start">
             <span>
               {t('developer.footerCraftedWith')}{' '}
@@ -125,7 +125,7 @@ export const Footer: React.FC = () => {
               (@sabb1rhossen)
             </span>
             <span className="hidden sm:inline">•</span>
-            <span className="text-[11px] font-medium text-theme-text-muted">
+            <span className="text-xs font-medium text-theme-text-muted">
               {t('developer.footerTagline')}
             </span>
           </div>

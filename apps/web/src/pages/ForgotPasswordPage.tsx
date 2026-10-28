@@ -85,8 +85,8 @@ export const ForgotPasswordPage: React.FC = () => {
         <div className="bg-theme-surface p-6 sm:p-8 rounded-3xl border border-theme-border shadow-xl space-y-5 text-theme-text">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
+              <label className="text-sm font-semibold text-theme-text flex items-center gap-1.5">
+                <Mail className="h-4 w-4 text-theme-text-muted" />
                 <span>{t('auth.emailLabel')}</span>
               </label>
               <input
@@ -95,7 +95,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                className="w-full px-3.5 py-2.5 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
@@ -122,7 +122,7 @@ export const ForgotPasswordPage: React.FC = () => {
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-theme-text-muted font-medium">
+        <p className="text-center text-xs text-theme-text-muted font-medium">
           {t('common.appTitle')} · {t('common.tagline')}
         </p>
       </div>

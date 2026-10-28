@@ -142,7 +142,7 @@ export const RegisterPage: React.FC = () => {
 
           <div className="relative flex items-center justify-center">
             <div className="border-t border-theme-border w-full" />
-            <span className="bg-theme-surface px-3 text-[11px] text-theme-text-muted uppercase font-medium absolute">
+            <span className="bg-theme-surface px-3 text-xs text-theme-text-muted uppercase font-semibold absolute">
               {t('auth.orWithEmail')}
             </span>
           </div>
@@ -150,8 +150,8 @@ export const RegisterPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-3.5 pt-1">
             {/* Full Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-theme-text-muted" />
+              <label className="text-sm font-semibold text-theme-text flex items-center gap-1.5">
+                <User className="h-4 w-4 text-theme-text-muted" />
                 <span>{t('auth.fullNameLabel')}</span>
               </label>
               <input
@@ -160,14 +160,14 @@ export const RegisterPage: React.FC = () => {
                 placeholder={t('auth.fullNamePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                className="w-full px-3.5 py-2.5 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
             {/* Email Address */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-theme-text-muted" />
+              <label className="text-sm font-semibold text-theme-text flex items-center gap-1.5">
+                <Mail className="h-4 w-4 text-theme-text-muted" />
                 <span>{t('auth.emailLabel')}</span>
               </label>
               <input
@@ -176,14 +176,14 @@ export const RegisterPage: React.FC = () => {
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                className="w-full px-3.5 py-2.5 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
+              <label className="text-sm font-semibold text-theme-text flex items-center gap-1.5">
+                <Lock className="h-4 w-4 text-theme-text-muted" />
                 <span>{t('auth.passwordLabel')}</span>
               </label>
               <div className="relative flex items-center">
@@ -193,7 +193,7 @@ export const RegisterPage: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
@@ -208,8 +208,8 @@ export const RegisterPage: React.FC = () => {
 
             {/* Confirm Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-theme-text flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-theme-text-muted" />
+              <label className="text-sm font-semibold text-theme-text flex items-center gap-1.5">
+                <Lock className="h-4 w-4 text-theme-text-muted" />
                 <span>{t('auth.confirmPasswordLabel')}</span>
               </label>
               <div className="relative flex items-center">
@@ -219,7 +219,7 @@ export const RegisterPage: React.FC = () => {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-sm rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+                  className="w-full px-3.5 py-2.5 pr-10 rtl:pr-3.5 rtl:pl-10 text-base rounded-xl border border-theme-border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
@@ -270,7 +270,7 @@ export const RegisterPage: React.FC = () => {
         </div>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-theme-text-muted font-medium">
+        <p className="text-center text-xs text-theme-text-muted font-medium">
           {t('common.appTitle')} · {t('common.tagline')}
         </p>
       </div>

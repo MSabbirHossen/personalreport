@@ -260,7 +260,7 @@ export const BPSReportLoader: React.FC<BPSReportLoaderProps> = ({
         <p className="text-xs sm:text-sm text-theme-text-muted">
           {subMessage}
         </p>
-        <p className="text-[11px] text-theme-text-muted/70 font-latin uppercase tracking-wider pt-1">
+        <p className="text-xs text-theme-text-muted/70 font-latin uppercase tracking-wider pt-1">
           BPS Report · Better Data · Brighter Future
         </p>
       </div>

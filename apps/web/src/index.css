@@ -20,6 +20,8 @@
     background-color: var(--bg);
     color: var(--text);
     font-family: var(--font-ui);
+    font-size: var(--text-base);
+    line-height: var(--lh-body);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -28,14 +30,17 @@
 
   :lang(bn), [lang="bn"] {
     font-family: var(--font-bangla);
+    line-height: 1.68;
   }
 
   :lang(ar), [lang="ar"], [dir="rtl"] {
     font-family: var(--font-arabic);
+    line-height: 1.72;
   }
 
   :lang(en), [lang="en"] {
     font-family: var(--font-latin);
+    line-height: 1.6;
   }
 
   :focus-visible {

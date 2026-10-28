@@ -594,7 +594,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
               </div>
 
               <div className="mt-4 pt-3 border-t border-theme-border flex items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold text-theme-text-muted">
+                <span className="text-xs font-semibold text-theme-text-muted">
                   {item.subHandle || item.category}
                 </span>
                 {item.isUpcoming ? (
@@ -642,10 +642,10 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
             <p>{t('developer.aboutVisionP1')}</p>
             <p>{t('developer.aboutVisionP2')}</p>
             <div className="p-3 bg-theme-surface-muted rounded-xl border border-theme-border space-y-1">
-              <span className="text-[11px] font-bold text-theme-text block">
+              <span className="text-xs font-bold text-theme-text block">
                 Open to Feedback & Collaboration
               </span>
-              <span className="text-[10px] text-theme-text-muted block">
+              <span className="text-xs text-theme-text-muted block">
                 Got feature suggestions, questions, or ideas for improvement? Reach out on WhatsApp, Telegram, or drop a message.
               </span>
             </div>
@@ -740,7 +740,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
       {/* Developer Attribution Footer Card */}
       <div className="mt-8 pt-6 border-t border-theme-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-theme-text-muted">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-600 flex items-center justify-center text-white text-[11px] font-bold">
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
             MS
           </div>
           <span>
@@ -757,7 +757,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-[11px] font-medium">
+        <div className="flex items-center gap-3 text-xs font-medium">
           <span>{t('developer.footerTagline')}</span>
           <span>•</span>
           <span>© {new Date().getFullYear()} {t('developer.footerRights')}</span>

@@ -14,6 +14,17 @@ export default {
         latin: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         arabic: ['"Noto Sans Arabic"', '"Noto Naskh Arabic"', 'sans-serif'],
       },
+      fontSize: {
+        '2xs': ['var(--text-2xs)', { lineHeight: '1.4' }],
+        xs: ['var(--text-xs)', { lineHeight: '1.5' }],
+        sm: ['var(--text-sm)', { lineHeight: '1.55' }],
+        base: ['var(--text-base)', { lineHeight: 'var(--lh-body)' }],
+        lg: ['var(--text-lg)', { lineHeight: '1.5' }],
+        xl: ['var(--text-xl)', { lineHeight: '1.4' }],
+        '2xl': ['var(--text-2xl)', { lineHeight: 'var(--lh-heading)' }],
+        '3xl': ['var(--text-3xl)', { lineHeight: 'var(--lh-heading)' }],
+        '4xl': ['var(--text-4xl)', { lineHeight: '1.2' }],
+      },
       colors: {
         // Heritage Brand Palette
         heritage: {
