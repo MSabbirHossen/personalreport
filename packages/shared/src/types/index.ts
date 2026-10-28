@@ -1,5 +1,6 @@
 import { MetricGroup, MetricDefinition } from '../constants/metrics.js';
 import { SystemRole } from '../constants/roles.js';
+import { Permission } from '../constants/permissions.js';
 
 export interface UserProfile {
   education?: string;
@@ -226,6 +227,7 @@ export interface UserAuthContext {
   name: string;
   orgId?: string;
   roles: SystemRole[];
+  permissions?: Permission[];
   membership?: Membership;
 }
 
