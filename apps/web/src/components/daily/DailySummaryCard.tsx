@@ -23,7 +23,7 @@ export const DailySummaryCard: React.FC<DailySummaryCardProps> = ({
   const { categories, yesterdayDateKey, hasYesterdayData } = comparison;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+    <div className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm p-5 space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-2">
         <div className="flex items-center gap-2.5">

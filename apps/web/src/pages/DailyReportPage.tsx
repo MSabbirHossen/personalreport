@@ -361,7 +361,7 @@ export const DailyReportPage: React.FC = () => {
     return (
       <div
         key={group.id}
-        className={`bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 shadow-sm ${
+        className={`bg-theme-surface islamic-card rounded-2xl border transition-all duration-200 shadow-sm ${
           isExpanded
             ? 'border-brand-300 dark:border-brand-800/80 ring-1 ring-brand-500/10'
             : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
@@ -626,7 +626,7 @@ export const DailyReportPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-10">
       {/* Top Header & Controls */}
-      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -694,7 +694,7 @@ export const DailyReportPage: React.FC = () => {
 
       {/* Date Carousel Navigation (for Single Day Mode) */}
       {viewMode === 'single' && (
-        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl">
+        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-brand-50/70 dark:bg-brand-950/40 border border-brand-100 dark:border-brand-900/50 p-3 rounded-2xl islamic-card">
           <div className="flex items-center justify-between sm:justify-start gap-2">
             <button
               onClick={() => navigateDate('prev')}
