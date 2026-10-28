@@ -36,7 +36,7 @@ export const BPSReportLoader: React.FC<BPSReportLoaderProps> = ({
     <div
       className={`flex flex-col items-center justify-center gap-5 text-center p-6 text-theme-text ${
         fullScreen
-          ? 'min-h-screen w-full fixed inset-0 z-50 bg-theme-bg'
+          ? 'min-h-screen w-full fixed inset-0 z-50 bg-theme-bg islamic-pattern'
           : 'p-8 rounded-2xl bg-theme-surface border border-theme-border shadow-sm'
       }`}
       role="status"
