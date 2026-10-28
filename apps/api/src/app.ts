@@ -79,8 +79,8 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '1mb' }));
 
-// Liveness check (API process up) - supports both root /health and /api/health
-app.get(['/health', '/api/health'], (_req, res) => {
+// Root & Liveness check (API process up) - supports '/', '/health', and '/api/health'
+app.get(['/', '/health', '/api/health'], (_req, res) => {
   res.json({
     status: 'ok',
     service: 'bps-report-api',
