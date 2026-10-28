@@ -59,18 +59,18 @@ export const QuickLinks: React.FC = () => {
         <div>
           <h2
             id="quick-links-heading"
-            className="text-base sm:text-lg font-bold text-theme-text flex items-center gap-2"
+            className="text-lg sm:text-xl font-bold text-theme-text flex items-center gap-2"
           >
-            <Zap className="h-4 w-4 text-[var(--primary)]" />
+            <Zap className="h-5 w-5 text-[var(--primary)]" />
             <span>{t('rbac.quickLinksTitle')}</span>
           </h2>
-          <p className="text-xs text-theme-text-muted mt-0.5">
+          <p className="text-sm text-theme-text-muted mt-1 leading-relaxed">
             {t('rbac.quickLinksSubtitle')}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {quickLinks.map((item) => {
           const Icon = item.icon;
           const style = THEME_STYLES[item.themeVariant] || THEME_STYLES.emerald;
@@ -79,11 +79,11 @@ export const QuickLinks: React.FC = () => {
             <Link
               key={item.id}
               to={item.href}
-              className={`group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-theme-surface islamic-card border border-theme-border shadow-xs hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${style.hoverBorder}`}
+              className={`group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-theme-surface islamic-card border border-theme-border shadow-xs hover:shadow-md transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] min-h-[160px] ${style.hoverBorder}`}
             >
               <div className="flex items-center justify-between">
                 <div
-                  className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold border border-theme-border shadow-2xs transition-transform duration-200 group-hover:scale-105 ${style.iconBg}`}
+                  className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold border border-theme-border shadow-2xs transition-transform duration-200 group-hover:scale-105 ${style.iconBg}`}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
@@ -94,11 +94,11 @@ export const QuickLinks: React.FC = () => {
                 />
               </div>
 
-              <div className="mt-4 space-y-1">
-                <h3 className="font-bold text-sm sm:text-base text-theme-text group-hover:text-[var(--primary)] transition-colors">
+              <div className="mt-4 space-y-1.5">
+                <h3 className="font-bold text-base sm:text-lg text-theme-text group-hover:text-[var(--primary)] transition-colors leading-snug">
                   {t(item.titleKey)}
                 </h3>
-                <p className="text-xs text-theme-text-muted line-clamp-2 leading-relaxed">
+                <p className="text-sm text-theme-text-muted leading-relaxed">
                   {t(item.descriptionKey)}
                 </p>
               </div>
