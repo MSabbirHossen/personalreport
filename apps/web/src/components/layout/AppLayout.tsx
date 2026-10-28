@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header.js';
 import { Sidebar } from './Sidebar.js';
 import { MobileNav } from './MobileNav.js';
 import { Footer } from './Footer.js';
+import { BPSReportLoader } from '../common/BPSReportLoader.js';
 
 export const AppLayout: React.FC = () => {
   return (
@@ -13,7 +14,9 @@ export const AppLayout: React.FC = () => {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1 p-3.5 sm:p-6 lg:p-8 pb-20 lg:pb-8 overflow-x-hidden min-w-0">
-            <Outlet />
+            <Suspense fallback={<BPSReportLoader fullScreen={false} />}>
+              <Outlet />
+            </Suspense>
           </main>
           <Footer />
         </div>

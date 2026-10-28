@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext.js';
@@ -7,22 +7,25 @@ import { LanguageProvider } from './context/LanguageContext.js';
 import { TextSizeProvider } from './context/TextSizeContext.js';
 import { AppLayout } from './components/layout/AppLayout.js';
 import { ProtectedRoute } from './components/auth/ProtectedRoute.js';
+import { BPSReportLoader } from './components/common/BPSReportLoader.js';
 import { PERMISSIONS } from '@reportbd/shared';
-import { DashboardPage } from './pages/DashboardPage.js';
-import { DailyReportPage } from './pages/DailyReportPage.js';
-import { MonthlyPlanPage } from './pages/MonthlyPlanPage.js';
-import { MonthlyOutcomePage } from './pages/MonthlyOutcomePage.js';
-import { AdvicePage } from './pages/AdvicePage.js';
-import { ProfilePage } from './pages/ProfilePage.js';
-import { LoginPage } from './pages/LoginPage.js';
-import { RegisterPage } from './pages/RegisterPage.js';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
-import { InvitePage } from './pages/InvitePage.js';
-import { NotificationsPage } from './pages/NotificationsPage.js';
-import { SupervisorDashboardPage } from './pages/SupervisorDashboardPage.js';
-import { SupervisorReportReviewPage } from './pages/SupervisorReportReviewPage.js';
-import { AuditLogPage } from './pages/AuditLogPage.js';
-import { DeveloperInfoPage } from './pages/DeveloperInfoPage.js';
+
+// Lazy-loaded route components for performance, code-splitting, and minimal initial chunk size
+const DashboardPage = lazy(() => import('./pages/DashboardPage.js').then((m) => ({ default: m.DashboardPage })));
+const DailyReportPage = lazy(() => import('./pages/DailyReportPage.js').then((m) => ({ default: m.DailyReportPage })));
+const MonthlyPlanPage = lazy(() => import('./pages/MonthlyPlanPage.js').then((m) => ({ default: m.MonthlyPlanPage })));
+const MonthlyOutcomePage = lazy(() => import('./pages/MonthlyOutcomePage.js').then((m) => ({ default: m.MonthlyOutcomePage })));
+const AdvicePage = lazy(() => import('./pages/AdvicePage.js').then((m) => ({ default: m.AdvicePage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.js').then((m) => ({ default: m.ProfilePage })));
+const LoginPage = lazy(() => import('./pages/LoginPage.js').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage.js').then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.js').then((m) => ({ default: m.ForgotPasswordPage })));
+const InvitePage = lazy(() => import('./pages/InvitePage.js').then((m) => ({ default: m.InvitePage })));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage.js').then((m) => ({ default: m.NotificationsPage })));
+const SupervisorDashboardPage = lazy(() => import('./pages/SupervisorDashboardPage.js').then((m) => ({ default: m.SupervisorDashboardPage })));
+const SupervisorReportReviewPage = lazy(() => import('./pages/SupervisorReportReviewPage.js').then((m) => ({ default: m.SupervisorReportReviewPage })));
+const AuditLogPage = lazy(() => import('./pages/AuditLogPage.js').then((m) => ({ default: m.AuditLogPage })));
+const DeveloperInfoPage = lazy(() => import('./pages/DeveloperInfoPage.js').then((m) => ({ default: m.DeveloperInfoPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,7 +47,8 @@ export const App: React.FC = () => {
           <LanguageProvider defaultLocale="bn">
             <AuthProvider>
               <BrowserRouter>
-              <Routes>
+                <Suspense fallback={<BPSReportLoader fullScreen={true} />}>
+                  <Routes>
                 {/* Public / Auth Routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -189,7 +193,8 @@ export const App: React.FC = () => {
                 <Route path="/" element={<Navigate to="/app/home" replace />} />
                 <Route path="*" element={<Navigate to="/app/home" replace />} />
               </Routes>
-            </BrowserRouter>
+            </Suspense>
+          </BrowserRouter>
           </AuthProvider>
         </LanguageProvider>
       </TextSizeProvider>
