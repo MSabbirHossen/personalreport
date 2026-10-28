@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-theme-bg p-4 relative transition-colors duration-200">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-theme-bg p-4 relative transition-colors duration-200 islamic-pattern">
       {/* Top right quick utilities */}
       <div className="w-full max-w-md flex justify-between items-center mb-4">
         <LanguageSelector />
