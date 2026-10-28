@@ -112,7 +112,7 @@ export const NotificationsPage: React.FC = () => {
               className={`p-4 rounded-2xl border transition-all duration-150 ${
                 isUnread
                   ? 'bg-brand-50/40 dark:bg-brand-950/20 border-brand-200/80 dark:border-brand-900/60 shadow-sm'
-                  : 'bg-white dark:bg-slate-900/60 border-slate-200/70 dark:border-slate-800 hover:border-slate-300'
+                  : 'bg-theme-surface islamic-card border border-theme-border hover:border-slate-300 dark:hover:border-slate-700 shadow-xs'
               }`}
             >
               <div className="flex items-start justify-between gap-4">

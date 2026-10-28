@@ -49,7 +49,7 @@ export const AdvicePage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Page Header */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+      <div className="bg-theme-surface islamic-card p-5 rounded-2xl border border-theme-border shadow-sm flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <MessageSquareQuote className="h-5 w-5 text-brand-600 dark:text-brand-400" />
@@ -95,7 +95,7 @@ export const AdvicePage: React.FC = () => {
                 key={item.id}
                 className={`p-5 rounded-2xl border transition-all ${
                   item.isAcknowledged
-                    ? 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
+                    ? 'bg-theme-surface islamic-card border border-theme-border shadow-xs'
                     : 'bg-brand-50/40 dark:bg-brand-950/30 border-brand-200 dark:border-brand-900 shadow-sm'
                 }`}
               >
