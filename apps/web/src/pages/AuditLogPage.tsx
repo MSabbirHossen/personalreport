@@ -388,8 +388,8 @@ export const AuditLogPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl font-mono text-[11px]">
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl font-mono text-xs sm:text-sm">
                 <div>
                   <span className="text-slate-400 block">Event ID:</span>
                   <span className="text-slate-800 dark:text-slate-200 font-semibold">{selectedEvent.id}</span>
@@ -430,11 +430,11 @@ export const AuditLogPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <span className="font-semibold text-slate-700 dark:text-slate-300 block">
                   {t('audit.metadataTitle')}
                 </span>
-                <pre className="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-[11px] overflow-x-auto max-h-56">
+                <pre className="p-4 rounded-xl bg-slate-900 text-emerald-400 font-mono text-xs sm:text-sm overflow-x-auto max-h-56">
                   {JSON.stringify(selectedEvent.metadata || {}, null, 2)}
                 </pre>
               </div>
@@ -443,7 +443,7 @@ export const AuditLogPage: React.FC = () => {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm font-semibold cursor-pointer"
               >
                 {t('audit.closeBtn')}
               </button>

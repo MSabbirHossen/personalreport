@@ -698,7 +698,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
                         prev ? `${prev}\n[Topic: ${tag}] ` : `[Topic: ${tag}] `
                       )
                     }
-                    className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-theme-surface-muted hover:bg-theme-surface border border-theme-border text-theme-text-muted hover:text-theme-text transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-theme-surface-muted hover:bg-theme-surface border border-theme-border text-theme-text-muted hover:text-theme-text transition-all cursor-pointer min-h-[36px]"
                   >
                     {tag}
                   </button>
@@ -715,7 +715,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
                   placeholder={t('developer.feedbackPlaceholder')}
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  className="w-full text-xs p-3.5 rounded-xl border border-theme-border bg-theme-surface-muted/50 focus:ring-2 focus:ring-brand-500 focus:outline-none text-theme-text resize-none"
+                  className="w-full text-sm sm:text-base p-4 rounded-xl border border-theme-border bg-theme-surface-muted/50 focus:ring-2 focus:ring-brand-500 focus:outline-none text-theme-text resize-none"
                 />
               </div>
 
@@ -726,7 +726,7 @@ export const DeveloperInfoPage: React.FC<{ isCompact?: boolean }> = ({ isCompact
                 </div>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white transition-all shadow-sm shadow-brand-600/20 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm sm:text-base font-bold bg-brand-600 hover:bg-brand-700 text-white transition-all shadow-md shadow-brand-600/20 active:scale-[0.98] cursor-pointer min-h-[46px]"
                 >
                   <Send className="w-4 h-4" />
                   <span>{t('developer.sendFeedbackBtn')}</span>
