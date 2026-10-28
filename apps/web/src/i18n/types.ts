@@ -389,6 +389,36 @@ export interface ValidationTranslations {
   dateRestrictedError: string;
 }
 
+export interface RbacTranslations {
+  accessDeniedTitle: string;
+  accessDeniedDesc: string;
+  accessDeniedRequiredPermission: string;
+  accessDeniedBackHome: string;
+  accessDeniedContactAdmin: string;
+  quickLinksTitle: string;
+  quickLinksSubtitle: string;
+  enterDailyReport: string;
+  enterDailyReportDesc: string;
+  monthlyPlan: string;
+  monthlyPlanDesc: string;
+  monthlyOutcome: string;
+  monthlyOutcomeDesc: string;
+  viewAdvice: string;
+  viewAdviceDesc: string;
+  supervisorDashboard: string;
+  supervisorDashboardDesc: string;
+  reviewQueue: string;
+  reviewQueueDesc: string;
+  auditLog: string;
+  auditLogDesc: string;
+  userManagement: string;
+  userManagementDesc: string;
+  invitations: string;
+  invitationsDesc: string;
+  profileSettings: string;
+  profileSettingsDesc: string;
+}
+
 export interface TranslationSchema {
   common: CommonTranslations;
   nav: NavTranslations;
@@ -403,4 +433,5 @@ export interface TranslationSchema {
   supervisor: SupervisorTranslations;
   audit: AuditTranslations;
   validation: ValidationTranslations;
+  rbac: RbacTranslations;
 }
