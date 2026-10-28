@@ -197,7 +197,7 @@ export const MonthlyPlanPage: React.FC = () => {
       </div>
 
       {/* ==================== SCREEN-ONLY PAGE HEADER ==================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm no-print">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -287,7 +287,7 @@ export const MonthlyPlanPage: React.FC = () => {
           return (
             <div
               key={group.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-3 print-card"
+              className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm p-4 sm:p-5 space-y-3 print-card"
             >
               {/* Group Heading */}
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
