@@ -153,7 +153,7 @@ export const MonthlyOutcomePage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto print-container">
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm no-print">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -237,7 +237,7 @@ export const MonthlyOutcomePage: React.FC = () => {
       </div>
 
       {/* Plan vs Actual Comparison Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-brand-600" />
