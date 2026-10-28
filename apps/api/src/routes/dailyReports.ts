@@ -1,12 +1,12 @@
 import { Router, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, requirePermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
-import { SaveDailyReportInputSchema } from '@reportbd/shared';
+import { SaveDailyReportInputSchema, PERMISSIONS } from '@reportbd/shared';
 
 export const dailyReportsRouter = Router();
 
 // GET /api/v1/daily-reports?month=YYYY-MM
-dailyReportsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
+dailyReportsRouter.get('/', requirePermission(PERMISSIONS.DAILY_REPORT_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { month } = req.query;
     if (!month || typeof month !== 'string' || !/^\d{4}-\d{2}$/.test(month)) {
@@ -50,7 +50,7 @@ dailyReportsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => 
 });
 
 // GET /api/v1/daily-reports/:date
-dailyReportsRouter.get('/:date', async (req: AuthenticatedRequest, res: Response) => {
+dailyReportsRouter.get('/:date', requirePermission(PERMISSIONS.DAILY_REPORT_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const date = req.params.date as string;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -93,7 +93,7 @@ dailyReportsRouter.get('/:date', async (req: AuthenticatedRequest, res: Response
 });
 
 // PUT /api/v1/daily-reports/:date
-dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response) => {
+dailyReportsRouter.put('/:date', requirePermission(PERMISSIONS.DAILY_REPORT_WRITE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const date = req.params.date as string;
     const body = SaveDailyReportInputSchema.parse({ ...req.body, dateKey: date });
@@ -275,7 +275,7 @@ dailyReportsRouter.put('/:date', async (req: AuthenticatedRequest, res: Response
 });
 
 // GET /api/v1/daily-reports/:date/revisions
-dailyReportsRouter.get('/:date/revisions', async (req: AuthenticatedRequest, res: Response) => {
+dailyReportsRouter.get('/:date/revisions', requirePermission(PERMISSIONS.DAILY_REPORT_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const date = req.params.date as string;
     const user = req.user!;

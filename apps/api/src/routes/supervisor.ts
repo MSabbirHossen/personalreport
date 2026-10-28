@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
 import { ObjectId } from 'mongodb';
-import { AuthenticatedRequest, requireRole } from '../middleware/auth.js';
+import { AuthenticatedRequest, requireRole, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import {
   ReviewOutcomeInputSchema,
   CreateAdviceInputSchema,
   SupervisorQueueQuerySchema,
+  PERMISSIONS,
 } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
 import { logAuditEvent } from '../services/audit.js';
@@ -13,8 +14,17 @@ import { sensitiveOpsLimiter } from '../middleware/rateLimiter.js';
 
 export const supervisorRouter = Router();
 
-// Enforce supervisor or org_admin role
-supervisorRouter.use(requireRole(['supervisor', 'org_admin', 'platform_admin']));
+// Enforce supervisor permissions
+supervisorRouter.use(
+  requireAnyPermission([
+    PERMISSIONS.SUPERVISOR_DASHBOARD_READ,
+    PERMISSIONS.SUPERVISOR_QUEUE_READ,
+    PERMISSIONS.SUPERVISOR_STUDENTS_READ,
+    PERMISSIONS.SUPERVISOR_REPORT_READ,
+    PERMISSIONS.SUPERVISOR_REVIEW_SUBMIT,
+    PERMISSIONS.SUPERVISOR_ADVICE_CREATE,
+  ])
+);
 
 // Helper: Get list of active assigned student IDs for this supervisor
 async function getAssignedStudentIds(db: any, orgId: string, supervisorId: string): Promise<string[]> {
@@ -31,7 +41,7 @@ async function getAssignedStudentIds(db: any, orgId: string, supervisorId: strin
 }
 
 // GET /api/v1/supervisor/dashboard
-supervisorRouter.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.get('/dashboard', requirePermission(PERMISSIONS.SUPERVISOR_DASHBOARD_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -136,7 +146,7 @@ supervisorRouter.get('/dashboard', async (req: AuthenticatedRequest, res: Respon
 });
 
 // GET /api/v1/supervisor/queue
-supervisorRouter.get('/queue', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.get('/queue', requirePermission(PERMISSIONS.SUPERVISOR_QUEUE_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -234,7 +244,7 @@ supervisorRouter.get('/queue', async (req: AuthenticatedRequest, res: Response) 
 });
 
 // GET /api/v1/supervisor/students
-supervisorRouter.get('/students', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.get('/students', requirePermission(PERMISSIONS.SUPERVISOR_STUDENTS_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -278,7 +288,7 @@ supervisorRouter.get('/students', async (req: AuthenticatedRequest, res: Respons
 });
 
 // GET /api/v1/supervisor/students/:studentId/reports
-supervisorRouter.get('/students/:studentId/reports', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.get('/students/:studentId/reports', requirePermission(PERMISSIONS.SUPERVISOR_REPORT_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const studentId = req.params.studentId as string;
     const user = req.user!;
@@ -333,7 +343,7 @@ supervisorRouter.get('/students/:studentId/reports', async (req: AuthenticatedRe
 });
 
 // GET /api/v1/supervisor/reports/:outcomeId
-supervisorRouter.get('/reports/:outcomeId', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.get('/reports/:outcomeId', requirePermission(PERMISSIONS.SUPERVISOR_REPORT_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const outcomeId = req.params.outcomeId as string;
     const user = req.user!;
@@ -445,7 +455,7 @@ supervisorRouter.get('/reports/:outcomeId', async (req: AuthenticatedRequest, re
 });
 
 // POST /api/v1/supervisor/reviews/:outcomeId
-supervisorRouter.post('/reviews/:outcomeId', sensitiveOpsLimiter, async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.post('/reviews/:outcomeId', sensitiveOpsLimiter, requirePermission(PERMISSIONS.SUPERVISOR_REVIEW_SUBMIT), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const outcomeId = req.params.outcomeId as string;
     const body = ReviewOutcomeInputSchema.parse({ ...req.body, outcomeId });
@@ -637,7 +647,7 @@ supervisorRouter.post('/reviews/:outcomeId', sensitiveOpsLimiter, async (req: Au
 });
 
 // POST /api/v1/supervisor/advice
-supervisorRouter.post('/advice', async (req: AuthenticatedRequest, res: Response) => {
+supervisorRouter.post('/advice', requirePermission(PERMISSIONS.SUPERVISOR_ADVICE_CREATE), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = CreateAdviceInputSchema.parse(req.body);
     const user = req.user!;

@@ -28,6 +28,7 @@ meRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
         status: userRecord.status,
         profile: userRecord.profile || {},
         roles: user.roles,
+        permissions: user.permissions || [],
         orgId: user.orgId,
       },
     });

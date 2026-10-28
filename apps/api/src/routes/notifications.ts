@@ -1,12 +1,13 @@
 import { Router, Response } from 'express';
 import { ObjectId } from 'mongodb';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, requirePermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
+import { PERMISSIONS } from '@reportbd/shared';
 
 export const notificationsRouter = Router();
 
 // GET /api/v1/notifications
-notificationsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
+notificationsRouter.get('/', requirePermission(PERMISSIONS.NOTIFICATIONS_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -50,7 +51,7 @@ notificationsRouter.get('/', async (req: AuthenticatedRequest, res: Response) =>
 });
 
 // PATCH /api/v1/notifications/:id/read
-notificationsRouter.patch('/:id/read', async (req: AuthenticatedRequest, res: Response) => {
+notificationsRouter.patch('/:id/read', requirePermission(PERMISSIONS.NOTIFICATIONS_WRITE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const user = req.user!;
@@ -92,7 +93,7 @@ notificationsRouter.patch('/:id/read', async (req: AuthenticatedRequest, res: Re
 });
 
 // POST /api/v1/notifications/read-all
-notificationsRouter.post('/read-all', async (req: AuthenticatedRequest, res: Response) => {
+notificationsRouter.post('/read-all', requirePermission(PERMISSIONS.NOTIFICATIONS_WRITE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();

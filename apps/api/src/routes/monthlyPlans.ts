@@ -1,13 +1,13 @@
 import { Router, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, requirePermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
-import { SaveMonthlyPlanInputSchema } from '@reportbd/shared';
+import { SaveMonthlyPlanInputSchema, PERMISSIONS } from '@reportbd/shared';
 import { logAuditEvent } from '../services/audit.js';
 
 export const monthlyPlansRouter = Router();
 
 // GET /api/v1/monthly-plans/:month
-monthlyPlansRouter.get('/:month', async (req: AuthenticatedRequest, res: Response) => {
+monthlyPlansRouter.get('/:month', requirePermission(PERMISSIONS.MONTHLY_PLAN_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     if (!/^\d{4}-\d{2}$/.test(month)) {
@@ -50,7 +50,7 @@ monthlyPlansRouter.get('/:month', async (req: AuthenticatedRequest, res: Respons
 });
 
 // PUT /api/v1/monthly-plans/:month
-monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Response) => {
+monthlyPlansRouter.put('/:month', requirePermission(PERMISSIONS.MONTHLY_PLAN_WRITE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     const body = SaveMonthlyPlanInputSchema.parse({ ...req.body, monthKey: month });
@@ -156,7 +156,7 @@ monthlyPlansRouter.put('/:month', async (req: AuthenticatedRequest, res: Respons
 });
 
 // POST /api/v1/monthly-plans/:month/share
-monthlyPlansRouter.post('/:month/share', async (req: AuthenticatedRequest, res: Response) => {
+monthlyPlansRouter.post('/:month/share', requirePermission(PERMISSIONS.MONTHLY_PLAN_SHARE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     const user = req.user!;

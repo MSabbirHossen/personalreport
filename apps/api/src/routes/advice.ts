@@ -1,15 +1,15 @@
 import { Router, Response } from 'express';
 import { ObjectId } from 'mongodb';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
-import { ReplyAdviceInputSchema } from '@reportbd/shared';
+import { ReplyAdviceInputSchema, PERMISSIONS, hasPermission } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
 import { logAuditEvent } from '../services/audit.js';
 
 export const adviceRouter = Router();
 
 // GET /api/v1/advice
-adviceRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
+adviceRouter.get('/', requireAnyPermission([PERMISSIONS.ADVICE_READ_OWN, PERMISSIONS.SUPERVISOR_REPORT_READ]), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -20,7 +20,7 @@ adviceRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 
     // If supervisor or admin wants to view advice for a specific student
     if (queryStudentId && queryStudentId !== user.userId) {
-      if (!user.roles.includes('supervisor') && !user.roles.includes('org_admin') && !user.roles.includes('platform_admin')) {
+      if (!hasPermission(user.roles, PERMISSIONS.SUPERVISOR_REPORT_READ)) {
         res.status(403).json({ code: 'FORBIDDEN', message: 'Not authorized to view other students advice.' });
         return;
       }
@@ -81,7 +81,7 @@ adviceRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/v1/advice/:id/acknowledge
-adviceRouter.post('/:id/acknowledge', async (req: AuthenticatedRequest, res: Response) => {
+adviceRouter.post('/:id/acknowledge', requirePermission(PERMISSIONS.ADVICE_ACKNOWLEDGE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const user = req.user!;
@@ -119,7 +119,7 @@ adviceRouter.post('/:id/acknowledge', async (req: AuthenticatedRequest, res: Res
 });
 
 // POST /api/v1/advice/:id/reply
-adviceRouter.post('/:id/reply', async (req: AuthenticatedRequest, res: Response) => {
+adviceRouter.post('/:id/reply', requirePermission(PERMISSIONS.ADVICE_REPLY), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const body = ReplyAdviceInputSchema.parse(req.body);

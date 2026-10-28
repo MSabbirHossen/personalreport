@@ -3,7 +3,16 @@ import admin from 'firebase-admin';
 import { ObjectId } from 'mongodb';
 import { config } from '../config/index.js';
 import { getDb } from '../db/mongo.js';
-import { UserAuthContext, SystemRole } from '@reportbd/shared';
+import {
+  UserAuthContext,
+  SystemRole,
+  Permission,
+  PERMISSIONS,
+  getEffectivePermissions,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+} from '@reportbd/shared';
 
 // Initialize Firebase Admin SDK
 let firebaseAppInitialized = false;
@@ -186,6 +195,7 @@ export async function requireAuth(
 
     const roles: SystemRole[] = membership && Array.isArray(membership.roles) ? membership.roles : [];
     const orgId = membership?.orgId || undefined;
+    const permissions = getEffectivePermissions(roles);
 
     req.user = {
       userId,
@@ -194,6 +204,7 @@ export async function requireAuth(
       name: userRecord.name || name,
       orgId,
       roles,
+      permissions,
       membership: membership as any,
     };
 
@@ -248,6 +259,54 @@ export function requireRole(allowedRoles: SystemRole[]) {
       res.status(403).json({
         code: 'FORBIDDEN',
         message: 'You do not have permission to perform this action.',
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
+/**
+ * Middleware: Requires the user to hold the specified permission(s).
+ * If an array of permissions is supplied, the user must hold ALL of them.
+ */
+export function requirePermission(permission: Permission | Permission[]) {
+  const requiredList = Array.isArray(permission) ? permission : [permission];
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+      return;
+    }
+
+    if (!hasAllPermissions(req.user.roles, requiredList)) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to perform this action.',
+        requiredPermissions: requiredList,
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
+/**
+ * Middleware: Requires the user to hold AT LEAST ONE of the specified permissions.
+ */
+export function requireAnyPermission(permissions: Permission[]) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ code: 'UNAUTHORIZED', message: 'Authentication required' });
+      return;
+    }
+
+    if (!hasAnyPermission(req.user.roles, permissions)) {
+      res.status(403).json({
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to perform this action.',
+        requiredPermissions: permissions,
       });
       return;
     }

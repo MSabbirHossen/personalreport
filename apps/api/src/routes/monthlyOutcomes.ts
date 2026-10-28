@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.js';
+import { AuthenticatedRequest, requirePermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import {
   DEFAULT_METRIC_GROUPS,
   calculateMonthlyAggregates,
   SaveMonthlyOutcomeInputSchema,
   SubmitMonthlyOutcomeInputSchema,
+  PERMISSIONS,
 } from '@reportbd/shared';
 import { createInAppNotification } from '../services/notifications.js';
 import { logAuditEvent } from '../services/audit.js';
@@ -21,7 +22,7 @@ function getDaysInMonth(yearMonth: string): number {
 }
 
 // GET /api/v1/monthly-outcomes/:month
-monthlyOutcomesRouter.get('/:month', async (req: AuthenticatedRequest, res: Response) => {
+monthlyOutcomesRouter.get('/:month', requirePermission(PERMISSIONS.MONTHLY_OUTCOME_READ_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     if (!/^\d{4}-\d{2}$/.test(month)) {
@@ -97,7 +98,7 @@ monthlyOutcomesRouter.get('/:month', async (req: AuthenticatedRequest, res: Resp
 });
 
 // PUT /api/v1/monthly-outcomes/:month
-monthlyOutcomesRouter.put('/:month', async (req: AuthenticatedRequest, res: Response) => {
+monthlyOutcomesRouter.put('/:month', requirePermission(PERMISSIONS.MONTHLY_OUTCOME_WRITE_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     const body = SaveMonthlyOutcomeInputSchema.parse({ ...req.body, monthKey: month });
@@ -200,7 +201,7 @@ monthlyOutcomesRouter.put('/:month', async (req: AuthenticatedRequest, res: Resp
 });
 
 // POST /api/v1/monthly-outcomes/:month/submit
-monthlyOutcomesRouter.post('/:month/submit', async (req: AuthenticatedRequest, res: Response) => {
+monthlyOutcomesRouter.post('/:month/submit', requirePermission(PERMISSIONS.MONTHLY_OUTCOME_SUBMIT_OWN), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const month = req.params.month as string;
     const user = req.user!;

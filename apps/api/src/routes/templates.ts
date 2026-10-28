@@ -1,11 +1,11 @@
 import { Router, Response } from 'express';
-import { AuthenticatedRequest } from '../middleware/auth.js';
-import { DEFAULT_METRIC_GROUPS } from '@reportbd/shared';
+import { AuthenticatedRequest, requirePermission } from '../middleware/auth.js';
+import { DEFAULT_METRIC_GROUPS, PERMISSIONS } from '@reportbd/shared';
 
 export const templatesRouter = Router();
 
 // GET /api/v1/templates/current
-templatesRouter.get('/current', async (req: AuthenticatedRequest, res: Response) => {
+templatesRouter.get('/current', requirePermission(PERMISSIONS.ORG_TEMPLATES_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     // In V1 pilot, return the standardized default template version
     res.json({

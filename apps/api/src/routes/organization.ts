@@ -1,23 +1,31 @@
 import { Router, Response } from 'express';
 import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
-import { AuthenticatedRequest, requireRole } from '../middleware/auth.js';
+import { AuthenticatedRequest, requireRole, requirePermission, requireAnyPermission } from '../middleware/auth.js';
 import { getDb } from '../db/mongo.js';
 import {
   CreateInvitationInputSchema,
   AssignSupervisorInputSchema,
   AuditEventsQuerySchema,
+  PERMISSIONS,
 } from '@reportbd/shared';
 import { logAuditEvent } from '../services/audit.js';
 import { inviteRateLimiter, sensitiveOpsLimiter } from '../middleware/rateLimiter.js';
 
 export const organizationRouter = Router();
 
-// Enforce org_admin role
-organizationRouter.use(requireRole(['org_admin', 'platform_admin']));
+// Enforce org_admin permissions
+organizationRouter.use(
+  requireAnyPermission([
+    PERMISSIONS.ORG_USERS_READ,
+    PERMISSIONS.ORG_ASSIGNMENTS_MANAGE,
+    PERMISSIONS.ORG_INVITATIONS_MANAGE,
+    PERMISSIONS.ORG_AUDIT_READ,
+  ])
+);
 
 // GET /api/v1/organization/users
-organizationRouter.get('/users', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.get('/users', requirePermission(PERMISSIONS.ORG_USERS_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -34,7 +42,7 @@ organizationRouter.get('/users', async (req: AuthenticatedRequest, res: Response
 });
 
 // POST /api/v1/organization/assignments
-organizationRouter.post('/assignments', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.post('/assignments', requirePermission(PERMISSIONS.ORG_ASSIGNMENTS_MANAGE), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const body = AssignSupervisorInputSchema.parse(req.body);
@@ -76,7 +84,7 @@ organizationRouter.post('/assignments', async (req: AuthenticatedRequest, res: R
 });
 
 // POST /api/v1/organization/invitations — Generate expiring single-use invitation
-organizationRouter.post('/invitations', inviteRateLimiter, async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.post('/invitations', inviteRateLimiter, requirePermission(PERMISSIONS.ORG_INVITATIONS_MANAGE), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const body = CreateInvitationInputSchema.parse(req.body);
@@ -85,7 +93,7 @@ organizationRouter.post('/invitations', inviteRateLimiter, async (req: Authentic
     const nowIso = now.toISOString();
 
     // Security check: Org admins cannot grant platform_admin
-    if (body.role === 'org_admin' && !user.roles.includes('platform_admin') && !user.roles.includes('org_admin')) {
+    if ((body.role as string) === 'platform_admin' && !user.roles.includes('platform_admin')) {
       res.status(403).json({ code: 'FORBIDDEN', message: 'You cannot delegate this role.' });
       return;
     }
@@ -161,7 +169,7 @@ organizationRouter.post('/invitations', inviteRateLimiter, async (req: Authentic
 });
 
 // GET /api/v1/organization/invitations — List invitations for organization
-organizationRouter.get('/invitations', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.get('/invitations', requirePermission(PERMISSIONS.ORG_INVITATIONS_MANAGE), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const db = await getDb();
@@ -189,7 +197,7 @@ organizationRouter.get('/invitations', async (req: AuthenticatedRequest, res: Re
 });
 
 // DELETE /api/v1/organization/invitations/:id — Revoke a pending invitation
-organizationRouter.delete('/invitations/:id', async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.delete('/invitations/:id', requirePermission(PERMISSIONS.ORG_INVITATIONS_MANAGE), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const id = req.params.id as string;
@@ -234,7 +242,7 @@ organizationRouter.delete('/invitations/:id', async (req: AuthenticatedRequest, 
 });
 
 // GET /api/v1/organization/audit-events — ADMINISTRATIVE AUDIT LOG EXPLORER (ADMIN-07)
-organizationRouter.get('/audit-events', sensitiveOpsLimiter, async (req: AuthenticatedRequest, res: Response) => {
+organizationRouter.get('/audit-events', sensitiveOpsLimiter, requirePermission(PERMISSIONS.ORG_AUDIT_READ), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user!;
     const parsedQuery = AuditEventsQuerySchema.safeParse(req.query);
