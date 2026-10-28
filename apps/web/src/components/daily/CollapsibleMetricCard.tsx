@@ -33,10 +33,10 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
   if (isBoolean) {
     const isChecked = isExpanded && !!value;
     return (
-      <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+      <div className="flex items-center justify-between p-3.5 rounded-xl bg-theme-surface-muted border border-theme-border hover:border-[var(--primary)]/40 transition-colors">
         <label
           htmlFor={`metric-check-${metric.id}`}
-          className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1 select-none"
+          className="text-sm font-semibold text-theme-text cursor-pointer flex-1 select-none"
         >
           {label}
         </label>
@@ -50,7 +50,7 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
             onToggleExpand(nextVal);
             onChange(nextVal);
           }}
-          className="h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+          className="h-5 w-5 rounded border-theme-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
         />
       </div>
     );
@@ -58,18 +58,18 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
 
   // 2. NUMERIC / COUNT / DURATION METRICS:
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {/* Title & Checkbox row */}
       <div className="flex items-center justify-between text-base">
         <label
           htmlFor={`metric-check-${metric.id}`}
-          className="font-medium text-slate-700 dark:text-slate-300 cursor-pointer flex-1 select-none"
+          className="font-medium text-theme-text cursor-pointer flex-1 select-none"
         >
           {label}
         </label>
         <div className="flex items-center gap-2">
           {isExpanded && unit && !isDuration && (
-            <span className="text-xs text-slate-400 font-normal">
+            <span className="text-sm text-theme-text-muted font-normal">
               ({unit})
             </span>
           )}
@@ -79,14 +79,14 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
             checked={isExpanded}
             disabled={disabled}
             onChange={(e) => onToggleExpand(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+            className="h-5 w-5 rounded border-theme-border text-brand-600 focus:ring-brand-500 cursor-pointer accent-brand-600"
           />
         </div>
       </div>
 
       {/* Expanded State: input fields & controls */}
       {isExpanded && (
-        <div className="pt-0.5 space-y-1">
+        <div className="pt-2 space-y-2.5">
           {isDuration ? (
             <DurationInput
               id={`duration-${metric.id}`}
@@ -111,17 +111,17 @@ export const CollapsibleMetricCard: React.FC<CollapsibleMetricCardProps> = ({
               onChange={(e) =>
                 onChange(e.target.value === '' ? null : Number(e.target.value))
               }
-              className={`w-full px-3 py-2 text-sm rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
+              className={`w-full px-3.5 py-2.5 text-base rounded-xl border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
                 isNegative
                   ? 'border-red-400 focus:border-red-500'
-                  : 'border-slate-200 dark:border-slate-700 focus:border-brand-500'
+                  : 'border-theme-border focus:border-[var(--primary)]'
               }`}
             />
           )}
 
           {isNegative && (
-            <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <div className="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{t('validation.negativeNumberNotAllowed')}</span>
             </div>
           )}

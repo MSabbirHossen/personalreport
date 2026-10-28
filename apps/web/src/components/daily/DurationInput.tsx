@@ -100,13 +100,13 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const hasAnyInput = hoursStr.trim() !== '' || minutesStr.trim() !== '';
 
   return (
-    <div className="space-y-1.5">
-      <div className="grid grid-cols-2 gap-2.5">
+    <div className="space-y-2.5">
+      <div className="grid grid-cols-2 gap-3.5">
         {/* Hours input */}
         <div>
           <label
             htmlFor={`${id}-hours`}
-            className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1"
+            className="block text-sm font-semibold text-theme-text mb-1.5"
           >
             {t('common.hours')}
           </label>
@@ -125,13 +125,13 @@ export const DurationInput: React.FC<DurationInputProps> = ({
                 }
               }}
               onChange={(e) => handleUpdate(e.target.value, minutesStr)}
-              className={`w-full px-3 py-2.5 pr-12 rtl:pr-3 rtl:pl-12 text-base rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
+              className={`w-full px-3.5 py-2.5 pr-14 rtl:pr-3.5 rtl:pl-14 text-base rounded-xl border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
                 error
-                  ? 'border-red-300 dark:border-red-800 focus:border-red-500'
-                  : 'border-slate-200 dark:border-slate-700 focus:border-brand-500'
+                  ? 'border-red-400 focus:border-red-500'
+                  : 'border-theme-border focus:border-[var(--primary)]'
               }`}
             />
-            <span className="absolute right-3 rtl:right-auto rtl:left-3 top-3 text-xs text-slate-400 pointer-events-none">
+            <span className="absolute right-3.5 rtl:right-auto rtl:left-3.5 top-3 text-sm text-theme-text-muted pointer-events-none">
               {t('common.hours')}
             </span>
           </div>
@@ -141,7 +141,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         <div>
           <label
             htmlFor={`${id}-minutes`}
-            className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1"
+            className="block text-sm font-semibold text-theme-text mb-1.5"
           >
             {t('common.minutes')} (0 - 59)
           </label>
@@ -161,13 +161,13 @@ export const DurationInput: React.FC<DurationInputProps> = ({
                 }
               }}
               onChange={(e) => handleUpdate(hoursStr, e.target.value)}
-              className={`w-full px-3 py-2.5 pr-12 rtl:pr-3 rtl:pl-12 text-base rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
+              className={`w-full px-3.5 py-2.5 pr-14 rtl:pr-3.5 rtl:pl-14 text-base rounded-xl border bg-theme-surface text-theme-text focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all ${
                 error
-                  ? 'border-red-300 dark:border-red-800 focus:border-red-500'
-                  : 'border-slate-200 dark:border-slate-700 focus:border-brand-500'
+                  ? 'border-red-400 focus:border-red-500'
+                  : 'border-theme-border focus:border-[var(--primary)]'
               }`}
             />
-            <span className="absolute right-3 rtl:right-auto rtl:left-3 top-3 text-xs text-slate-400 pointer-events-none">
+            <span className="absolute right-3.5 rtl:right-auto rtl:left-3.5 top-3 text-sm text-theme-text-muted pointer-events-none">
               {t('common.minutes')}
             </span>
           </div>
@@ -176,8 +176,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
 
       {/* Live duration conversion summary badge */}
       {hasAnyInput && !error && (
-        <div className="flex items-center gap-1.5 text-xs text-brand-700 dark:text-brand-300 font-medium bg-brand-50/70 dark:bg-brand-950/40 px-2.5 py-1 rounded-lg">
-          <Clock className="h-3.5 w-3.5 shrink-0" />
+        <div className="flex items-center gap-2 text-sm text-brand-700 dark:text-brand-300 font-medium bg-brand-50/70 dark:bg-brand-950/40 px-3 py-1.5 rounded-lg">
+          <Clock className="h-4 w-4 shrink-0" />
           <span>
             {t('common.total')}:{' '}
             <strong>
@@ -191,7 +191,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
 
       {/* Validation error message */}
       {error && (
-        <p className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1">
+        <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-1">
           {error}
         </p>
       )}
