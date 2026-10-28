@@ -63,17 +63,87 @@
   transform: scaleX(-1);
 }
 
-/* Islamic Geometric Pattern Treatments (Restrained, low-contrast 8-point stars) */
+/* Islamic Geometric Pattern Treatments (Authentic, visible 8-point stars all over the project) */
+html,
+body,
+.bg-theme-bg,
+.app-bg-pattern {
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.10' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+body {
+  background-attachment: fixed;
+}
+
+[data-theme="dark"] html,
+[data-theme="dark"] body,
+[data-theme="dark"] .bg-theme-bg,
+[data-theme="dark"] .app-bg-pattern,
+.dark html,
+.dark body,
+.dark .bg-theme-bg,
+.dark .app-bg-pattern {
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2334d399' stroke-opacity='.11' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Card Surfaces with Islamic Geometric Pattern */
+.bg-theme-surface,
+.rb-card,
+.card-pattern,
+.islamic-card {
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.10' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+[data-theme="dark"] .bg-theme-surface,
+[data-theme="dark"] .rb-card,
+[data-theme="dark"] .card-pattern,
+[data-theme="dark"] .islamic-card,
+.dark .bg-theme-surface,
+.dark .rb-card,
+.dark .card-pattern,
+.dark .islamic-card {
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2334d399' stroke-opacity='.12' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Standalone & Overlay Pattern Classes */
 .rb-pattern,
 .islamic-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.08' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23006a4e' stroke-opacity='.09' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 [data-theme="dark"] .rb-pattern,
 [data-theme="dark"] .islamic-pattern,
 .dark .rb-pattern,
 .dark .islamic-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23a9ddc8' stroke-opacity='.07' stroke-width='1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2334d399' stroke-opacity='.10' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Preserve Frosted Glass on Header */
+header.bg-theme-surface,
+header.backdrop-blur-md {
+  background-image: none;
+}
+
+/* Ensure Form Inputs Maintain Solid Clean Fills */
+input, select, textarea {
+  background-image: none !important;
+}
+
+/* Layered support for hero banners with gradients */
+.bg-gradient-to-r.islamic-pattern,
+.bg-gradient-to-r.rb-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.12' stroke-width='1.1'%3E%3Cpath d='M32 2 42 22 62 32 42 42 32 62 22 42 2 32 22 22Z'/%3E%3Cpath d='M32 12 37 27 52 32 37 37 32 52 27 37 12 32 27 27Z'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(to right, var(--tw-gradient-stops));
+  background-repeat: repeat;
 }
 
 /* Shimmer Skeleton */
