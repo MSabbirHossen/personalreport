@@ -157,22 +157,22 @@ export const MonthlyOutcomePage: React.FC = () => {
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-theme-surface islamic-card p-4 sm:p-5 rounded-2xl border border-theme-border shadow-sm no-print">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-brand-600 dark:text-brand-400" />
               <span>{t('monthlyOutcome.title')}</span>
             </h1>
-            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${badge.className}`}>
+            <span className={`text-sm px-3 py-1 rounded-full font-semibold ${badge.className}`}>
               {badge.label}
             </span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {t('monthlyOutcome.subtitle')}
           </p>
         </div>
 
         {/* Month Selector & Print */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <input
             type="month"
             value={selectedMonth}
@@ -180,14 +180,14 @@ export const MonthlyOutcomePage: React.FC = () => {
               setSelectedMonth(e.target.value);
               setSearchParams({ month: e.target.value });
             }}
-            className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+            className="px-4 py-2.5 text-base font-semibold rounded-xl border border-theme-border bg-theme-surface text-theme-text min-h-[44px]"
           />
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 text-base font-bold rounded-xl bg-theme-surface hover:bg-theme-surface-muted text-theme-text border border-theme-border transition-colors cursor-pointer min-h-[44px] shadow-xs"
           >
-            <Printer className="h-4 w-4" />
+            <Printer className="h-4.5 w-4.5" />
             <span>{t('common.print')}</span>
           </button>
         </div>
@@ -196,16 +196,16 @@ export const MonthlyOutcomePage: React.FC = () => {
       {/* Status banner */}
       {statusMsg && (
         <div
-          className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 no-print ${
+          className={`p-4 rounded-xl text-sm font-semibold flex items-center gap-2.5 no-print ${
             statusMsg.type === 'success'
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200'
               : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200'
           }`}
         >
           {statusMsg.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
           ) : (
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <AlertCircle className="h-4.5 w-4.5 shrink-0" />
           )}
           <span>{statusMsg.text}</span>
         </div>
@@ -213,9 +213,9 @@ export const MonthlyOutcomePage: React.FC = () => {
 
       {/* Stale Snapshot Warning */}
       {isStale && (
-        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-start gap-3 no-print">
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-start gap-3 no-print">
           <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-xs">
+          <div className="space-y-1 text-sm">
             <p className="font-bold">{t('monthlyOutcome.staleDataWarning')}</p>
             {staleReason && <p className="text-amber-700 dark:text-amber-300">{staleReason}</p>}
           </div>
@@ -224,7 +224,7 @@ export const MonthlyOutcomePage: React.FC = () => {
 
       {/* Snapshot Information Banner */}
       {snapshot && ['submitted', 'in_review', 'acknowledged'].includes(outcomeStatus) && (
-        <div className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-between no-print">
+        <div className="px-4.5 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm flex items-center justify-between no-print">
           <span>{t('monthlyOutcome.frozenSnapshotNotice')} ({formatDate(snapshot.calculatedAt)})</span>
           <span className="font-medium text-slate-500">{t('common.total')}: {formatNumber(snapshot.dailyReportsCount || 0)}</span>
         </div>
@@ -240,23 +240,23 @@ export const MonthlyOutcomePage: React.FC = () => {
 
       {/* Plan vs Actual Comparison Table */}
       <div className="bg-theme-surface islamic-card rounded-2xl border border-theme-border shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-brand-600" />
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-brand-600" />
             <span>{t('monthlyOutcome.title')}</span>
           </h2>
-          <span className="text-xs text-slate-500">{t('monthlyPlan.monthSelectLabel')}: {formatMonthKey(selectedMonth)}</span>
+          <span className="text-sm text-slate-500">{t('monthlyPlan.monthSelectLabel')}: {formatMonthKey(selectedMonth)}</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs border-collapse">
+          <table className="w-full text-start text-sm sm:text-base border-collapse">
             <thead className="bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="p-3 font-semibold text-start">{t('monthlyPlan.setTargetHeader')}</th>
-                <th className="p-3 font-semibold text-center">{t('monthlyPlan.unitLabel')}</th>
-                <th className="p-3 font-semibold text-center">{t('monthlyPlan.targetInputLabel')}</th>
-                <th className="p-3 font-semibold text-center">{t('common.actions')}</th>
-                <th className="p-3 font-semibold text-center">{t('dashboard.monthlyTargetStatus')}</th>
+                <th className="py-3 px-3.5 font-semibold text-start">{t('monthlyPlan.setTargetHeader')}</th>
+                <th className="py-3 px-3.5 font-semibold text-center">{t('monthlyPlan.unitLabel')}</th>
+                <th className="py-3 px-3.5 font-semibold text-center">{t('monthlyPlan.targetInputLabel')}</th>
+                <th className="py-3 px-3.5 font-semibold text-center">{t('common.actions')}</th>
+                <th className="py-3 px-3.5 font-semibold text-center">{t('dashboard.monthlyTargetStatus')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -264,7 +264,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                 <React.Fragment key={group.id}>
                   {/* Group heading row */}
                   <tr className="bg-slate-50/50 dark:bg-slate-800/40">
-                    <td colSpan={5} className="p-2.5 font-bold text-brand-700 dark:text-brand-400 text-start">
+                    <td colSpan={5} className="py-3 px-3.5 font-bold text-base text-brand-700 dark:text-brand-400 text-start">
                       {getGroupTitle(group, locale)}
                     </td>
                   </tr>
@@ -286,19 +286,19 @@ export const MonthlyOutcomePage: React.FC = () => {
 
                     return (
                       <tr key={metric.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="p-3 font-medium text-slate-800 dark:text-slate-200 ps-6 text-start">
+                        <td className="py-3 px-3.5 font-medium text-slate-800 dark:text-slate-200 ps-6 text-start">
                           {getMetricLabel(metric, locale)}
                         </td>
-                        <td className="p-3 text-center text-slate-500">
+                        <td className="py-3 px-3.5 text-center text-slate-500">
                           {getMetricUnit(metric, locale) || (metric.type === 'boolean' ? t('common.actions') : '')}
                         </td>
-                        <td className="p-3 text-center font-semibold text-slate-700 dark:text-slate-300">
+                        <td className="py-3 px-3.5 text-center font-semibold text-slate-700 dark:text-slate-300">
                           {targetVal !== undefined && targetVal !== null ? formatNumber(targetVal) : '-'}
                         </td>
-                        <td className="p-3 text-center font-bold text-brand-600 dark:text-brand-400">
+                        <td className="py-3 px-3.5 text-center font-bold text-brand-600 dark:text-brand-400">
                           {actualVal !== null && actualVal !== undefined ? formatNumber(actualVal) : formatNumber(0)}
                         </td>
-                        <td className="p-3 text-center">
+                        <td className="py-3 px-3.5 text-center">
                           {progressPercent !== null ? (
                             <div className="flex items-center justify-center gap-2">
                               <div className="w-16 bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
@@ -307,7 +307,7 @@ export const MonthlyOutcomePage: React.FC = () => {
                                   style={{ width: `${progressPercent}%` }}
                                 />
                               </div>
-                              <span className="font-semibold text-xs text-slate-600 dark:text-slate-300">
+                              <span className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                                 {formatNumber(progressPercent)}%
                               </span>
                             </div>
@@ -326,15 +326,15 @@ export const MonthlyOutcomePage: React.FC = () => {
       </div>
 
       {/* Self-Reflection & Evaluation */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
-        <h2 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <Award className="h-4 w-4 text-brand-600" />
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-5">
+        <h2 className="font-bold text-base sm:text-lg text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <Award className="h-5 w-5 text-brand-600" />
           <span>{t('monthlyOutcome.subtitle')}</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('common.notes')} (1)
             </label>
             <textarea
@@ -344,12 +344,12 @@ export const MonthlyOutcomePage: React.FC = () => {
                 setReflections((prev) => ({ ...prev, achievements: e.target.value }))
               }
               placeholder="..."
-              className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+              className="w-full p-3.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('common.notes')} (2)
             </label>
             <textarea
@@ -359,12 +359,12 @@ export const MonthlyOutcomePage: React.FC = () => {
                 setReflections((prev) => ({ ...prev, challenges: e.target.value }))
               }
               placeholder="..."
-              className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+              className="w-full p-3.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {t('common.notes')} (3)
             </label>
             <textarea
@@ -374,15 +374,15 @@ export const MonthlyOutcomePage: React.FC = () => {
                 setReflections((prev) => ({ ...prev, nextMonthPriorities: e.target.value }))
               }
               placeholder="..."
-              className="w-full p-2.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+              className="w-full p-3.5 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
         </div>
       </div>
 
       {/* Submission Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-print">
-        <div className="text-xs text-slate-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-print">
+        <div className="text-sm text-slate-500">
           {submittedAt ? (
             <div className="space-y-0.5">
               <span>{t('supervisor.submittedAtHeader')}: <strong>{formatDate(submittedAt)}</strong></span>
@@ -398,16 +398,16 @@ export const MonthlyOutcomePage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5 flex-wrap">
           {outcomeStatus !== 'submitted' && outcomeStatus !== 'acknowledged' ? (
             <>
               <PermissionGate permission={PERMISSIONS.MONTHLY_OUTCOME_WRITE_OWN}>
                 <button
                   onClick={handleSaveDraft}
                   disabled={saving || submitting}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-2xl border border-theme-border bg-theme-surface text-theme-text text-base font-semibold hover:bg-theme-surface-muted transition-all cursor-pointer disabled:opacity-50 min-h-[48px] shadow-xs"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-5 w-5" />
                   <span>{saving ? t('monthlyPlan.savingDraft') : t('monthlyPlan.saveDraftBtn')}</span>
                 </button>
               </PermissionGate>
@@ -416,9 +416,9 @@ export const MonthlyOutcomePage: React.FC = () => {
                 <button
                   onClick={handleSubmitReport}
                   disabled={submitting || saving}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/20 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white text-base font-bold shadow-lg shadow-brand-600/25 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 min-h-[48px]"
                 >
-                  <Send className={`h-4 w-4 ${isRTL ? 'rtl-flip' : ''}`} />
+                  <Send className={`h-5 w-5 ${isRTL ? 'rtl-flip' : ''}`} />
                   <span>
                     {submitting
                       ? t('monthlyOutcome.submittingOutcome')
@@ -430,7 +430,7 @@ export const MonthlyOutcomePage: React.FC = () => {
               </PermissionGate>
             </>
           ) : (
-            <div className="text-xs text-slate-500 italic">
+            <div className="text-sm text-slate-500 italic">
               {t('monthlyOutcome.lockedNotice')}
             </div>
           )}
