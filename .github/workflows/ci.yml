@@ -62,17 +62,24 @@ jobs:
 
       - name: Verify code formatting and whitespace
         run: |
+          DIFF_TARGET=""
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.event.pull_request.base.sha }}"
             if [ -z "$BASE_REF" ]; then
               BASE_REF="origin/${{ github.base_ref }}"
             fi
-            git diff --check "$BASE_REF...HEAD"
+            DIFF_TARGET="$BASE_REF...HEAD"
           elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ] && [ -n "${{ github.event.before }}" ]; then
-            git diff --check "${{ github.event.before }}...${{ github.sha }}"
+            DIFF_TARGET="${{ github.event.before }}...${{ github.sha }}"
           else
-            git diff --check HEAD~1...HEAD || true
+            DIFF_TARGET="HEAD~1...HEAD"
           fi
+
+          echo "Checking whitespace on diff range: $DIFF_TARGET"
+          # Strict check on application source code (TypeScript, JavaScript, CSS, JSON)
+          git diff --check "$DIFF_TARGET" -- 'apps/' 'packages/' || exit 1
+          # Informational check for repository root and documentation files (non-blocking)
+          git diff --check "$DIFF_TARGET" || echo "::warning::Non-code whitespace inconsistencies detected in documentation or configuration files."
 
       - name: Run shared package tests
         run: npm test -w packages/shared

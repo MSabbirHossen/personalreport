@@ -744,4 +744,3 @@ We welcome contributions to Report BD. Please follow the repository guidelines:
 - **Repository:** [https://github.com/MSabbirHossen/personalreport.git](https://github.com/MSabbirHossen/personalreport.git)
 - **Project Owner / Maintainer:** Md. Sabbir Hossen
 - **License Status:** No open-source or proprietary license file is currently identified in this repository. All rights are reserved by the project owner unless otherwise specified.
-
