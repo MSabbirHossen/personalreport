@@ -1,21 +1,32 @@
-import {
-  SiDocker,
-  SiExpress,
-  SiFirebase,
-  SiMongodb,
-  SiNodedotjs,
-  SiReact,
-  SiReactrouter,
-  SiTailwindcss,
-  SiTypescript,
-  SiVercel,
-  SiVite,
-  FaCalendarAlt,
-  FaDatabase,
-  FaIcons,
-  FaShieldAlt,
-  FaTachometerAlt,
-} from '../icons';
+/**
+ * Icon placeholder type for standalone project documentation.
+ * When bundled inside the main Portfolio repository (F:\Code Practice\Portfolio),
+ * these map to the centralized react-icons in `src/data/icons`.
+ */
+export type ProjectIcon = (props: { className?: string }) => unknown;
+
+const createIconStub = (name: string): ProjectIcon => {
+  const Icon: ProjectIcon = () => null;
+  (Icon as unknown as { displayName: string }).displayName = name;
+  return Icon;
+};
+
+export const SiDocker = createIconStub('SiDocker');
+export const SiExpress = createIconStub('SiExpress');
+export const SiFirebase = createIconStub('SiFirebase');
+export const SiMongodb = createIconStub('SiMongodb');
+export const SiNodedotjs = createIconStub('SiNodedotjs');
+export const SiReact = createIconStub('SiReact');
+export const SiReactrouter = createIconStub('SiReactrouter');
+export const SiTailwindcss = createIconStub('SiTailwindcss');
+export const SiTypescript = createIconStub('SiTypescript');
+export const SiVercel = createIconStub('SiVercel');
+export const SiVite = createIconStub('SiVite');
+export const FaCalendarAlt = createIconStub('FaCalendarAlt');
+export const FaDatabase = createIconStub('FaDatabase');
+export const FaIcons = createIconStub('FaIcons');
+export const FaShieldAlt = createIconStub('FaShieldAlt');
+export const FaTachometerAlt = createIconStub('FaTachometerAlt');
 
 export const reportbdProject = {
   id: 'report-bd',
@@ -202,4 +213,3 @@ export const reportbdProject = {
   difficulty: 'Advanced',
   featuredOrder: 2,
 };
-
